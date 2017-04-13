@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body id="body">
+<div id="sql_queries_PageContent" style="width:100%;height:100%;">
+    <div id="sql_queries_TopContent" style="width:100%;height:50px; margin:0;padding:0; display: inline-block ">
+        <table width="100%">
+            <tr>
+                <td width="200px;">
+                    <div id="filename"></div>
+                </td>
+                <td align="center">
+                    <table id="sql_params_table"></table>
+                </td>
+                <td width="40px;">
+                    <button id="sql_runBtn">Run</button>
+                </td>
+                <td width="100px;">
+                    <button id="sql_saveBtn">Save</button>
+                </td>
+                <td width="440px;"></td>
+            </tr>
+        </table>
+    </div>
+    <div id="sql_queries_LeftContent" style="width:150px;height:100%; margin:0;padding:0; ">
+    </div>
+    <div id="sql_queries_DetailContent" style="width:100%;height:100%; margin:0;padding:0;">
+        <table width='100%' height='100%'>
+            <tr>
+                <td style="padding-top:3px;padding-left:2px;padding-right:6px;">
+                    <textarea id="sql_display_content" style="border:none;width:100%;height:100%;"></textarea>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div id="sql_queries_RightContent" style="width:500px;height:100%; margin:0;padding:0;">
+        <div id="sql_display_result">
+        </div>
+    </div>
+</div>
+</body>
+<script type="text/javascript">
+    require(["app", "dijit/layout/BorderContainer", "dijit/layout/LayoutContainer", "dijit/layout/ContentPane", "dojo/data/ItemFileReadStore",
+                "dijit/form/TextBox", "dijit/form/DateTextBox", "dijit/form/Button", "dijit/ConfirmDialog","dijit/Dialog",
+                "request"],
+            function (APP, BorderContainer, LayoutContainer, ContentPane, ItemFileReadStore, TextBox, DateTextBox, Button, ConfirmDialog,Dialog,
+                      Request) {
+                var borderContainer = APP.initElem("sql_queries_PageContent", BorderContainer, {});
+                var topContentSQL = APP.initElem("sql_queries_TopContent", ContentPane, {region: "top"});
+                var leftContentSQL = APP.initElem("sql_queries_LeftContent", ContentPane, {region: "left"});
+                var detailContentSQL = APP.initElem("sql_queries_DetailContent", ContentPane, {region: "center"});
+                var rightContentSQL = APP.initElem("sql_queries_RightContent", ContentPane, {
+                    region: "right",
+                    splitter: true
+                });
+                var displayFileContentSQL = document.getElementById("sql_display_content");
+                var displayQueryResultSQl = document.getElementById("sql_display_result");
+
+                detailContentSQL.addButtonTo = function (parent, htmlId, fileName) {
+                    var button = APP.initChildTo(parent, htmlId, Button, {filename: fileName, label: htmlId});
+                    button.onClick = function () {
+                        detailContentSQL.showRequestSqlText(this.filename)
+                    };
+                    button.domNode.firstChild.setAttribute("style", "width:120px;");
+                };
+
+                detailContentSQL.addButtonTo(leftContentSQL, "sales_by_dates", "sales_by_dates.sql");
+
+
+                var btnRunSQL = APP.initElem("sql_runBtn", Button, {});
+                var btnSaveSQl = APP.initElem("sql_saveBtn", Button, {});
+                var sql_params = document.getElementById("sql_params");
+                borderContainer.startup();
+                var confirmDialog = new ConfirmDialog({content: "Сохранить изменеия в файл?"});
+                var inputParamsList = [];
+
+                detailContentSQL.showRequestSqlText = function (filename) {
+                    Request.getTextData({
+                                url: "/sysadmin/sql_queries/get_script",
+                                condition: "filename=" + filename,
+                                consoleLog: true
+                            }
+                            , function (success, data) {
+                                if (!success) {
+                                    displayFileContentSQL.value = "<div><b style='color:red'>No connection!</b></div>";
+                                    return;
+                                }
+                                displayFileContentSQL.value = data;
+                                displayQueryResultSQl.innerHTML = "";
+                                document.getElementById("filename").innerHTML = filename;
+                                topContentSQL.showParamsInput(data);
+                            });
+                };
+                topContentSQL.showParamsInput = function (queryString) {
+                    var tr = document.getElementById("sql_params_tr");
+                    if (tr)  tr.parentNode.removeChild(tr);
+                    var paramMap = topContentSQL.getParamsFrom(queryString);
+                    if (paramMap.length > 0) {
+                        topContentSQL.createParamsInput(paramMap);
+                        topContentSQL.setParamsDefaultValues();
+                    }
+                };
+                topContentSQL.getParamsFrom = function (text) {
+                    var paramNameMap = [];
+                    var paramName;
+                    var target = "@";
+                    var pos = 0;
+                    while (true) {
+                        var foundPos = text.indexOf(target, pos);
+                        if (foundPos < 0)break;
+                        paramName = text.substring(foundPos, text.indexOf(" ", foundPos));
+                        if (paramName.indexOf("\n") > -1) {
+                            paramName = paramName.substring(0, paramName.indexOf("\n"));
+                            paramName = paramName.trim();
+                        }
+                        if (paramName.indexOf("+") > -1) paramName = paramName.substring(0, paramName.indexOf("+"));
+                        if (paramNameMap.length == 0) paramNameMap.push(paramName);
+                        else if (paramNameMap.indexOf(paramName) < 0)paramNameMap.push(paramName);
+                        pos = foundPos + 1;
+                    }
+                    return paramNameMap;
+                };
+                topContentSQL.createParamsInput = function (paramNamesMap) {
+                    var tr;
+                    var td;
+                    if (tr)  tr.parentNode.removeChild(tr);
+                    inputParamsList = [];
+                    tr = document.createElement('tr');
+                    tr.setAttribute("id", "sql_params_tr");
+                    document.getElementById("sql_params_table").appendChild(tr);
+                    for (var i = 0; i < paramNamesMap.length; i++) {
+                        td = document.createElement('td');
+                        tr.appendChild(td);
+                        var id = paramNamesMap[i].substring(1);
+                        var label = document.createElement("label");
+                        label.htmlFor = id;
+                        label.innerText = "" + paramNamesMap[i];
+                        label.setAttribute("id", "ladel" + id);
+                        var textBox = document.createElement("input");
+                        textBox.setAttribute("name", id);
+                        textBox.setAttribute("id", id);
+                        td.appendChild(textBox);
+                        td.insertBefore(label, textBox);
+                        inputParamsList.push(textBox);
+                    }
+                };
+                topContentSQL.setParamsDefaultValues = function () {
+                    var bdate = document.getElementById("BDATE");
+                    var edate = document.getElementById("EDATE");
+                    var stocksList = document.getElementById("StocksList");
+                    if (bdate) {
+                        var startOfYear = moment().startOf('year').format('YYYY-MM-DD');
+                        bdate.setAttribute("value", startOfYear);
+                    }
+                    if (edate) {
+                        var now = moment().format('YYYY-MM-DD');
+                        edate.setAttribute("value", now);
+                    }
+                    if (stocksList) stocksList.setAttribute("value", "1");
+                };
+                btnRunSQL.onClick = function () {
+                    var bdate = "0";
+                    var edate = "0";
+                    var stocksList = "0";
+                    var newQueryText = document.getElementById("sql_display_content").value;
+                    displayQueryResultSQl.innerHTML = "";
+                    var condition = "";
+                    for (var i = 0; i < inputParamsList.length; i++) {
+                        var input = inputParamsList[i];
+                        if (condition.length != 0)condition += "&";
+                        condition += input.id + "=" + input.value;
+
+                    }
+                    Request.postJSONData({
+                                url: "/sysadmin/sql_queries/get_result_to_request",
+                                condition: condition,
+                                data: {text: newQueryText}, consoleLog: true
+                            },
+                            function (success, data) {
+                                if (!success) {
+                                    displayQueryResultSQl.innerHTML = "<div><b style='color:red'>Error in request</b></div>";
+                                    return;
+                                }
+                                if (data.error)
+                                    displayQueryResultSQl.innerHTML = "<div><b style='color:red'>" + data.error + "</b></div>";
+                                else
+                                    displayQueryResultSQl.innerHTML = JSON.stringify(data.result);
+                            });
+                };
+                btnSaveSQl.onClick = function () {
+                    var newQueryText = document.getElementById("sql_display_content").value;
+                    if (!newQueryText) {
+                        borderContainer.showSimpleDialog("Нет информации для сохранения");
+                        return;
+                    }
+                    confirmDialog.show();
+                    confirmDialog.onExecute = function () {
+                        confirmDialog.hide();
+                        var filename = document.getElementById("filename").innerText;
+                        Request.postJSONData({
+                                    url: "/sysadmin/sql_queries/save_sql_file", condition: "filename=" + filename,
+                                    data: {text: newQueryText}, consoleLog: true
+                                },
+                                function (success, data) {
+                                    if (!success) {
+                                        borderContainer.showSimpleDialog("Файл не сохранен! \n Error in request");
+                                        return;
+                                    }
+                                    if (data.error)
+                                        borderContainer.showSimpleDialog("Файл не сохранен!"+data.error);
+                                    else{
+                                        borderContainer.showSimpleDialog("Файл сохранен!");
+                                    }
+                                });
+                    }
+                };
+
+                borderContainer.showSimpleDialog = function (content) {
+
+                    borderContainer.dialog = new Dialog();
+                    if (!borderContainer.btn) {
+                        borderContainer.btn = new Button({
+                            label: "OK",
+                            onClick: function () {
+                                borderContainer.dialog.hide();
+                            }
+                        });
+                    }
+                    borderContainer.dialog.startup();
+                    borderContainer.dialog.set("content", content);
+                    borderContainer.dialog.addChild(borderContainer.btn);
+                    borderContainer.dialog.show();
+                };
+            });
+</script>
+</html>
