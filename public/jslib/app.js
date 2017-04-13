@@ -4,6 +4,45 @@
 define(["dijit/registry"],
     function (registry) {
         return {
+            instance: function(htmlElemID, Class, params) {
+                var instance = registry.byId(htmlElemID);
+                if (instance==null) {
+                    if (!params) params={};
+                    params.id = htmlElemID;
+                    instance = new Class(params);
+                }
+                return instance;
+            },
+            instanceFor: function(htmlElem, Class, params) {
+                var id = htmlElem.getAttribute("id"), instance;
+                if (id!=undefined) instance = registry.byId(id);
+                if (instance==null) {
+                    if (!params) params={};
+                    params.id = id;
+                    instance = new Class(params, htmlElem);
+                }
+                return instance;
+            },
+            instanceForID: function(htmlElemID, Class, params) {
+                var instance = registry.byId(htmlElemID);
+                if (instance==null) {
+                    if (!params) params={};
+                    params.id = htmlElemID;
+                    instance = new Class(params, htmlElemID);
+                }
+                return instance;
+            },
+            childFor: function(parent, ID, Class, params) {
+                var instance = registry.byId(ID);
+                if (instance==null) {
+                    if (!params) params={};
+                    params.id = ID;
+                    instance = new Class(params);
+                    if (parent!=null) parent.addChild(instance);
+                }
+                return instance;
+            },
+
             /**
              * Inited DOJO element for HTML element
              * @param registry
@@ -46,8 +85,8 @@ define(["dijit/registry"],
                 //dialog msg
             },
             doRequestErrorDialog: function (){
-                this.doDialogMsg({title:"Внимание",content:"Невозможно завершить операцию! <br>Нет всязи с сервером!",
-                    style:"width:300px;", btnOkLabel:"OK", btnCancelLabel:"Закрыть"});
+                this.doDialogMsg({title:"пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ",content:"пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ! <br>пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ!",
+                    style:"width:300px;", btnOkLabel:"OK", btnCancelLabel:"пїЅпїЅпїЅпїЅпїЅпїЅпїЅ"});
             },
 
             today: function (){

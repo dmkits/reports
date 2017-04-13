@@ -123,6 +123,28 @@ app.post("/sysadmin/sql_queries/save_sql_file", function (req, res) {
     });
 });
 
+app.get("/", function(req, res){
+    res.sendFile(path.join(__dirname, '/views', 'main.html'));
+});
+app.get("/get_main_data", function(req, res){
+    var outData = {};//main data
+    var menuBar= [];//menu bar list
+    outData.mode= "test";
+    outData.modeName= "TEST";
+    menuBar.push({itemname:"menuBarItemRetailSales",itemtitle:"Retail sales", action:"open",content:"/reports/retail_sales", id:"ReportRetailSales",title:"Retail sales", closable:false});
+    menuBar.push({itemname:"menuBarClose",itemtitle:"Exit",action:"close"});
+    menuBar.push({itemname:"menuBarAbout",itemtitle:"About",action:"help_about"});
+    outData.title= "REPORTS";
+    outData.user= "user";
+    outData.menuBar= menuBar;
+    outData.autorun= [];
+    outData.autorun.push({menuitem:"menuBarItemRetailSales", runaction:1});
+    res.send(outData);
+});
+app.get("/reports/retail_sales", function(req, res){
+    res.sendFile(path.join(__dirname, '/views/reports', 'retail_sales.html'));
+});
+
 app.listen(port, function (err) {
 });
 
