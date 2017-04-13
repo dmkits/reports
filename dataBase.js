@@ -49,6 +49,25 @@ module.exports.getResultToNewQuery=function(newQuery, parameters, callback ){
                 }
             })
 };
+
+module.exports.getSalesByDates=function(bdate,edate, callback ){                console.log("getSalesByDates");
+  //  var SegfaultHandler = require('segfault-handler');
+
+    var reqSql = new sql.Request(conn);
+  //  SegfaultHandler.registerHandler("crash.log");
+    var query_str = fs.readFileSync('./scripts/sales_by_dates.sql', 'utf8');
+    reqSql.input('BDATE',sql.Date, bdate);
+    reqSql.input('EDATE',sql.Date, edate);
+    reqSql.query(query_str,
+        function (err, result) {
+            if (err) {                                console.log("err=",err);
+                callback(err);
+            } else {                               //  console.log("result=",result);
+                callback(null,result);
+            }
+        });
+};
+
 function deleteSpaces(text){
     if(text.indexOf(" ")!=-1){
         text = text.replace(/ /g,"");

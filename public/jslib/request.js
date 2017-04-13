@@ -12,7 +12,12 @@ define(["dojo/request/xhr", "app", "dojo/domReady!"],
             getJSONData: function (params, callback) {
                 if (!params) return;
                 var url = params["url"], condition = params["condition"], consoleLog = params["consoleLog"];
-                if (condition) url = url + "?" + condition;
+                if (condition&&typeof(condition)=="object") {
+                    var conditionStr;
+                    for(var conditionItem in condition)
+                        conditionStr= (!conditionStr)? conditionItem+"="+condition[conditionItem] : conditionStr+"&"+conditionItem+"="+condition[conditionItem];
+                    if(conditionStr) url = url + "?" + conditionStr;
+                } else if (condition) url = url + "?" + condition;
                 var showRequestErrorDialog=this.showRequestErrorDialog;
                 xhr.get(url, {headers: this.jsonHeader, handleAs: "json"}).then(
                     function (data) {

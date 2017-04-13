@@ -145,6 +145,33 @@ app.get("/reports/retail_sales", function(req, res){
     res.sendFile(path.join(__dirname, '/views/reports', 'retail_sales.html'));
 });
 
+app.get("/reports/retail_sales/get_sales_by_days", function(req, res){
+    var bdate = req.query.BDATE;       console.log("req.query=",req.query);
+    var edate = req.query.EDATE;
+    database.getSalesByDates
+    (bdate,edate,
+        function (error,recordset) {
+            if (error){
+                res.send({error:""});
+                return;
+            }
+         // console.log("recordset=",recordset);
+         //   var outData = {};
+         //   outData.columns = [];
+         //   outData.columns.push({data:"DOCDATE", name:"Doc Date", width:120, type:"text", dateFormat:"DD.MM.YYYY"});//type:date
+         //   outData.columns.push({data:"PRODNAME", name:"Prod Name", width:300});//type:text, html:true
+         //   outData.columns.push({data:"PRICE", name:"Prod Price", width:80, type:"numeric", format:"0.[0000]"});
+         //   outData.items = [];
+         //   outData.items.push({"CHID":"1", "DOCDATE":"2017-01-01", "PRODNAME":"PRODNAME1", "PRICE":"123.3456"});
+         //   outData.items.push({"CHID":"2", "DOCDATE":"2017-01-02", "PRODNAME":"PRODNAME2", "PRICE":"0.123456"});
+         //   outData.items.push({"CHID":"3", "DOCDATE":"2017-01-03", "PRODNAME":"PRODNAME4", "PRICE":"98765"});
+         //   //outData.identifier = "CHID";
+           res.send(recordset);
+
+          //  res.end();
+        });
+});
+
 app.listen(port, function (err) {
 });
 

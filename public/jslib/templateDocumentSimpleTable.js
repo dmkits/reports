@@ -38,7 +38,8 @@ define(["dojo/_base/declare", "app", "templateDocumentBase", "hTableSimpleFilter
                 };
             },
             setDetailContent: function(){
-                var condition = {"action":this.dataURLAction};
+                var condition = {};
+                if(this.dataURLAction) condition["action"]=this.dataURLAction;
                 if (this.beginDateBox) condition[this.beginDateBox.conditionName] =
                     this.beginDateBox.format(this.beginDateBox.get("value"),{selector:"date",datePattern:"yyyy-MM-dd"});
                 if (this.endDateBox) condition[this.endDateBox.conditionName] =

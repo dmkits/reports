@@ -71,10 +71,11 @@
                     reports_retail_ContentPaneDetailContainer.selectChild(reports_retail_Btn_SalesByBataAttributes.document);
                 };
                 reports_retail_Btn_SalesByDays.onClick= function(){
+
                     if (!reports_retail_Btn_SalesByDays.document){
                         reports_retail_Btn_SalesByDays.document =
                                 APP.childFor(reports_retail_ContentPaneDetailContainer, "reports_retail_TableSalesByDays",
-                                        TDocumentSimpleTable, {titleText:"Продажи по дням", dataURL:"/reports/retail", dataURLAction:"get_sales_by_dates" })
+                                        TDocumentSimpleTable, {titleText:"Продажи по дням", dataURL:"/reports/retail_sales/get_sales_by_days"})
                                         .setBeginDateBox("с","BDATE").setEndDateBox("по","EDATE")
                                         .setTotalSumBoldfont("ИТОГО кол-во:","QTY", 500)
                                         .setTotalSumBoldfont("ИТОГО сумма:","POSSUM", 180)
