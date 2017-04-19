@@ -30,8 +30,13 @@
     <div id="sql_queries_DetailContent" style="width:100%;height:100%; margin:0;padding:0;">
         <table width='100%' height='100%'>
             <tr>
-                <td style="padding-top:3px;padding-left:2px;padding-right:6px;">
+                <td style="padding-top:3px;padding-left:2px;padding-right:6px; border-bottom:1px solid darkgrey; margin: 0px">
                     <textarea id="sql_display_content" style="border:none;width:100%;height:100%;"></textarea>
+                </td>
+            </tr>
+            <tr>
+                <td style="padding-top:3px;padding-left:2px;padding-right:6px;border-top:1px solid darkgrey;margin: 0px">
+                    <textarea id="json_display_content" style="border:none;width:100%;height:100%;"></textarea>
                 </td>
             </tr>
         </table>
@@ -57,6 +62,7 @@
                     splitter: true
                 });
                 var displayFileContentSQL = document.getElementById("sql_display_content");
+                var displayFileContentJSON = document.getElementById("json_display_content");
                 var displayQueryResultSQl = document.getElementById("sql_display_result");
 
                 detailContentSQL.addButtonTo = function (parent, htmlId, fileName) {
@@ -67,9 +73,9 @@
                     button.domNode.firstChild.setAttribute("style", "width:120px;");
                 };
 
-                detailContentSQL.addButtonTo(leftContentSQL, "sales_by_pcats", "sales_by_pcats.sql");
-                detailContentSQL.addButtonTo(leftContentSQL, "sales_by_prods", "sales_by_prods.sql");
-                detailContentSQL.addButtonTo(leftContentSQL, "sales_by_dates", "sales_by_dates.sql");
+                detailContentSQL.addButtonTo(leftContentSQL, "sales_by_pcats", "sales_by_pcats");
+                detailContentSQL.addButtonTo(leftContentSQL, "sales_by_prods", "sales_by_prods");
+                detailContentSQL.addButtonTo(leftContentSQL, "sales_by_dates", "sales_by_dates");
 
                 var btnRunSQL = APP.initElem("sql_runBtn", Button, {});
                 var btnSaveSQl = APP.initElem("sql_saveBtn", Button, {});
@@ -79,20 +85,21 @@
                 var inputParamsList = [];
 
                 detailContentSQL.showRequestSqlText = function (filename) {
-                    Request.getTextData({
+                    Request.getJSONData({
                                 url: "/sysadmin/sql_queries/get_script",
                                 condition: "filename=" + filename,
                                 consoleLog: true
                             }
-                            , function (success, data) {
+                            , function (success, data) {      console.log("data=",data,"data.sqlText", data.sqlText);
                                 if (!success) {
                                     displayFileContentSQL.value = "<div><b style='color:red'>No connection!</b></div>";
                                     return;
                                 }
-                                displayFileContentSQL.value = data;
+                                displayFileContentSQL.value = data.sqlText;
+                                displayFileContentJSON.value = data.jsonText;
                                 displayQueryResultSQl.innerHTML = "";
                                 document.getElementById("filename").innerHTML = filename;
-                                topContentSQL.showParamsInput(data);
+                                topContentSQL.showParamsInput(data.sqlText);
                             });
                 };
                 topContentSQL.showParamsInput = function (queryString) {
@@ -193,7 +200,8 @@
                 };
                 btnSaveSQl.onClick = function () {
                     var newQueryText = document.getElementById("sql_display_content").value;
-                    if (!newQueryText) {
+                    var newJSONText = document.getElementById("json_display_content").value;
+                    if (!(newQueryText || newJSONText) ) {
                         borderContainer.showSimpleDialog("Нет информации для сохранения");
                         return;
                     }
@@ -203,7 +211,7 @@
                         var filename = document.getElementById("filename").innerText;
                         Request.postJSONData({
                                     url: "/sysadmin/sql_queries/save_sql_file", condition: "filename=" + filename,
-                                    data: {text: newQueryText}, consoleLog: true
+                                    data: {textSQL: newQueryText, textJSON:newJSONText}, consoleLog: true
                                 },
                                 function (success, data) {
                                     if (!success) {
@@ -218,9 +226,7 @@
                                 });
                     }
                 };
-
                 borderContainer.showSimpleDialog = function (content) {
-
                     borderContainer.dialog = new Dialog();
                     if (!borderContainer.btn) {
                         borderContainer.btn = new Button({

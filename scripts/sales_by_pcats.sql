@@ -1,4 +1,3 @@
-
 select  c.PCatName,p.UM, SUM(d.Qty) AS TotalQty, SUM(d.SumCC_wt) AS TotalSum
 from t_sale s
   INNER JOIN t_SaleD d on d.CHID=s.CHID

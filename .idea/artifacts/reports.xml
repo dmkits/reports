@@ -1,0 +1,32 @@
+<component name="ArtifactManager">
+  <artifact name="reports">
+    <output-path>$PROJECT_DIR$/out/artifacts/reports</output-path>
+    <root id="root">
+      <element id="file-copy" path="$PROJECT_DIR$/app.js" />
+      <element id="file-copy" path="$PROJECT_DIR$/dataBase.js" />
+      <element id="file-copy" path="$PROJECT_DIR$/package.json" />
+      <element id="file-copy" path="$PROJECT_DIR$/production.cfg" />
+      <element id="file-copy" path="$PROJECT_DIR$/reports.iml" />
+      <element id="file-copy" path="$PROJECT_DIR$/test.cfg" />
+      <element id="directory" name="installNode">
+        <element id="dir-copy" path="$PROJECT_DIR$/installNode" />
+      </element>
+      <element id="directory" name="node_modules">
+        <element id="dir-copy" path="$PROJECT_DIR$/node_modules" />
+      </element>
+      <element id="directory" name="public">
+        <element id="dir-copy" path="$PROJECT_DIR$/public" />
+        <element id="file-copy" path="$PROJECT_DIR$/start_test .sh" />
+        <element id="file-copy" path="$PROJECT_DIR$/start_test.cmd" />
+      </element>
+      <element id="directory" name="scripts">
+        <element id="dir-copy" path="$PROJECT_DIR$/scripts" />
+      </element>
+      <element id="directory" name="views">
+        <element id="dir-copy" path="$PROJECT_DIR$/views" />
+      </element>
+      <element id="file-copy" path="$PROJECT_DIR$/start_test.cmd" />
+      <element id="file-copy" path="$PROJECT_DIR$/start_test .sh" />
+    </root>
+  </artifact>
+</component>

@@ -12,7 +12,7 @@ module.exports.setDBConfig=function(newDBConfig){
     dbConfig= newDBConfig;
 };
 module.exports.loadConfig=function(){
-    dbConfigFilePath='./' + app.startupMode() + '.cfg';
+    dbConfigFilePath='./' + app.startupMode + '.cfg';
     var stringConfig = fs.readFileSync(dbConfigFilePath);
     dbConfig = JSON.parse(stringConfig);
 };
@@ -50,21 +50,16 @@ module.exports.getResultToNewQuery=function(newQuery, parameters, callback ){
             })
 };
 
-module.exports.getSalesBy=function(filename, bdate,edate, callback ){                console.log("getSalesByDates");
-  //  var SegfaultHandler = require('segfault-handler');
-
+module.exports.getSalesBy=function(filename, bdate,edate, callback ){
     var reqSql = new sql.Request(conn);
-  //  SegfaultHandler.registerHandler("crash.log");
     var query_str = fs.readFileSync('./scripts/'+filename, 'utf8');
-
     reqSql.input('BDATE',sql.Date, bdate);
-    reqSql.input('EDATE',sql.Date, edate);console.log("EDATE=",edate);
-                                                                                //console.log("conn=",conn," reqSql=",reqSql);
-    reqSql.query(query_str, //"select * from t_Sales",//query_str,
+    reqSql.input('EDATE',sql.Date, edate);
+    reqSql.query(query_str,
         function (err, result) {
-            if (err) {                                console.log("err=",err);
+            if (err) {
                 callback(err);
-            } else {                                //console.log("result.columns=",result.columns);
+            } else {
                 callback(null,result);
             }
         });
