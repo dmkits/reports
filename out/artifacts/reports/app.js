@@ -1,20 +1,37 @@
-function startupMode(){
-    var app_params = process.argv.slice(2);
-    if(app_params.length===0) return 'production';
-    return app_params[0];
+
+function startupParams(){
+    var app_params = {};
+    if(process.argv.length==0) {
+        app_params.mode='production';
+        app_params.port=8080;
+        return app_params;
+    }
+    for(var i=2;i<process.argv.length;i++){
+        if(process.argv[i].indexOf('-p:')==0){
+            var port=process.argv[i].replace("-p:","");
+            if(port>0 && port<65536){
+                app_params.port=port;
+            }
+        }else if(process.argv[i].charAt(0).toUpperCase()>'A'&&process.argv[i].charAt(0).toUpperCase()<'Z'){
+            app_params.mode = process.argv[i];
+        }
+    }
+    if(!app_params.port)app_params.port=8080;
+    if(!app_params.mode)app_params.mode = 'production';
+  return app_params;
 }
 
-module.exports.startupMode = startupMode;
+var app_params=startupParams();
+
+module.exports.startupMode = app_params.mode;
 
 var fs = require('fs');
 var express = require('express');
 var app = express();
-var port=8181;
+var port=app_params.port;                                         console.log("port=",port);
 var path=require ('path');
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
-
-
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -42,12 +59,13 @@ function tryDBConnect(postaction) {                                          con
         if (postaction)postaction(err);                                      console.log('tryDBConnect DBConnectError=',DBConnectError);//test
     });
 }
-app.get("/admin", function(req, res){
+app.get("/sysadmin", function(req, res){
     res.sendFile(path.join(__dirname, '/views', 'sysadmin.html'));
 });
 app.get("/sysadmin/app_state", function(req, res){
     var outData= {};
-    outData.mode= startupMode();
+    outData.mode= app_params.mode;
+    outData.port=port;
     if (ConfigurationError) {
         outData.error= ConfigurationError;
         res.send(outData);
@@ -68,7 +86,9 @@ app.get("/sysadmin/startup_parameters/get_app_config", function (req, res) {
         res.send({error:ConfigurationError});
         return;
     }
-    res.send(database.getDBConfig());
+    var outData={};
+    outData=database.getDBConfig();
+    res.send(outData);
 });
 app.get("/sysadmin/startup_parameters/load_app_config", function (req, res) {
     tryLoadConfiguration();
@@ -76,14 +96,16 @@ app.get("/sysadmin/startup_parameters/load_app_config", function (req, res) {
         res.send({error:ConfigurationError});
         return;
     }
-    res.send(database.getDBConfig());
+    var outData={};
+    outData=database.getDBConfig();
+    res.send(outData);
 });
 app.post("/sysadmin/startup_parameters/store_app_config_and_reconnect", function (req, res) {
     var newDBConfigString = req.body;
     database.setDBConfig(newDBConfigString);
+    var outData = {};
     database.saveConfig(
         function (err) {
-            var outData = {};
             if (err) outData.error = err;
             tryDBConnect(/*postaction*/function (err) {
                 if (DBConnectError) outData.DBConnectError = DBConnectError;
@@ -96,7 +118,10 @@ app.get("/sysadmin/sql_queries", function (req, res) {
     res.sendFile(path.join(__dirname, '/views/sysadmin', 'sql_queries.html'));
 });
 app.get("/sysadmin/sql_queries/get_script", function (req, res) {
-  res.send(fs.readFileSync('./scripts/'+req.query.filename, 'utf8'));
+    var outData={};
+    outData.sqlText=fs.readFileSync('./scripts/'+req.query.filename+".sql", 'utf8');
+    outData.jsonText= fs.readFileSync('./scripts/'+req.query.filename+".json").toString();
+  res.send(outData);
 });
 app.post("/sysadmin/sql_queries/get_result_to_request", function (req, res) {
    var newQuery = req.body;
@@ -115,12 +140,15 @@ app.post("/sysadmin/sql_queries/get_result_to_request", function (req, res) {
 app.post("/sysadmin/sql_queries/save_sql_file", function (req, res) {
     var newQuery = req.body;
     var filename= req.query.filename;
-    fs.writeFile("./scripts/"+filename, newQuery.text, function (err) {
-        var outData = {};
+    var outData = {};
+    fs.writeFile("./scripts/"+filename+".sql", newQuery.textSQL, function (err) {
         if(err)outData.error=err.message;
-         outData.success="Файл сохранен!";
-        res.send(outData);
     });
+    fs.writeFile("./scripts/"+filename+".json", newQuery.textJSON, function (err) {
+        if(err)outData.error=err.message;
+    });
+    outData.success="Файл сохранен!";
+    res.send(outData);
 });
 
 app.get("/", function(req, res){
@@ -136,13 +164,11 @@ app.get("/get_main_data", function(req, res){
 
     if (ConfigurationError) {
         outData.error= ConfigurationError;                                                  console.log("req.ConfigurationError=",ConfigurationError);
-        //res.send(outData);
-        //return;
     }
 
-    menuBar.push({itemname:"menuBarItemRetailSales",itemtitle:"Retail sales", action:"open",content:"/reports/retail_sales", id:"ReportRetailSales",title:"Retail sales", closable:false});
-    menuBar.push({itemname:"menuBarClose",itemtitle:"Exit",action:"close"});
-    menuBar.push({itemname:"menuBarAbout",itemtitle:"About",action:"help_about"});
+    menuBar.push({itemname:"menuBarItemRetailSales",itemtitle:"Отчеты retail", action:"open",content:"/reports/retail_sales", id:"ReportRetailSales",title:"Отчеты retail", closable:false});
+    menuBar.push({itemname:"menuBarClose",itemtitle:"Выход",action:"close"});
+    menuBar.push({itemname:"menuBarAbout",itemtitle:"О программе",action:"help_about"});
     outData.menuBar= menuBar;
     outData.autorun= [];
     outData.autorun.push({menuitem:"menuBarItemRetailSales", runaction:1});
@@ -153,7 +179,7 @@ app.get("/reports/retail_sales", function(req, res){
 });
 
 app.get("/reports/retail_sales/get_sales_by_days", function(req, res){
-    var bdate = req.query.BDATE;       //console.log("req.query=",req.query);
+    var bdate = req.query.BDATE;
     var edate = req.query.EDATE;
     database.getSalesBy("sales_by_dates.sql",bdate,edate,
         function (error,recordset) {
@@ -161,9 +187,10 @@ app.get("/reports/retail_sales/get_sales_by_days", function(req, res){
                 res.send({error:""});
                 return;
             }
-            var outData =getHandsonJSON(recordset);
+            var outData={};
+            outData.items=recordset;
+            outData.columns=JSON.parse(fs.readFileSync('./scripts/sales_by_dates.json', 'utf8'));
            res.send(outData);
-
         });
 });
 app.get("/reports/retail_sales/get_sales_by_prods", function(req, res){
@@ -175,7 +202,9 @@ app.get("/reports/retail_sales/get_sales_by_prods", function(req, res){
                 res.send({error:""});
                 return;
             }
-            var outData =getHandsonJSON(recordset);
+            var outData={};
+            outData.items=recordset;
+            outData.columns=JSON.parse(fs.readFileSync('./scripts/sales_by_prods.json', 'utf8'));
             res.send(outData);
         });
 });
@@ -188,61 +217,13 @@ app.get("/reports/retail_sales/get_sales_by_pcats", function(req, res){
                 res.send({error:""});
                 return;
             }
-            var outData =getHandsonJSON(recordset);    console.log("outData=",outData);
+            var outData={};
+            outData.items=recordset;
+            outData.columns=[];
+            outData.columns=JSON.parse(fs.readFileSync('./scripts/sales_by_pcats.json', 'utf8'));
             res.send(outData);
         });
 });
-
-function getHandsonJSON(recordset){
-    //   var outData = {};
-    //   outData.columns = [];
-    //   outData.columns.push({data:"DOCDATE", name:"Doc Date", width:120, type:"text", dateFormat:"DD.MM.YYYY"});//type:date
-    //   outData.columns.push({data:"PRODNAME", name:"Prod Name", width:300});//type:text, html:true
-    //   outData.columns.push({data:"PRICE", name:"Prod Price", width:80, type:"numeric", format:"0.[0000]"});//format:"0.00[0000] language:'ru'
-    //   outData.items = [];
-
-    //   outData.items.push({"CHID":"1", "DOCDATE":"2017-01-01", "PRODNAME":"PRODNAME1", "PRICE":"123.3456"});
-    //   outData.items.push({"CHID":"2", "DOCDATE":"2017-01-02", "PRODNAME":"PRODNAME2", "PRICE":"0.123456"});
-    //   outData.items.push({"CHID":"3", "DOCDATE":"2017-01-03", "PRODNAME":"PRODNAME4", "PRICE":"98765"});
-    //   //outData.identifier = "CHID";
-
-    var outData = {};
-    outData.items = recordset;
-    outData.columns = [];
-    var columnsMetedata = recordset.columns;
-    for (var i in columnsMetedata){
-        var jsonColumn={};
-        var metaDataElement=columnsMetedata[i];
-        jsonColumn.data=metaDataElement.name;
-        jsonColumn.name=metaDataElement.name;
-
-        if(metaDataElement.type.toString().indexOf("Numeric")>-1) {
-            jsonColumn.type = "numeric";
-            jsonColumn.language="ru";
-            if (metaDataElement.name.toString().indexOf("Price") >-1) {
-                jsonColumn.format = "0.00[0000]";
-                jsonColumn.width = "80";
-            }
-            else if (metaDataElement.name.toString().indexOf("Sum") >-1) {
-                jsonColumn.format = "0.00[0000]";
-                jsonColumn.width = "120";
-            }
-            else if (metaDataElement.name.toString().indexOf("Qty") >-1) jsonColumn.width = "80";
-        }
-
-        else if(metaDataElement.type.toString().indexOf("VarChar")>-1) {
-            jsonColumn.type = "text";
-            if (metaDataElement.name.toString().indexOf("Name") >-1) jsonColumn.width="350";
-        }
-        else if(metaDataElement.type.toString().indexOf("Date")>-1 ){
-            jsonColumn.type = "text";
-            jsonColumn.dateFormat="DD.MM.YYYY";
-        }
-        outData.columns.push(jsonColumn);
-    }
-    return outData;
-}
-
 app.listen(port, function (err) {
 });
 

@@ -1,9 +1,21 @@
 [
   {
+    "data": "PGrName2",
+    "name": "Вид",
+    "type": "text",
+    "width": 100
+  },
+  {
+    "data": "PGrName3",
+    "name": "Тип",
+    "type": "text",
+    "width": 200
+  },
+  {
     "data": "ProdName",
     "name": "Наименование",
     "type": "text",
-    "width": 350
+    "width": 400
   },
   {
     "data": "UM",

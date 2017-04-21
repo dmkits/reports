@@ -6,11 +6,6 @@
     "width": 350
   },
   {
-    "data": "UM",
-    "name": "Ед. изм.",
-    "type": "text"
-  },
-  {
     "data": "TotalQty",
     "name": "Кол-во",
     "type": "numeric",

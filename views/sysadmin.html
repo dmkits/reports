@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7">
     <![endif]-->
     <script src="/jslib/moment/moment-with-locales.js"></script>
-    <link rel="icon" type="image/gif" href="/icons/icon1.ico"/>
+    <link rel="icon" type="image/gif" href="/icons/profits16x16.ico"/>
     <link rel="stylesheet" href="/jslib/dijit/themes/claro/claro.css" media="screen">
     <script type="text/javascript" src="/jslib/dojo/dojo.js" data-dojo-config="async:true,parseOnLoad:false"></script>
     <link rel="stylesheet" type="text/css" href="/css/sysadmin.css" media="screen">
@@ -19,6 +19,7 @@
         <div id="sysadmin_TopImg"></div>
         <div id="sysadmin_TopStateInfo">
             <div id="sysadmin_app_mode" style="display:inline;"></div>
+            <div id="sysadmin_app_port" style="display:inline; margin-left:20px;;"></div>
             <div id="sysadmin_dbName" style="display:inline;;margin-left:20px;"></div>
             <div id="sysadmin_connectToDBState" style="display:inline;margin-left:20px;"></div>
             <div id="sysadmin_dbValidateState" style="display:inline;margin-left:20px;"></div>
@@ -48,7 +49,7 @@
                     region: "left",
                     class: "sysadmin_TopContent"
                 });
-                //sysadmin_TopImg.set("content", "<image src=\"imgs/bata_small.jpg\" style=\"position:absolute; top:5px\">");
+                sysadmin_TopImg.set("content", "<image src='/icons/profits40x40.ico' ,style=\"position:absolute; top:5px\">");
                 var sysadmin_TopStateInfo = APP.initElem("sysadmin_TopStateInfo", ContentPane, {
                     region: "top",
                     class: "sysadmin_TopContent"
@@ -72,17 +73,22 @@
                                     if (result === undefined || result == null) result = [];
                                     sysadmin_MainContainer.mainContentData = result;
                                     var eAppMode = document.getElementById("sysadmin_app_mode");
+                                    var eAppPort = document.getElementById("sysadmin_app_port");
                                     eAppMode.innerHTML = "<b>MODE:</b>";
+                                    eAppPort.innerHTML = "<b>PORT:</b>";
+                                    if(result.port){
+                                        eAppPort.innerHTML=eAppPort.innerHTML+"<b style='color:dimgrey'>"+ result.port+"</b>";
+                                    }
                                     if (result.mode) {
                                         if (result.mode.toString().toLocaleLowerCase().indexOf("test") >= 0)
                                             eAppMode.innerHTML = eAppMode.innerHTML + "<b style='color:red'>" + result.mode + "</b>";
                                         else
-                                            eAppMode.innerHTML = eAppMode.innerHTML + "<b>" + result.mode + "</b>";
+                                            eAppMode.innerHTML = eAppMode.innerHTML + "<b style='color:dimgrey'>" + result.mode + "</b>";
                                     } else
                                         eAppMode.innerHTML = eAppMode.innerHTML + "<b>UNKNOWN!!!</b>";
                                     if (result.configuration) {
                                         document.getElementById("sysadmin_dbName").innerHTML =
-                                                "<b>DB NAME:<span style='color:green'>" + result.configuration.database + "</span></b>"
+                                                "<b>DB NAME:<span style='color:dimgrey'>" + result.configuration.database + "</span></b>"
                                     }
                                     if (result.dbConnection) {
                                         document.getElementById("sysadmin_connectToDBState").innerHTML =
@@ -92,7 +98,7 @@
 
                                         if (result.dbConnection != "Connected") {
                                             dbConnection_color.setAttribute("style", "color:red");
-                                        }
+                                        }else dbConnection_color.setAttribute("style", "color:dimgrey");
                                     }
                                 } else {
                                     sysadmin_MainContainer.mainContentData = [];

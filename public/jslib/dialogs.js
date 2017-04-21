@@ -31,7 +31,7 @@ define(["app", "dijit/ConfirmDialog", "dijit/form/Button", "dijit/form/TextBox",
 
             mainAboutDialog: function (){
                 this.doDialogMsg({title:"О программе",
-                    content:"Система учета <b>BATA</b> для магазина обуви. <br>Разработчик: dmkits 2016",
+                    content:"Система учета <b>REPORTS</b>. <br>Разработчики: dmkits, ianagez 2017",
                     btnOkLabel:"OK", btnCancelLabel:"Закрыть"});
             },
             doRequestErrorDialog: function() {

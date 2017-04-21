@@ -65,6 +65,7 @@ app.get("/sysadmin", function(req, res){
 app.get("/sysadmin/app_state", function(req, res){
     var outData= {};
     outData.mode= app_params.mode;
+    outData.port=port;
     if (ConfigurationError) {
         outData.error= ConfigurationError;
         res.send(outData);
@@ -85,7 +86,9 @@ app.get("/sysadmin/startup_parameters/get_app_config", function (req, res) {
         res.send({error:ConfigurationError});
         return;
     }
-    res.send(database.getDBConfig());
+    var outData={};
+    outData=database.getDBConfig();
+    res.send(outData);
 });
 app.get("/sysadmin/startup_parameters/load_app_config", function (req, res) {
     tryLoadConfiguration();
@@ -93,14 +96,16 @@ app.get("/sysadmin/startup_parameters/load_app_config", function (req, res) {
         res.send({error:ConfigurationError});
         return;
     }
-    res.send(database.getDBConfig());
+    var outData={};
+    outData=database.getDBConfig();
+    res.send(outData);
 });
 app.post("/sysadmin/startup_parameters/store_app_config_and_reconnect", function (req, res) {
     var newDBConfigString = req.body;
     database.setDBConfig(newDBConfigString);
+    var outData = {};
     database.saveConfig(
         function (err) {
-            var outData = {};
             if (err) outData.error = err;
             tryDBConnect(/*postaction*/function (err) {
                 if (DBConnectError) outData.DBConnectError = DBConnectError;
@@ -159,13 +164,11 @@ app.get("/get_main_data", function(req, res){
 
     if (ConfigurationError) {
         outData.error= ConfigurationError;                                                  console.log("req.ConfigurationError=",ConfigurationError);
-        //res.send(outData);
-        //return;
     }
 
-    menuBar.push({itemname:"menuBarItemRetailSales",itemtitle:"Retail sales", action:"open",content:"/reports/retail_sales", id:"ReportRetailSales",title:"Retail sales", closable:false});
-    menuBar.push({itemname:"menuBarClose",itemtitle:"Exit",action:"close"});
-    menuBar.push({itemname:"menuBarAbout",itemtitle:"About",action:"help_about"});
+    menuBar.push({itemname:"menuBarItemRetailSales",itemtitle:"Отчеты retail", action:"open",content:"/reports/retail_sales", id:"ReportRetailSales",title:"Отчеты retail", closable:false});
+    menuBar.push({itemname:"menuBarClose",itemtitle:"Выход",action:"close"});
+    menuBar.push({itemname:"menuBarAbout",itemtitle:"О программе",action:"help_about"});
     outData.menuBar= menuBar;
     outData.autorun= [];
     outData.autorun.push({menuitem:"menuBarItemRetailSales", runaction:1});

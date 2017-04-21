@@ -94,7 +94,8 @@
                 reloadBtn.onClick= function() {
                     sa_startup_params_appLocalConfig.innerHTML = "<div><b>Loading configuration parameters...</b></div>";
                     Request.getJSONData({url: "/sysadmin/startup_parameters/load_app_config", consoleLog: true},
-                            function (success, result) {                                console.log("result", result);
+                            function (success, result) {
+
                                 if (!success) {
                                     sa_startup_params_appLocalConfig.innerHTML = "<div><b style='color:red'>No connection to the server!</b></div>";
                                     return;
@@ -104,21 +105,20 @@
                                     return;
                                 }
                                 sa_startup_params_appLocalConfig.innerHTML = "<div><b>Configuration reloaded.</b></div>";
-                                setDBConfigContent(result);
                                 if (sa_startup_params_PageContent.getParent().updateDBState)  sa_startup_params_PageContent.getParent().updateDBState();
                             }
                     );
                 };
-                function setDBConfigContent(DBConfigData) {
-                    serverInput.set("value",DBConfigData["server"]);
-                    if(DBConfigData["port"]) portInput.set("value",DBConfigData["port"]);
+                function setDBConfigContent(configData) {
+                    serverInput.set("value",configData["server"]);
+                    if(configData["port"]) portInput.set("value",configData["port"]);
                     else portInput.set("value","1433");
-                    databaseInput.set("value",DBConfigData["database"] );
-                    userInput.set("value",DBConfigData["user"]);
-                    dbPasswordInput.set("value",DBConfigData["password"]);
+                    databaseInput.set("value",configData["database"] );
+                    userInput.set("value",configData["user"]);
+                    dbPasswordInput.set("value",configData["password"]);
                 }
 
-                saveAndReconnectBtn.onClick = function () {                                                             console.log("saveAndReconnectBtn.onClick");
+                saveAndReconnectBtn.onClick = function () {
                     var sa_startup_params_appLocalConfig = document.getElementById("sa_startup_params_appLocalConfig");
                     sa_startup_params_appLocalConfig.innerHTML = "<div><b>Configuration saving and reconnected to database...</b></div>";
                     var newDBConfig={
@@ -126,8 +126,9 @@
                         "port": portInput.get('value'),
                         "database": databaseInput.get('value'),
                         "user": userInput.get('value'),
-                        "password": dbPasswordInput.get('value'),
+                        "password": dbPasswordInput.get('value')
                     };
+
                     Request.postJSONData({url:  "/sysadmin/startup_parameters/store_app_config_and_reconnect", data: newDBConfig, consoleLog: true},
                             function (success, data) {
                                 if (!success) {
