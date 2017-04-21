@@ -1,23 +1,5 @@
 [
-  {
-    "data": "PCatName",
-    "name": "Бренд",
-    "type": "text",
-    "width": 350
-  },
-  {
-    "data": "TotalQty",
-    "name": "Кол-во",
-    "type": "numeric",
-    "language": "ru",
-    "width": 80
-  },
-  {
-    "data": "TotalSum",
-    "name": "Сумма",
-    "type": "numeric",
-    "language": "ru",
-    "format": "0.00[0000]",
-    "width": 120
-  }
+  { "data": "PCatName", "name": "Бренд", "type": "text", "width": 350 },
+  { "data": "TotalQty", "name": "Кол-во", "type": "numeric", "language": "ru", "width": 80 },
+  { "data": "TotalSum", "name": "Сумма", "type": "numeric", "language": "ru", "format": "0.00[0000]", "width": 120 }
 ]

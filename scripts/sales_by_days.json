@@ -1,10 +1,11 @@
 [
+  { "data": "DocDate", "name": "Дата", "type": "text", "dateFormat": "DD.MM.YYYY" },
   { "data": "PGrName2", "name": "Вид", "type": "text", "width": 100 },
   { "data": "PGrName3", "name": "Тип", "type": "text", "width": 200 },
   { "data": "Article1", "name": "Артикул", "type": "text", "width": 120 },
-  { "data": "ProdName", "name": "Наименование", "type": "text", "width": 400 },
+  { "data": "ProdName", "name": "Наименование", "type": "text", "width": "400" },
   { "data": "UM", "name": "Ед. изм.", "type": "text" },
-  { "data": "TotalQty", "name": "Кол-во", "type": "numeric", "language": "ru", "width": "80" },
+  { "data": "TotalQty", "name": "Количество", "type": "numeric", "language": "ru", "width": "80" },
   { "data": "PriceCC_wt", "name": "Цена", "type": "numeric", "language": "ru", "format": "0.00[0000]", "width": 80 },
   { "data": "TotalSum", "name": "Сумма", "type": "numeric", "language": "ru", "format": "0.00[0000]", "width": 120 }
 ]

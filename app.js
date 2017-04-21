@@ -119,10 +119,23 @@ app.get("/sysadmin/sql_queries", function (req, res) {
 });
 app.get("/sysadmin/sql_queries/get_script", function (req, res) {
     var outData={};
-    outData.sqlText=fs.readFileSync('./scripts/'+req.query.filename+".sql", 'utf8');
-    outData.jsonText= fs.readFileSync('./scripts/'+req.query.filename+".json").toString();
-  res.send(outData);
+    var sqlFile = './scripts/' + req.query.filename + ".sql";
+    var jsonFile='./scripts/' + req.query.filename + ".json";
+    if(fs.existsSync(sqlFile)){
+        outData.sqlText = fs.readFileSync(sqlFile,'utf8');
+    }else{
+        fs.writeFileSync(sqlFile,"");
+        outData.sqlText="";
+    }
+    if(fs.existsSync(jsonFile)){
+        outData.jsonText = fs.readFileSync(jsonFile).toString();
+    }else{
+        fs.writeFileSync(jsonFile,"");
+        outData.jsonText="";
+    }
+    res.send(outData);
 });
+
 app.post("/sysadmin/sql_queries/get_result_to_request", function (req, res) {
    var newQuery = req.body;
     var sUnitlist = req.query.stocksList;
@@ -141,12 +154,16 @@ app.post("/sysadmin/sql_queries/save_sql_file", function (req, res) {
     var newQuery = req.body;
     var filename= req.query.filename;
     var outData = {};
-    fs.writeFile("./scripts/"+filename+".sql", newQuery.textSQL, function (err) {
-        if(err)outData.error=err.message;
-    });
-    fs.writeFile("./scripts/"+filename+".json", newQuery.textJSON, function (err) {
-        if(err)outData.error=err.message;
-    });
+    if(newQuery.textSQL) {
+        fs.writeFile("./scripts/" + filename + ".sql", newQuery.textSQL, function (err) {
+            if (err)outData.error = err.message;
+        });
+    }
+    if(newQuery.textJSON) {
+        fs.writeFile("./scripts/" + filename + ".json", newQuery.textJSON, function (err) {
+            if (err)outData.error = err.message;
+        });
+    }
     outData.success="Файл сохранен!";
     res.send(outData);
 });
@@ -165,7 +182,6 @@ app.get("/get_main_data", function(req, res){
     if (ConfigurationError) {
         outData.error= ConfigurationError;                                                  console.log("req.ConfigurationError=",ConfigurationError);
     }
-
     menuBar.push({itemname:"menuBarItemRetailSales",itemtitle:"Отчеты retail", action:"open",content:"/reports/retail_sales", id:"ReportRetailSales",title:"Отчеты retail", closable:false});
     menuBar.push({itemname:"menuBarClose",itemtitle:"Выход",action:"close"});
     menuBar.push({itemname:"menuBarAbout",itemtitle:"О программе",action:"help_about"});
@@ -178,10 +194,11 @@ app.get("/reports/retail_sales", function(req, res){
     res.sendFile(path.join(__dirname, '/views/reports', 'retail_sales.html'));
 });
 
-app.get("/reports/retail_sales/get_sales_by_days", function(req, res){
+app.get("/reports/retail_sales/get_sales_by", function(req, res){
     var bdate = req.query.BDATE;
     var edate = req.query.EDATE;
-    database.getSalesBy("sales_by_dates.sql",bdate,edate,
+    var filename = req.query.action;
+    database.getSalesBy(filename+".sql",bdate,edate,
         function (error,recordset) {
             if (error){
                 res.send({error:""});
@@ -189,41 +206,16 @@ app.get("/reports/retail_sales/get_sales_by_days", function(req, res){
             }
             var outData={};
             outData.items=recordset;
-            outData.columns=JSON.parse(fs.readFileSync('./scripts/sales_by_dates.json', 'utf8'));
+            outData.columns=JSON.parse(fs.readFileSync('./scripts/'+filename+'.json', 'utf8'));
            res.send(outData);
         });
 });
-app.get("/reports/retail_sales/get_sales_by_prods", function(req, res){
-    var bdate = req.query.BDATE;
-    var edate = req.query.EDATE;
-    database.getSalesBy("sales_by_prods.sql",bdate,edate,
-        function (error,recordset) {
-            if (error){
-                res.send({error:""});
-                return;
-            }
-            var outData={};
-            outData.items=recordset;
-            outData.columns=JSON.parse(fs.readFileSync('./scripts/sales_by_prods.json', 'utf8'));
-            res.send(outData);
-        });
+app.get("/sysadmin/sql_queries/get_reports_list", function (req, res) {
+    var outData={};
+   outData.jsonText= fs.readFileSync('./scripts/reports_list.json').toString();
+    res.send(outData);
 });
-app.get("/reports/retail_sales/get_sales_by_pcats", function(req, res){
-    var bdate = req.query.BDATE;
-    var edate = req.query.EDATE;
-    database.getSalesBy("sales_by_pcats.sql",bdate,edate,
-        function (error,recordset) {
-            if (error){
-                res.send({error:""});
-                return;
-            }
-            var outData={};
-            outData.items=recordset;
-            outData.columns=[];
-            outData.columns=JSON.parse(fs.readFileSync('./scripts/sales_by_pcats.json', 'utf8'));
-            res.send(outData);
-        });
-});
+
 app.listen(port, function (err) {
 });
 
