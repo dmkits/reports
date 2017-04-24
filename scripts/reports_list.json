@@ -1,14 +1,5 @@
 [
-  {
-    "id": "sales_by_pcats",
-    "name": "Продажи по категориям"
-  },
-  {
-    "id": "sales_by_prods",
-    "name": "Продажи по наименованию"
-  },
-  {
-    "id": "sales_by_days",
-    "name": "Продажи по дням"
-  }
+  {   "id": "sales_by_pcats",    "name": "Продажи по категориям"  },
+  {  "id": "sales_by_prods",   "name": "Продажи по наименованию" },
+  {  "id": "sales_by_days", "name": "Продажи по дням" }
 ]

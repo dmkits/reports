@@ -99,8 +99,9 @@
                                 }
                                 document.getElementById("filename").innerHTML = "reports_list";
                                 displayFileContentJSON.value = data.jsonText;
-                                for (var i in data.jsonText) {
-                                    detailContentSQL.addButtonTo(leftContentSQL, data[i].id, data[i].id);
+                                var items=JSON.parse(data.jsonText);    console.log(items);
+                                for (var i in items) {
+                                    detailContentSQL.addButtonTo(leftContentSQL, items[i].id, items[i].id); console.log("\ items[i].id=", items[i].id)
                                 }
                             });
                 };
