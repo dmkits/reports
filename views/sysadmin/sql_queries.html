@@ -25,7 +25,7 @@
             </tr>
         </table>
     </div>
-    <div id="sql_queries_LeftContent" style="width:150px;height:100%; margin:0;padding:0; ">
+    <div id="sql_queries_LeftContent" style="width:180px;height:100%; margin:0;padding:0; ">
     </div>
     <div id="sql_queries_DetailContent" style="width:100%;height:100%; margin:0;padding:0;">
         <table width='100%' height='100%'>
@@ -71,11 +71,11 @@
                     button.onClick = function () {
                         detailContentSQL.showRequestSqlText(this.filename)
                     };
-                    button.domNode.firstChild.setAttribute("style", "width:120px;");
+                    button.domNode.firstChild.setAttribute("style", "width:150px;");
                 };
 
                 var reportsListBtn = APP.initChildTo(leftContentSQL, "reports_list", Button, {label: "reports_list"});
-                reportsListBtn.domNode.firstChild.setAttribute("style", "width:120px;");
+                reportsListBtn.domNode.firstChild.setAttribute("style", "width:150px;");
                 reportsListBtn.startup();
                 reportsListBtn.onClick = function () {
                     displayFileContentSQL.value ="" ;
@@ -99,9 +99,9 @@
                                 }
                                 document.getElementById("filename").innerHTML = "reports_list";
                                 displayFileContentJSON.value = data.jsonText;
-                                var items=JSON.parse(data.jsonText);    console.log(items);
+                                var items=JSON.parse(data.jsonText);
                                 for (var i in items) {
-                                    detailContentSQL.addButtonTo(leftContentSQL, items[i].id, items[i].id); console.log("\ items[i].id=", items[i].id)
+                                    detailContentSQL.addButtonTo(leftContentSQL, items[i].id, items[i].id);
                                 }
                             });
                 };
@@ -120,7 +120,7 @@
                                 condition: "filename=" + filename,
                                 consoleLog: true
                             }
-                            , function (success, data) {      console.log("data=",data,"data.sqlText", data.sqlText);
+                            , function (success, data) {
                                 if (!success) {
                                     displayFileContentSQL.value = "<div><b style='color:red'>No connection!</b></div>";
                                     return;
@@ -239,16 +239,15 @@
                                     url: "/sysadmin/sql_queries/save_sql_file", condition: "filename=" + filename,
                                     data: {textSQL: newQueryText, textJSON:newJSONText}, consoleLog: true
                                 },
-                                function (success, data) {
+                                function (success, data) {              console.log("data=", data);
                                     if (!success) {
                                         borderContainer.showSimpleDialog("Файл не сохранен! \n Error in request");
                                         return;
                                     }
-                                    if (data.error)
-                                        borderContainer.showSimpleDialog("Файл не сохранен!"+data.error);
-                                    else{
-                                        borderContainer.showSimpleDialog("Файл сохранен!");
-                                    }
+                                    if (data.SQLerror) borderContainer.showSimpleDialog(data.SQLerror);
+                                    if (data.SQLsaved) borderContainer.showSimpleDialog(data.SQLsaved);
+                                    if (data.JSONerror) borderContainer.showSimpleDialog(data.JSONerror);
+                                    if (data.JSONsaved) borderContainer.showSimpleDialog(data.JSONsaved);
                                 });
                     }
                 };

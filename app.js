@@ -114,13 +114,13 @@ app.post("/sysadmin/startup_parameters/store_app_config_and_reconnect", function
         }
     );
 });
-app.get("/sysadmin/sql_queries", function (req, res) {
+app.get("/sysadmin/reports_config", function (req, res) {
     res.sendFile(path.join(__dirname, '/views/sysadmin', 'sql_queries.html'));
 });
 app.get("/sysadmin/sql_queries/get_script", function (req, res) {
     var outData={};
-    var sqlFile = './scripts/' + req.query.filename + ".sql";
-    var jsonFile='./scripts/' + req.query.filename + ".json";
+    var sqlFile = './reportsConfig/' + req.query.filename + ".sql";
+    var jsonFile='./reportsConfig/' + req.query.filename + ".json";
     if(fs.existsSync(sqlFile)){
         outData.sqlText = fs.readFileSync(sqlFile,'utf8');
     }else{
@@ -151,22 +151,61 @@ app.post("/sysadmin/sql_queries/get_result_to_request", function (req, res) {
     );
 });
 app.post("/sysadmin/sql_queries/save_sql_file", function (req, res) {
-    var newQuery = req.body;
-    var filename= req.query.filename;
-    var outData = {};
-    if(newQuery.textSQL) {
-        fs.writeFile("./scripts/" + filename + ".sql", newQuery.textSQL, function (err) {
-            if (err)outData.error = err.message;
-        });
-    }
-    if(newQuery.textJSON) {
-        fs.writeFile("./scripts/" + filename + ".json", newQuery.textJSON, function (err) {
-            if (err)outData.error = err.message;
-        });
-    }
-    outData.success="Файл сохранен!";
-    res.send(outData);
-});
+        var newQuery = req.body;
+        var filename = req.query.filename;
+        var outData = {};
+        var textSQL = newQuery.textSQL;                                                        //console.log("textSQL=",textSQL);
+        var textJSON = newQuery.textJSON;                                                    // console.log("textJSON=",textJSON);
+
+        if (textJSON) {
+            var JSONparseERROR;
+            try {
+                JSON.parse(textJSON);
+            } catch (e) {
+                outData.JSONerror = "JSON file not saved! Reason:" + e.message;
+                JSONparseERROR = e;
+            }
+            if (!JSONparseERROR) {
+                fs.writeFile("./reportsConfig/" + filename + ".json", textJSON, function (err) {
+                    if (textSQL) {
+                        fs.writeFile("./reportsConfig/" + filename + ".sql", textSQL, function (err) {
+                            if (err) {
+                                outData.SQLerror = "SQL file not saved! Reason:" + err.message;
+                            } else {
+                                outData.SQLsaved = "SQL file saved!";
+                            }
+                            if (err)outData.JSONerror = "JSON file not saved! Reason:" + err.message;
+                            else outData.JSONsaved = "JSON file saved!";
+                            outData.success = "Connected to server!";
+                            res.send(outData);
+                            return;
+                        });
+                    }else {
+                        if (err)outData.JSONerror = "JSON file not saved! Reason:" + err.message;
+                        else outData.JSONsaved = "JSON file saved!";
+                        outData.success = "Connected to server!";
+                        res.send(outData);
+                    }
+                });
+            } else {
+                if (textSQL) {
+                    fs.writeFile("./reportsConfig/" + filename + ".sql", textSQL, function (err) {
+                        if (err) {
+                            outData.SQLerror = "SQL file not saved! Reason:" + err.message;
+                        } else {
+                            outData.SQLsaved = "SQL file saved!";
+                        }
+                        outData.success = "Connected to server!";
+                        res.send(outData);
+                    });
+                }else{
+                    outData.success = "Connected to server 192!";
+                    res.send(outData);
+                }
+
+            }//else end
+        }
+    });
 
 app.get("/", function(req, res){
     res.sendFile(path.join(__dirname, '/views', 'main.html'));
@@ -206,13 +245,13 @@ app.get("/reports/retail_sales/get_sales_by", function(req, res){
             }
             var outData={};
             outData.items=recordset;
-            outData.columns=JSON.parse(fs.readFileSync('./scripts/'+filename+'.json', 'utf8'));
+            outData.columns=JSON.parse(fs.readFileSync('./reportsConfig/'+filename+'.json', 'utf8'));
            res.send(outData);
         });
 });
 app.get("/sysadmin/sql_queries/get_reports_list", function (req, res) {
     var outData={};
-   outData.jsonText= fs.readFileSync('./scripts/reports_list.json').toString();
+   outData.jsonText= fs.readFileSync('./reportsConfig/reports_list.json').toString();
     res.send(outData);
 });
 

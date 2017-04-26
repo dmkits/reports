@@ -21,7 +21,7 @@ module.exports.saveConfig=function(callback) {
         callback(err,success);
     })
 };
-module.exports.databaseConnection=function(callback){                   console.log('databaseConnection dbConfig=',dbConfig);//test
+module.exports.databaseConnection=function(callback){
     if(conn) conn.close();
     conn = new sql.Connection(dbConfig);
     conn.connect(function (err) {
@@ -52,7 +52,7 @@ module.exports.getResultToNewQuery=function(newQuery, parameters, callback ){
 
 module.exports.getSalesBy=function(filename, bdate,edate, callback ){
     var reqSql = new sql.Request(conn);
-    var query_str = fs.readFileSync('./scripts/'+filename, 'utf8');
+    var query_str = fs.readFileSync('./reportsConfig/'+filename, 'utf8');
     reqSql.input('BDATE',sql.Date, bdate);
     reqSql.input('EDATE',sql.Date, edate);
     reqSql.query(query_str,

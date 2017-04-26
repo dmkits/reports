@@ -63,8 +63,9 @@
                                     reports_retail_ContentPaneDetailContainer.innerHTML = "<div><b style='color:red'>No connection!</b></div>";
                                     return;
                                 }
-                                for (var i in data) {
-                                    reports_retail_PageContainer.addButtonTo(reports_button_list, data[i].id, data[i].name);
+                                var item = JSON.parse(data.jsonText);
+                                for (var i in item) {
+                                    reports_retail_PageContainer.addButtonTo(reports_button_list, item[i].id, item[i].name);
                                 }
                                 firstButton.onClick();
                             });

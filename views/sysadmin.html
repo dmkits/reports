@@ -26,7 +26,7 @@
         </div>
         <div id="sysadmin_TopActions">
             <button id="display_startup_params">Startup params</button>
-            <button id="display_SQL_queries">SQL queries</button>
+            <button id="display_reports_config">Reports config</button>
         </div>
     </div>
     <div id="sysadmin_ContentContainer"></div>
@@ -60,7 +60,7 @@
                 });
 
                 var startupBtn = new Button({id:"display_startup_params"},"display_startup_params");
-                var sqlBtn = new Button({id:"display_SQL_queries"},"display_SQL_queries");
+                var sqlBtn = new Button({id:"display_reports_config"},"display_reports_config");
 
                 var sysadmin_ContentContainer = APP.initElem("sysadmin_ContentContainer",
                         StackContainer, {region: "center", tabPosition: "top", class: "sysadmin_Content"});
@@ -127,7 +127,7 @@
                    sysadmin_MainContainer.runSysadminContentPage("startup_parameters", "Startup parameters", false, "/sysadmin/startup_parameters");
                 };
                 sqlBtn.onClick=function(){
-                    sysadmin_MainContainer.runSysadminContentPage("sql_queries", "SQL queries", false, "/sysadmin/sql_queries");
+                    sysadmin_MainContainer.runSysadminContentPage("reports_config", "Reports config", false, "/sysadmin/reports_config");
                 };
                 sysadmin_MainContainer.getAppState();
             });
