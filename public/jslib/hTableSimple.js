@@ -70,7 +70,7 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane", "request"], function(d
             this.htColumns = newDataColumns;
             this.htVisibleColumns= this.getVisibleColumnsFrom(newDataColumns);
         },
-        setData: function(data) {
+        setData: function(data) {                                                                                       console.log("HTableSimple setData ",data);
             if (!data) { data={ identifier:null, columns:[], items:[] }; }
             if(data.identifier) { this.handsonTable.rowIDName=data.identifier; }
             this.setDataColumns(data.columns);
@@ -86,7 +86,9 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane", "request"], function(d
         getRowIDName: function(){
             return this.handsonTable.rowIDName;
         },
-        getColumns: function(){ return this.htColumns; },
+        getColumns: function(){                                                                                         console.log("HTableSimple getColumns ",this.htColumns);
+            return this.htColumns;
+        },
         getVisibleColumns: function(){ return this.htVisibleColumns; },
         createHandsonTable: function(){
             var content = document.createElement('div');
@@ -133,7 +135,7 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane", "request"], function(d
                         else td.innerHTML="";
                     }
                     var rowSourceData= instance.getContentRow(row);
-                    if(rowSourceData[instance.getSettings().htDataSelectedProp]===true) td.classList.add('hTableCurrentRow');
+                    if(rowSourceData&&rowSourceData[instance.getSettings().htDataSelectedProp]===true) td.classList.add('hTableCurrentRow');
                     return cellProperties;
                 },
                 cells: function (row, col, prop) {
@@ -209,7 +211,7 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane", "request"], function(d
          * default callOnUpdateContent!=false
          * if callOnUpdateContent==false not call onUpdateContent
          */
-        updateContent: function(newdata,callOnUpdateContent) {                                //console.log("HTableSimple updateContent ",callOnUpdateContent," htVisibleColumns=", this.htVisibleColumns,this.htData);
+        updateContent: function(newdata,callOnUpdateContent) {                                //console.log("HTableSimple updateContent newdata=",newdata," htVisibleColumns=", this.htVisibleColumns,this.htData);
             if(newdata!==undefined) this.setData(newdata);
             if(this.htData!==null) {//loadTableContent
                 this.handsonTable.updateSettings(
@@ -275,22 +277,79 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane", "request"], function(d
             //TODO actions on/after update table content (after set/reset/reload/clear table content data)
         },
         /*
-         * params: {method=get/post , url, condition, data, callUpdateContent}
+         * params: {method=get/post , url, condition:string or object, duplexRequest:true/false, data, callUpdateContent:true/false}
+         * if (duplexRequest=true) or (duplexRequest=undefined and no htColumns data),
+         *     sends two requests: first request without parameters to get columns data without table data
+         *     and second request with parameters from params.condition to get table data;
+         * if duplexRequest=false, sends only one request to get table data with columns data.
          */
         setContentFromUrl: function(params){
             if (!params.method) params.method="get";
+            var duplexRequest= (params.duplexRequest===true)||( (!this.htColumns||this.htColumns.length==0)&&(params.duplexRequest!==false) );
             var instance = this;
             if (params.method!="post") {
+                if (duplexRequest){
+                    Request.getJSONData({url:params.url, condition:null, consoleLog:true}
+                        ,/*postaction*/function(success,result){
+                            if(!success) result=null;
+                            if(!success||!result||result.error) {
+                                instance.updateContent(result, params.callUpdateContent);
+                                return;
+                            }
+                            instance.updateContent(result, params.callUpdateContent);
+                            Request.getJSONData({url:params.url, condition:params.condition, consoleLog:true}
+                                ,/*postaction*/function(success,result){
+                                    if(!success) result=null;
+                                    if(!success||!result||result.error) {
+                                        instance.updateContent({ columns:instance.htColumns, items:[] }, params.callUpdateContent);
+                                        return;
+                                    }
+                                    instance.updateContent(result, params.callUpdateContent);
+                                });
+                        });
+                    return;
+                }
+                if(this.htData&&this.htData.length>0) instance.updateContent({ columns:this.htColumns, items:[] }, params.callUpdateContent);
                 Request.getJSONData({url:params.url, condition:params.condition, consoleLog:true}
                     ,/*postaction*/function(success,result){
                         if(!success) result=null;
+                        if(!success||!result||result.error) {
+                            instance.updateContent({ columns:instance.htColumns, items:[] }, params.callUpdateContent);
+                            return;
+                        }
                         instance.updateContent(result, params.callUpdateContent);
                     });
                 return;
             }
+            if (duplexRequest){
+                Request.postJSONData({url:params.url, condition:null, consoleLog:true},
+                    /*postaction*/function(success,result){
+                        if(!success) result=null;
+                        if(!success||!result||result.error) {
+                            instance.updateContent(result, params.callUpdateContent);
+                            return;
+                        }
+                        instance.updateContent(result, params.callUpdateContent);
+                        Request.postJSONData({url:params.url, condition:params.condition, data:params.data, consoleLog:true},
+                            /*postaction*/function(success,result){
+                                if(!success) result=null;
+                                if(!success||!result||result.error) {
+                                    instance.updateContent({ columns:instance.htColumns, items:[] }, params.callUpdateContent);
+                                    return;
+                                }
+                                instance.updateContent(result, params.callUpdateContent);
+                            });
+                    });
+                return;
+            }
+            if(this.htData&&this.htData.length>0) instance.updateContent({ columns:this.htColumns, items:[] }, params.callUpdateContent);
             Request.postJSONData({url:params.url, condition:params.condition, data:params.data, consoleLog:true},
                 /*postaction*/function(success,result){
                     if(!success) result=null;
+                    if(!success||!result||result.error) {
+                        instance.updateContent({ columns:instance.htColumns, items:[] }, params.callUpdateContent);
+                        return;
+                    }
                     instance.updateContent(result, params.callUpdateContent);
                 });
         },

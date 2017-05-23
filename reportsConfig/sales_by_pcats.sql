@@ -1,4 +1,4 @@
-select  c.PCatName, SUM(d.Qty) AS TotalQty, SUM(d.SumCC_wt) AS TotalSum
+select  c.PCatName, SUM(d.Qty) AS TotalQty, SUM(d.RealSum) AS TotalSum
 from t_sale s
   INNER JOIN t_SaleD d on d.CHID=s.CHID
   INNER JOIN r_Prods p on p.ProdID= d.ProdID

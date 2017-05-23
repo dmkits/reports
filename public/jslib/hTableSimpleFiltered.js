@@ -6,6 +6,8 @@ define(["dojo/_base/declare", "hTableSimple"], function(declare, HTableSimple){
         useFilters: false,
         filtered: false,
         constructor: function(args,parentName){
+            this.useFilters= false;
+            this.filtered= false;
             declare.safeMixin(this,args);
         },
         setHandsonTableFilterSettings: function () {
@@ -56,8 +58,7 @@ define(["dojo/_base/declare", "hTableSimple"], function(declare, HTableSimple){
                 }
                 if(event.target.id.indexOf("clearfilters_button")>=0) {
                     parent.clearDataColumnsFilters();
-                    //parent.updateContent();
-                    parent.setFilterPropForContentData();
+                    parent.onUpdateContent({filtered:parent.filterContentData()});
                 }
             });
             this.handsonTable.showFilterMenu= function (button) {                                                       //console.log("HTableSimpleFiltered.handsonTable.showFilterMenu ",this);
@@ -93,8 +94,7 @@ define(["dojo/_base/declare", "hTableSimple"], function(declare, HTableSimple){
                             filterColProps["filtered"]= false;
                             eventTarget.filterButton.style.color = '#bbb';
                             parent.handsonTable.hideFilterMenu();
-                            //parent.updateContent();
-                            parent.setFilterPropForContentData();
+                            parent.onUpdateContent({filtered:parent.filterContentData()});
                         } else if (eventTargetID.indexOf("filter_menu_item_elem_")==0&&eventTargetID.indexOf("buttonOK")>0) { //console.log("HTableSimpleFiltered.handsonTable.showFilterMenu filterMenu click filter_menu_item_ buttonOK", event.target);
                             var filterColProps= eventTarget.filterMenu.colProps;
                             var filterValues= filterColProps["filterValues"];
@@ -148,8 +148,7 @@ define(["dojo/_base/declare", "hTableSimple"], function(declare, HTableSimple){
                             var filterButton = event.target.filterButton;
                             if (filtered==true) filterButton.style.color = 'black'; else filterButton.style.color = '#bbb';
                             parent.handsonTable.hideFilterMenu();
-                            //parent.updateContent();
-                            parent.setFilterPropForContentData();
+                            parent.onUpdateContent({filtered:parent.filterContentData()});
                         } else if (eventTargetID.indexOf("filter_menu_item_elem_")==0&&eventTargetID.indexOf("buttonClearAll")>0) {
                             if(eventTarget.filterMenu.valueItems){
                                 for(var filterValueItemName in eventTarget.filterMenu.valueItems)
@@ -235,31 +234,6 @@ define(["dojo/_base/declare", "hTableSimple"], function(declare, HTableSimple){
                 var filterMenu = this.filterMenu;
                 if(filterMenu){ filterMenu.isOpen= false; filterMenu.style.display = 'none'; }
             };
-            /*
-             * do filter after render table
-             */
-            var thisHandsonTable = this.handsonTable;
-            this.handsonTable.addHook('modifyRow', function(row) {                                                      //console.log("HTableSimpleFiltered Hook modifyRow",row);
-                if(!thisHandsonTable.getSourceData()||thisHandsonTable.getSourceData().length==0||row<0||row>=thisHandsonTable.getSourceData().length) return row;
-                var visibleRowInd= -1, rowOffset= 0, countSourceRows=thisHandsonTable.getSourceData().length;
-                for(var rowInd=0; rowInd<countSourceRows; rowInd++){
-                    var rowData=thisHandsonTable.getSourceData()[rowInd];
-                    if(rowData&&!rowData["<!$unvisible$!>"]===true) visibleRowInd++;
-                    else if(rowData&&rowData["<!$unvisible$!>"]===true) rowOffset++;
-                    if(visibleRowInd==row) break;
-                }
-                row= row+rowOffset;
-                return (row < countSourceRows) ? row : null;
-            });
-            this.handsonTable.getContent= function(){
-                if (!this.getSourceData()||this.getSourceData().length==0) return this.getSourceData();
-                var tableContent=[];
-                for(var rowInd=0;rowInd<this.getSourceData().length;rowInd++){
-                    var tableContentRowData=this.getSourceData()[rowInd];
-                    if (!tableContentRowData["<!$unvisible$!>"]===true) tableContent.push(tableContentRowData);
-                }
-                return tableContent;
-            }
         },
         postCreate : function(){
             this.createHandsonTable();
@@ -301,13 +275,15 @@ define(["dojo/_base/declare", "hTableSimple"], function(declare, HTableSimple){
                 } else if (!colData["filterValues"]) colData["filterValues"] = [];
             }
         },
-        setFilterPropForContentData: function(){                                                                        //console.log("HTableSimpleFiltered setFilterPropForContentData");
+        filterContentData: function(){                                                                                  //console.log("HTableSimpleFiltered filterContentData");
             var filtered=false;
             if (!this.htData||this.htData.length==0){
-                this.handsonTable.render();//call hook modifyRow
+                this.handsonTable.updateSettings(
+                    {columns:this.htVisibleColumns, data:this.getData(), readOnly:this.readOnly, comments:this.enableComments}
+                );
                 return filtered;
             }
-            var htVisColumns= this.htVisibleColumns;
+            var htVisColumns= this.htVisibleColumns, filteredData=[];
             for(var rowInd=0; rowInd<this.htData.length; rowInd++){
                 var rowData=this.htData[rowInd];
                 var rowVisible=true;
@@ -341,10 +317,12 @@ define(["dojo/_base/declare", "hTableSimple"], function(declare, HTableSimple){
                     }
                     rowVisible=rowVisible&&itemVisible;
                 }
-                rowData["<!$unvisible$!>"]=!rowVisible;
                 filtered=filtered||!rowVisible;
+                if (rowVisible) filteredData.push(rowData);
             }
-            this.handsonTable.render();//call hook modifyRow
+            this.handsonTable.updateSettings(
+                {columns:this.htVisibleColumns, data:filteredData, readOnly:this.readOnly, comments:this.enableComments}
+            );
             return filtered;
         },
         /*
@@ -352,16 +330,13 @@ define(["dojo/_base/declare", "hTableSimple"], function(declare, HTableSimple){
          * default callOnUpdateContent!=false
          * if callOnUpdateContent==false not call onUpdateContent
          */
-        updateContent: function(newdata,callOnUpdateContent) {                             //console.log("HTableSimpleFiltered updateContent ",callOnUpdateContent," htVisibleColumns=", this.htVisibleColumns,this.htData);
-            var filtered=false;
+        updateContent: function(newdata,callOnUpdateContent) {                                                          //console.log("HTableSimpleFiltered updateContent newdata=",newdata," htVisibleColumns=", this.htVisibleColumns,this.htData);
             if(newdata!==undefined) {
                 this.setData(newdata);
-                filtered=this.setFilterPropForContentData();
             }
+            var filtered=false;
             if(this.htData!==null) {//loadTableContent
-                this.handsonTable.updateSettings(
-                    {columns:this.htVisibleColumns, data:this.getData(), readOnly:this.readOnly, comments:this.enableComments}
-                );
+                filtered= this.filterContentData();
                 this.resetSelection();
             } else {//clearTableDataContent
                 this.clearContent();
@@ -372,7 +347,7 @@ define(["dojo/_base/declare", "hTableSimple"], function(declare, HTableSimple){
         /*
          * params: { filtered }
          */
-        onUpdateContent: function(params){
+        onUpdateContent: function(params){                                                                              //console.log("HTableSimpleFiltered onUpdateContent params=",params);
             //TODO actions on/after update table content (after set/reset/reload/clear table content data)
             //TODO actions after set/clear table filters
         }

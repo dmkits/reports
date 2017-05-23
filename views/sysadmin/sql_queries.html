@@ -54,11 +54,11 @@
                 "request"],
             function (APP, BorderContainer, LayoutContainer, ContentPane, ItemFileReadStore, TextBox, DateTextBox, Button, ConfirmDialog,Dialog,
                       Request) {
-                var borderContainer = APP.initElem("sql_queries_PageContent", BorderContainer, {});
-                var topContentSQL = APP.initElem("sql_queries_TopContent", ContentPane, {region: "top"});
-                var leftContentSQL = APP.initElem("sql_queries_LeftContent", ContentPane, {region: "left"});
-                var detailContentSQL = APP.initElem("sql_queries_DetailContent", ContentPane, {region: "center"});
-                var rightContentSQL = APP.initElem("sql_queries_RightContent", ContentPane, {
+                var borderContainer = APP.instanceForID("sql_queries_PageContent", BorderContainer, {});
+                var topContentSQL = APP.instanceForID("sql_queries_TopContent", ContentPane, {region: "top"});
+                var leftContentSQL = APP.instanceForID("sql_queries_LeftContent", ContentPane, {region: "left"});
+                var detailContentSQL = APP.instanceForID("sql_queries_DetailContent", ContentPane, {region: "center"});
+                var rightContentSQL = APP.instanceForID("sql_queries_RightContent", ContentPane, {
                     region: "right",
                     splitter: true
                 });
@@ -67,14 +67,14 @@
                 var displayQueryResultSQl = document.getElementById("sql_display_result");
 
                 detailContentSQL.addButtonTo = function (parent, htmlId, fileName) {
-                    var button = APP.initChildTo(parent, htmlId, Button, {filename: fileName, label: htmlId});
+                    var button = APP.childFor(parent, htmlId, Button, {filename: fileName, label: htmlId});
                     button.onClick = function () {
                         detailContentSQL.showRequestSqlText(this.filename)
                     };
                     button.domNode.firstChild.setAttribute("style", "width:150px;");
                 };
 
-                var reportsListBtn = APP.initChildTo(leftContentSQL, "reports_list", Button, {label: "reports_list"});
+                var reportsListBtn = APP.childFor(leftContentSQL, "reports_list", Button, {label: "reports_list"});
                 reportsListBtn.domNode.firstChild.setAttribute("style", "width:150px;");
                 reportsListBtn.startup();
                 reportsListBtn.onClick = function () {
@@ -105,8 +105,8 @@
                                 }
                             });
                 };
-                var btnRunSQL = APP.initElem("sql_runBtn", Button, {});
-                var btnSaveSQl = APP.initElem("sql_saveBtn", Button, {});
+                var btnRunSQL = APP.instanceForID("sql_runBtn", Button, {});
+                var btnSaveSQl = APP.instanceForID("sql_saveBtn", Button, {});
                 var sql_params = document.getElementById("sql_params");
                 borderContainer.startup();
                 var confirmDialog = new ConfirmDialog({content: "Сохранить изменеия в файл?"});

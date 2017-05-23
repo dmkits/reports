@@ -5,16 +5,18 @@ define(["dojo/_base/declare", "app", "templateDocumentBase", "hTableSimpleFilter
     function(declare, APP, DocumentBase, HTable) {
         return declare("TemplateDocumentSimpleTable", [DocumentBase], {
             /*
-            * args: {titleText, dataURL, dataURLAction, buttonUpdate, buttonPrint, printFormats={ ... } }
+            * args: {titleText, dataURL, condition={...}, buttonUpdate, buttonPrint, printFormats={ ... } }
             * default:
-            * buttonUpdate=true, buttonPrint=true, printFormats={ numericFormat:"0,000,000.[00]", dateFormat:"DD.MM.YY", currencyFormat:"0,000,000.[00]" }
+            * buttonUpdate=true, buttonPrint=true,
+            * default printFormats={ dateFormat:"DD.MM.YY", numericFormat:"#,###,###,###,##0.#########", currencyFormat:"#,###,###,###,##0.00#######" }
             * */
             constructor: function(args,parentName){
                 this.srcNodeRef = document.getElementById(parentName);
                 declare.safeMixin(this,args);
                 if (this.buttonUpdate===undefined) this.buttonUpdate= true;
                 if (this.buttonPrint===undefined) this.buttonPrint= true;
-                if (this.printFormats===undefined) this.printFormats= { numericFormat:"0,000,000.[00]", dateFormat:"DD.MM.YY", currencyFormat:"0,000,000.[00]" };
+                if (this.printFormats===undefined)
+                    this.printFormats= { dateFormat:"DD.MM.YY", numericFormat:"#,###,###,###,##0.#########", currencyFormat:"#,###,###,###,##0.00#######" };
                 if (this.detailContentErrorMsg===undefined) this.detailContentErrorMsg="Failed get data!";
             },
 
@@ -37,9 +39,8 @@ define(["dojo/_base/declare", "app", "templateDocumentBase", "hTableSimpleFilter
                     instance.onSelectDetailContent(firstSelectedRowData, selection);
                 };
             },
-            setDetailContent: function(){
-                var condition = {};
-                if(this.dataURLAction) condition["action"]=this.dataURLAction;
+            setDetailContent: function(){                                                                   console.log("TemplateDocumentSimpleTable setDetailContent condition=",this.condition);
+                var condition = (this.condition)?this.condition:{};
                 if (this.beginDateBox) condition[this.beginDateBox.conditionName] =
                     this.beginDateBox.format(this.beginDateBox.get("value"),{selector:"date",datePattern:"yyyy-MM-dd"});
                 if (this.endDateBox) condition[this.endDateBox.conditionName] =
@@ -51,12 +52,13 @@ define(["dojo/_base/declare", "app", "templateDocumentBase", "hTableSimpleFilter
                 if (loadDetailContentCallback) this.loadDetailContent= loadDetailContentCallback;
                 return this;
             },
-            loadDetailContent: function(detailContentHTable, url, condition, topTableErrorMsg, detailContentErrorMsg){
-                detailContentHTable.setContentFromUrl({url:url,condition:condition},
+            loadDetailContent: function(detailContentHTable, url, condition, topTableErrorMsg, detailContentErrorMsg){console.log("TemplateDocumentSimpleTable loadDetailContent condition=",this.condition);
+                detailContentHTable.setContentFromUrl({url:url,condition:condition}
+                    /*,
                     function(success,result){
                         if (!success || (success&&result.error)) topTableErrorMsg.innerHTML= "<b style='color:red'>"+detailContentErrorMsg+"</b>";
                         else topTableErrorMsg.innerHTML="";
-                    });
+                    }*/);
             },
             setDetailContentErrorMsg: function(detailContentErrorMsg){
                 this.detailContentErrorMsg= detailContentErrorMsg;
@@ -83,7 +85,7 @@ define(["dojo/_base/declare", "app", "templateDocumentBase", "hTableSimpleFilter
                 if (this.infoPane&&this.infoPane.updateCallback) this.infoPane.updateCallback(this.infoPane, this);
             },
 
-            setBeginDateBox: function(labelText, conditionName, initValueDate){
+            addBeginDateBox: function(labelText, conditionName, initValueDate){
                 if (initValueDate===undefined||initValueDate===null) initValueDate= APP.curMonthBDate();
                 this.beginDateBox= this.addTableCellDateBoxTo(this.topTableRow,
                     {labelText:labelText, labelStyle:"margin-left:5px;", cellWidth:110, cellStyle:"text-align:right;",
@@ -94,7 +96,7 @@ define(["dojo/_base/declare", "app", "templateDocumentBase", "hTableSimpleFilter
                 };
                 return this;
             },
-            setEndDateBox: function(labelText, conditionName, initValueDate){
+            addEndDateBox: function(labelText, conditionName, initValueDate){
                 if (initValueDate===undefined||initValueDate===null) initValueDate= APP.today();
                 this.endDateBox= this.addTableCellDateBoxTo(this.topTableRow,
                     {labelText:labelText, labelStyle:"margin-left:5px;", cellWidth:110, cellStyle:"text-align:right;",
@@ -105,7 +107,7 @@ define(["dojo/_base/declare", "app", "templateDocumentBase", "hTableSimpleFilter
                 };
                 return this;
             },
-            setBtnUpdate: function(width, labelText){
+            addBtnUpdate: function(width, labelText){
                 if (width===undefined) width=200;
                 if (!labelText) labelText="Обновить";
                 this.btnUpdate= this.addTableCellButtonTo(this.topTableRow, {labelText:labelText, cellWidth:width, cellStyle:"text-align:right;"});
@@ -115,9 +117,9 @@ define(["dojo/_base/declare", "app", "templateDocumentBase", "hTableSimpleFilter
                 };
                 return this;
             },
-            setBtnPrint: function(width, labelText, printFormats){
+            addBtnPrint: function(width, labelText, printFormats){
                 if (width===undefined) width=100;
-                if (!this.btnUpdate) this.setBtnUpdate(width);
+                if (!this.btnUpdate) this.addBtnUpdate(width);
                 if (!labelText) labelText="Печатать";
                 this.btnPrint= this.addTableCellButtonTo(this.topTableRow, {labelText:labelText, cellWidth:1, cellStyle:"text-align:right;"});
                 var instance = this;
@@ -138,17 +140,17 @@ define(["dojo/_base/declare", "app", "templateDocumentBase", "hTableSimpleFilter
             addTotalRow: function(){
                 this.totalTableRow = this.addRowToTable(this.totalTable);
                 if (!this.totalTableData) this.totalTableData= [];
-                this.totalTableData[this.totalTableData.length]= [];
+                this.totalTableData.push([]);
                 return this;
             },
-            setTotalEmpty: function(width){
+            addTotalEmpty: function(width){
                 this.setTotalContent();
                 this.addLeftCellToTableRow(this.totalTableRow, width);
                 var totalTableRowData= this.totalTableData[this.totalTableData.length-1];
-                totalTableRowData[totalTableRowData.length]= null;
+                totalTableRowData.push(null);
                 return this;
             },
-            setTotalText: function(text, width){
+            addTotalText: function(text, width){
                 this.setTotalContent();
                 var totalTableCell = this.addLeftCellToTableRow(this.totalTableRow, width);
                 //var totalTableCellDiv = document.createElement("div");
@@ -157,42 +159,49 @@ define(["dojo/_base/declare", "app", "templateDocumentBase", "hTableSimpleFilter
                 if (text) totalTableCell.appendChild(document.createTextNode(text));
                 return this;
             },
-            setTotalNumberBox: function(labelText, tableItemName, width, boldfont, inputWidth){
+            /*
+             * params { style, inputStyle, pattern }
+             * default pattern="#,###,###,###,##0.#########"
+             */
+            addTotalNumberBox: function(labelText, width, tableItemName, params){
                 this.setTotalContent();
-                if (inputWidth==undefined) inputWidth=70;
-                var boldFontStyle="";
-                if (boldfont) boldFontStyle = "font-weight: bold";
+                var style="",inputStyle="", pattern="#,###,###,###,##0.#########";
+                if (params&&params.style) style=params.style;
+                if (params&&params.inputStyle) inputStyle=params.inputStyle;
+                if (params&&params.pattern) pattern=params.pattern;
                 var totalNumberTextBox= this.addTableCellNumberTextBoxTo(this.totalTableRow,
-                    {labelText:labelText, labelStyle:boldFontStyle, cellWidth:width, cellStyle:"text-align:right;",
-                        inputStyle:"text-align:right;width:"+inputWidth+"px;"+boldFontStyle,
-                        inputParams:{readOnly:true, labelText:labelText,width:inputWidth,boldFont:boldfont, constraints:{pattern:"#,###,###,##0.00"}} });
+                    {cellWidth:width, cellStyle:"text-align:right;",
+                        labelText:labelText, labelStyle:style, inputStyle:"text-align:right;"+style+inputStyle,
+                        inputParams:{constraints:{pattern:pattern}, readOnly:true,
+                            /*it's for print*/cellWidth:width, labelText:labelText, printStyle:style, inputStyle:inputStyle, typeFormat:pattern } });
                 if (!this.totals) this.totals = {};
                 this.totals[tableItemName]= totalNumberTextBox;
                 var totalTableRowData= this.totalTableData[this.totalTableData.length-1];
-                totalTableRowData[totalTableRowData.length]= totalNumberTextBox;
+                totalTableRowData.push(totalNumberTextBox);
                 return totalNumberTextBox;
             },
-            setTotalCount: function(labelText, width, boldfont, inputWidth){
-                var totalNumberTextBox= this.setTotalNumberBox(labelText, "TableRowCount", width, boldfont, inputWidth);
+            /*
+             * params { style, inputStyle }
+             */
+            addTotalCountNumberBox: function(labelText, width, params){
+                var totalNumberTextBox= this.addTotalNumberBox(labelText, width, "TableRowCount", params);
                 var thisInstance = this;
                 totalNumberTextBox.updateValue = function(){
                     this.set("value", thisInstance.getDetailContent().length);
                 };
                 return this;
             },
-            setTotalCountBoldfont: function(labelText, width){
-                return this.setTotalCount(labelText, width, true);
-            },
-            setTotalSum: function(labelText, tableItemName, width, boldfont){
-                var totalNumberTextBox= this.setTotalNumberBox(labelText, tableItemName, width, boldfont);
+            /*
+             * params { style, inputStyle, pattern }
+             * default pattern="#,###,###,###,##0.#########"
+             */
+            addTotalSumNumberTextBox: function(labelText, width, tableItemName, params){
+                var totalNumberTextBox= this.addTotalNumberBox(labelText, width, tableItemName, params);
                 var thisInstance = this;
                 totalNumberTextBox.updateValue = function(){
                     this.set("value", thisInstance.getDetailContentItemSum(tableItemName));
                 };
                 return this;
-            },
-            setTotalSumBoldfont: function(labelText, tableItemName, width){
-                return this.setTotalSum(labelText, tableItemName, width, true);
             },
 
             setPopupMenuItem: function(itemID, itemName, callback){
@@ -211,48 +220,47 @@ define(["dojo/_base/declare", "app", "templateDocumentBase", "hTableSimpleFilter
             },
 
             startUp: function(){
-                if (this.buttonUpdate!=false&&!this.btnUpdate) this.setBtnUpdate();
-                if (this.buttonPrint!=false&&!this.btnPrint) this.setBtnPrint();
+                if (this.buttonUpdate!=false&&!this.btnUpdate) this.addBtnUpdate();
+                if (this.buttonPrint!=false&&!this.btnPrint) this.addBtnPrint();
                 this.setDetailContent();
+                this.layout();
                 return this;
             },
 
-            doPrint: function(printData, printFormats){
+            doPrint: function(printFormats){
                 var printData = {};
-                printData.header= [];
-                var printDataHeaderTitle= [];
-                printData.header[0]= printDataHeaderTitle;
                 if (this.titleText) {
-                    this.addPrintDataTextTo(printDataHeaderTitle, this.titleText, 0, "width:100%;font-size:14px;font-weight:bold;text-align:center;");
+                    this.addPrintDataSubItemTo(printData, "header",
+                        {label:this.titleText, width:0, style:"width:100%;font-size:14px;font-weight:bold;text-align:center;", contentStyle:"margin-top:5px;margin-bottom:3px;"});
                 }
-                var printDataHeader= [];
-                printData.header[1]= printDataHeader;
-                this.addPrintDataEmptyTo(printDataHeader);
-                if (this.beginDateBox||this.endDateBox)
-                    this.addPrintDataTextTo(printDataHeader, "Период:",80,"text-align:right;");
+                var headerTextStyle="font-size:14px;", headerDateContentStyle="margin-bottom:3px;";
+                if (this.beginDateBox||this.endDateBox){
+                    this.addPrintDataItemTo(printData, "header", {newTable:true, style:headerTextStyle});
+                    this.addPrintDataSubItemTo(printData, "header");
+                    this.addPrintDataSubItemTo(printData, "header", {label:"Период:", width:80,style:headerTextStyle+"text-align:right;", contentStyle:headerDateContentStyle});
+                }
                 if (this.beginDateBox)
-                    this.addPrintDataCellTo(printDataHeader,"с ",this.beginDateBox.get("value"),"date",100);
+                    this.addPrintDataSubItemTo(printData, "header",
+                        {label:"с ", width:110,style:headerTextStyle, contentStyle:headerDateContentStyle, value:this.beginDateBox.get("value"),type:"date"});
                 if (this.endDateBox)
-                    this.addPrintDataCellTo(printDataHeader,"по ",this.endDateBox.get("value"),"date",100);
-                this.addPrintDataEmptyTo(printDataHeader);
-
-                printData.columns = this.detailContentHTable.getColumns();
+                    this.addPrintDataSubItemTo(printData, "header",
+                        {label:"по ", width:110,style:headerTextStyle, contentStyle:headerDateContentStyle, value:this.endDateBox.get("value"),type:"date"});
+                this.addPrintDataSubItemTo(printData, "header");
+                printData.columns = this.detailContentHTable.getVisibleColumns();                                       //console.log("doPrint printData.columns=",this.detailContentHTable.getVisibleColumns());
                 printData.data = this.detailContentHTable.getContent();
-
+                var totalStyle="font-size:12px;";
                 if (this.totals){
-                    printData.total= [];
                     for(var tRowIndex in this.totalTableData){
                         var tRowData= this.totalTableData[tRowIndex];
-                        var printDataTotalRow= [];
-                        printData.total[printData.total.length]= printDataTotalRow;
+                        this.addPrintDataItemTo(printData, "total", {style:totalStyle});
                         for(var tCellIndex in tRowData){
                             var tCellData= tRowData[tCellIndex];
-                            if (tCellData===null) this.addPrintDataEmptyTo(printDataTotalRow);
-                            if (tCellData!==null) {
-                                var style="font-size:12px;";
-                                if (tCellData.boldFont) style="font-size:14px;font-weight:bold;";
-                                this.addPrintDataCellTo(printDataTotalRow,tCellData.labelText,tCellData.get("value"),"numeric",tCellData.width,70,style);
+                            if (tCellData===null) {
+                                this.addPrintDataSubItemTo(printData, "total");
+                                continue
                             }
+                            this.addPrintDataSubItemTo(printData, "total", {width:tCellData.cellWidth+5, style:tCellData.printStyle,
+                                contentStyle:"margin-top:3px;", label:tCellData.labelText, value:tCellData.textbox.value, type:"text", valueStyle:"text-align:right;"+tCellData.inputStyle});
                         }
                     }
                 }

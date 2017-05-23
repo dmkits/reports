@@ -1,10 +1,10 @@
 [
-  { "data": "PGrName2", "name": "Вид", "type": "text", "width": 100 },
-  { "data": "PGrName3", "name": "Тип", "type": "text", "width": 200 },
-  { "data": "Article1", "name": "Артикул", "type": "text", "width": 120 },
-  { "data": "ProdName", "name": "Наименование", "type": "text", "width": 400 },
-  { "data": "UM", "name": "Ед. изм.", "type": "text" },
-  { "data": "TotalQty", "name": "Кол-во", "type": "numeric", "language": "ru", "width": "80" },
-  { "data": "PriceCC_wt", "name": "Цена", "type": "numeric", "language": "ru", "format": "0.00[0000]", "width": 80 },
-  { "data": "TotalSum", "name": "Сумма", "type": "numeric", "language": "ru", "format": "0.00[0000]", "width": 120 }
+  { "data":"PGrName2", "name":"Вид", "width":150, "type":"text" },
+  { "data":"PGrName3", "name":"Тип", "width":200, "type":"text" },
+  { "data":"Article1", "name":"Артикул", "width":120, "type":"text" },
+  { "data":"ProdName", "name":"Наименование", "width":400, "type":"text" },
+  { "data":"UM", "name":"Ед. изм.", "width":60, "type":"text" },
+  { "data":"TotalQty", "name":"Кол-во", "width":80, "type":"numeric", "language":"ru", "format":"#,###,###,##0.[#########]" },
+  { "data":"PriceCC_wt", "name":"Цена", "width":80, "type":"numeric", "language":"ru", "format":"#,###,###,##0.00[#######]" },
+  { "data":"TotalSum", "name":"Сумма", "width":100, "type":"numeric", "language":"ru", "format":"#,###,###,##0.00[#######]" }
 ]

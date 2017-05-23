@@ -233,19 +233,23 @@ app.get("/reports/retail_sales", function(req, res){
     res.sendFile(path.join(__dirname, '/views/reports', 'retail_sales.html'));
 });
 
-app.get("/reports/retail_sales/get_sales_by", function(req, res){
-    var bdate = req.query.BDATE;
-    var edate = req.query.EDATE;
-    var filename = req.query.action;
+app.get("/reports/retail_sales/get_sales_by/*", function(req, res){                                               //console.log("app.get /reports/retail_sales/get_sales_by ",req.query);
+    var filename = req.params[0];
+    var outData={};
+    outData.columns=JSON.parse(fs.readFileSync('./reportsConfig/'+filename+'.json', 'utf8'));
+    var bdate = req.query.BDATE, edate = req.query.EDATE;
+    if (!bdate&&!edate) {
+        res.send(outData);
+        return;
+    }
     database.getSalesBy(filename+".sql",bdate,edate,
         function (error,recordset) {
             if (error){
-                res.send({error:""});
+                outData.error=error;
+                res.send(outData);
                 return;
             }
-            var outData={};
             outData.items=recordset;
-            outData.columns=JSON.parse(fs.readFileSync('./reportsConfig/'+filename+'.json', 'utf8'));
            res.send(outData);
         });
 });
@@ -253,6 +257,10 @@ app.get("/sysadmin/sql_queries/get_reports_list", function (req, res) {
     var outData={};
    outData.jsonText= fs.readFileSync('./reportsConfig/reports_list.json').toString();
     res.send(outData);
+});
+
+app.get("/print/printSimpleDocument", function(req, res){
+    res.sendFile(path.join(__dirname, '/views/print', 'printSimpleDocument.html'));
 });
 
 app.listen(port, function (err) {
