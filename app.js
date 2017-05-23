@@ -214,9 +214,11 @@ app.get("/get_main_data", function(req, res){
     var outData = {};//main data
     var menuBar= [];//menu bar list
     outData.title= "REPORTS";
-    outData.mode= "test";
-    outData.modeName= "TEST";
-    outData.user= "user";
+   // outData.mode= "test";
+   // outData.modeName= "TEST";
+    outData.mode=app_params.mode;
+    outData.modeName= app_params.mode.toUpperCase();
+   // outData.user= "user";
 
     if (ConfigurationError) {
         outData.error= ConfigurationError;                                                  console.log("req.ConfigurationError=",ConfigurationError);
@@ -233,7 +235,7 @@ app.get("/reports/retail_sales", function(req, res){
     res.sendFile(path.join(__dirname, '/views/reports', 'retail_sales.html'));
 });
 
-app.get("/reports/retail_sales/get_sales_by/*", function(req, res){                                               //console.log("app.get /reports/retail_sales/get_sales_by ",req.query);
+app.get("/reports/retail_sales/get_sales_by/*", function(req, res){                                               console.log("app.get /reports/retail_sales/get_sales_by ",req.url,req.query,req.params);
     var filename = req.params[0];
     var outData={};
     outData.columns=JSON.parse(fs.readFileSync('./reportsConfig/'+filename+'.json', 'utf8'));
