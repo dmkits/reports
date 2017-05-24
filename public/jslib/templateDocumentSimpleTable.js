@@ -33,32 +33,26 @@ define(["dojo/_base/declare", "app", "templateDocumentBase", "hTableSimpleFilter
                     new HTable({region:'center',style:"margin:0;padding:0;", readOnly:true, wordWrap:true, useFilters:true /*,allowFillHandle:false,*/});
                 this.addChild(this.detailContentHTable);
                 var instance = this;
-                this.detailContentHTable.onUpdateContent = function(){ instance.onUpdateDetailContent(); }
+                this.detailContentHTable.onUpdateContent = function(){ instance.onUpdateDetailContent(); };
                 this.detailContentHTable.onSelect = function(firstSelectedRowData, selection){
                     this.setSelection(firstSelectedRowData, selection);
                     instance.onSelectDetailContent(firstSelectedRowData, selection);
                 };
             },
-            setDetailContent: function(){                                                                   //console.log("TemplateDocumentSimpleTable setDetailContent condition=",this.condition);
+            setDetailContent: function(){                                                                           //console.log("TemplateDocumentSimpleTable setDetailContent");
                 var condition = (this.condition)?this.condition:{};
                 if (this.beginDateBox) condition[this.beginDateBox.conditionName] =
                     this.beginDateBox.format(this.beginDateBox.get("value"),{selector:"date",datePattern:"yyyy-MM-dd"});
                 if (this.endDateBox) condition[this.endDateBox.conditionName] =
                     this.endDateBox.format(this.endDateBox.get("value"),{selector:"date",datePattern:"yyyy-MM-dd"});
-                var topTableErrorMsg= this.topTableErrorMsg, detailContentErrorMsg=this.detailContentErrorMsg;
-                this.loadDetailContent(this.detailContentHTable, this.dataURL,condition, topTableErrorMsg, detailContentErrorMsg);
+                this.loadDetailContent(this.detailContentHTable, this.dataURL,condition);
             },
             setLoadDetailContent: function(loadDetailContentCallback){
                 if (loadDetailContentCallback) this.loadDetailContent= loadDetailContentCallback;
                 return this;
             },
-            loadDetailContent: function(detailContentHTable, url, condition, topTableErrorMsg, detailContentErrorMsg){//console.log("TemplateDocumentSimpleTable loadDetailContent condition=",this.condition);
-                detailContentHTable.setContentFromUrl({url:url,condition:condition}
-                    /*,
-                    function(success,result){
-                        if (!success || (success&&result.error)) topTableErrorMsg.innerHTML= "<b style='color:red'>"+detailContentErrorMsg+"</b>";
-                        else topTableErrorMsg.innerHTML="";
-                    }*/);
+            loadDetailContent: function(detailContentHTable, url, condition){                                       //console.log("TemplateDocumentSimpleTable loadDetailContent");
+                detailContentHTable.setContentFromUrl({url:url,condition:condition});
             },
             setDetailContentErrorMsg: function(detailContentErrorMsg){
                 this.detailContentErrorMsg= detailContentErrorMsg;
@@ -74,6 +68,12 @@ define(["dojo/_base/declare", "app", "templateDocumentBase", "hTableSimpleFilter
                 return this.detailContentHTable.getContentItemSum(tableItemName);
             },
             onUpdateDetailContent: function(){
+
+                //------------------ON DATA ERROR!!!-----------------------
+                //var topTableErrorMsg= this.topTableErrorMsg, detailContentErrorMsg=this.detailContentErrorMsg;
+                //if (!success || (success&&result.error)) topTableErrorMsg.innerHTML= "<b style='color:red'>"+detailContentErrorMsg+"</b>";
+                //else topTableErrorMsg.innerHTML="";
+
                 if (!this.totals) return;
                 for(var tableItemName in this.totals){
                     var totalBox = this.totals[tableItemName];

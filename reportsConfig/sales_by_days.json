@@ -5,7 +5,7 @@
   { "data":"Article1", "name":"Артикул", "width":120, "type":"text"},
   { "data":"ProdName", "name":"Наименование", "width":400, "type": "text"},
   { "data":"UM", "name":"Ед. изм.", "width":50, "type": "text" },
-  { "data":"TotalQty", "name":"Количество", "width":80, "type":"numeric", "language":"ru", "format":"#,###,###,##0.[#########]" },
-  { "data":"PriceCC_wt", "name":"Цена", "width":80, "type":"numeric", "language":"ru", "format":"#,###,###,##0.00[#######]" },
-  { "data":"TotalSum", "name":"Сумма", "width":100, "type":"numeric", "language":"ru", "format":"#,###,###,##0.00[#######]" }
+  { "data":"TotalQty", "name":"Количество", "width":80, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.[#########]" },
+  { "data":"PriceCC_wt", "name":"Цена", "width":80, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.00[#######]" },
+  { "data":"TotalSum", "name":"Сумма", "width":100, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.00[#######]" }
 ]
