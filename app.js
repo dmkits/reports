@@ -1,4 +1,5 @@
-
+console.log("Starting...");
+var startTime = new Date().getTime();
 function startupParams() {
     var app_params = {};
     if (process.argv.length == 0) {
@@ -28,7 +29,7 @@ function startupParams() {
 
 var app_params=startupParams();
 
-var log = require('winston');
+var log = require('winston');                     console.log("module  winston", new Date().getTime() - startTime);
 
 if (!app_params.logToConsole) {
     log.add(log.transports.File, {filename: 'history.log', level: 'debug', timestamp: true});
@@ -37,44 +38,44 @@ if (!app_params.logToConsole) {
 
 module.exports.startupMode = app_params.mode;
 
-var fs = require('fs');
-var express = require('express');
+var fs = require('fs');                             console.log("module  fs",new Date().getTime() - startTime);
+var express = require('express');                   console.log("module  express",new Date().getTime() - startTime);
 var app = express();
 var port=app_params.port;
-var path=require ('path');
-var bodyParser = require('body-parser');
-var cookieParser = require('cookie-parser');
+var path=require ('path');                          console.log("module  path",new Date().getTime() - startTime);
+var bodyParser = require('body-parser');            console.log("module body-parser",new Date().getTime() - startTime);
+//var cookieParser = require('cookie-parser');        console.log("module");
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(bodyParser.text());
 app.use('/',express.static('public'));
-var database = require('./dataBase');
+var database = require('./dataBase');               console.log("module ./dataBase",new Date().getTime() - startTime);
 var ConfigurationError, DBConnectError;
 
 tryLoadConfiguration();
-function tryLoadConfiguration(){
+function tryLoadConfiguration(){      console.log('tryLoadConfiguration...', new Date().getTime() - startTime);
     try {
         database.loadConfig();
         ConfigurationError=null;
-    } catch (e) {
+    } catch (e) {                    console.log('ConfigurationError=', ConfigurationError);
         ConfigurationError= "Failed to load configuration! Reason:"+e;
     }
 }
  if (!ConfigurationError) tryDBConnect();
-function tryDBConnect(postaction) {                                        log.info('tryDBConnect...');    //console.log('tryDBConnect...');//test
+function tryDBConnect(postaction) {                                        console.log('tryDBConnect...', new Date().getTime() - startTime);    //console.log('tryDBConnect...');//test
     database.databaseConnection(function (err) {
         DBConnectError = null;
         if (err) {
-            DBConnectError = "Failed to connect to database! Reason:" + err;
+            DBConnectError = "Failed to connect to database! Reason:" + err;            console.log('DBConnectError=', DBConnectError);
         }
-        if (postaction)postaction(err);                                     log.info('tryDBConnect DBConnectError=',DBConnectError);         // console.log('tryDBConnect DBConnectError=',DBConnectError);//test
+        if (postaction)postaction(err);                                                  console.log('tryDBConnect DBConnectError=',DBConnectError);
     });
 }
-app.get("/sysadmin", function(req, res){                                    log.info("/sysadmin");
+app.get("/sysadmin", function(req, res){                                               log.info("app.get /sysadmin");
     res.sendFile(path.join(__dirname, '/views', 'sysadmin.html'));
 });
-app.get("/sysadmin/app_state", function(req, res){                          log.info("/sysadmin/app_state");
+app.get("/sysadmin/app_state", function(req, res){                                     log.info("app.get /sysadmin/app_state");
     var outData= {};
     outData.mode= app_params.mode;
     outData.port=port;
@@ -90,10 +91,10 @@ app.get("/sysadmin/app_state", function(req, res){                          log.
         outData.dbConnection='Connected';
     res.send(outData);
 });
-app.get("/sysadmin/startup_parameters", function (req, res) {                        log.info("app.get /sysadmin/startup_parameters");
+app.get("/sysadmin/startup_parameters", function (req, res) {                            log.info("app.get /sysadmin/startup_parameters");
     res.sendFile(path.join(__dirname, '/views/sysadmin', 'startup_parameters.html'));
 });
-app.get("/sysadmin/startup_parameters/get_app_config", function (req, res) {            log.info("app.get /sysadmin/startup_parameters/get_app_config");
+app.get("/sysadmin/startup_parameters/get_app_config", function (req, res) {             log.info("app.get /sysadmin/startup_parameters/get_app_config");
     if (ConfigurationError) {
         res.send({error:ConfigurationError});
         return;
@@ -181,6 +182,7 @@ app.post("/sysadmin/sql_queries/save_sql_file", function (req, res) {           
                 fs.writeFile("./reportsConfig/" + filename + ".json", textJSON, function (err) {
                     if (textSQL) {
                         fs.writeFile("./reportsConfig/" + filename + ".sql", textSQL, function (err) {
+                            outData.SQLfilename=filename.sql;
                             if (err) {
                                 outData.SQLerror = "SQL file not saved! Reason:" + err.message;
                             } else {
@@ -193,6 +195,7 @@ app.post("/sysadmin/sql_queries/save_sql_file", function (req, res) {           
                             return;
                         });
                     }else {
+                        outData.JSONfilename=filename + ".json";
                         if (err)outData.JSONerror = "JSON file not saved! Reason:" + err.message;
                         else outData.JSONsaved = "JSON file saved!";
                         outData.success = "Connected to server!";
@@ -245,7 +248,7 @@ app.get("/reports/retail_sales", function(req, res){                            
     res.sendFile(path.join(__dirname, '/views/reports', 'retail_sales.html'));
 });
 
-app.get("/reports/retail_sales/get_sales_by/*", function(req, res){                                              log.info("app.get app.get /reports/retail_sales/get_sales_by ",req.url,req.query,req.params);
+app.get("/reports/retail_sales/get_sales_by/*", function(req, res){                                              log.info("app.get app.get /reports/retail_sales/get_sales_by ",req.url,req.query,req.params, new Date());
     var filename = req.params[0];
     var outData={};
     outData.columns=JSON.parse(fs.readFileSync('./reportsConfig/'+filename+'.json', 'utf8'));
@@ -276,8 +279,10 @@ app.get("/print/printSimpleDocument", function(req, res){                       
     res.sendFile(path.join(__dirname, '/views/print', 'printSimpleDocument.html'));
 });
 
-app.listen(port, function (err) {                                                                                   log.info("app runs on port "+ port);
+app.listen(port, function (err) {
     if(err) log.error(err);
+    console.log("app runs on port "+ port,new Date().getTime() - startTime  );
+    log.info("app runs on port "+ port);
 });
 
 

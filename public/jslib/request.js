@@ -103,7 +103,7 @@ define(["dojo/_base/declare", "dojo/request/xhr", "dijit/registry", "dialogs"],
                 var requestErrorDialog;
                 if (showRequestErrorDialog===true) requestErrorDialog= dialogs.doRequestErrorDialog;
                 var prop={headers: this.jsonHeader, handleAs: "json"};
-                prop.timeout= (timeout)?timeout:"600000";
+                prop.timeout= (timeout)?timeout:600000;
                 xhr.get(url, prop).then(
                     function(respdata){
                         if(callback)callback(true, respdata);
