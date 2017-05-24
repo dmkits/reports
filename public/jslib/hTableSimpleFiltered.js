@@ -333,7 +333,7 @@ define(["dojo/_base/declare", "hTableSimple"], function(declare, HTableSimple){
          * default params.callOnUpdateContent!=false
          * if params.callOnUpdateContent==false not call onUpdateContent
          */
-        updateContent: function(newdata,params) {                                                          console.log("HTableSimpleFiltered updateContent newdata=",newdata," params=", params);
+        updateContent: function(newdata,params) {                                                          //console.log("HTableSimpleFiltered updateContent newdata=",newdata," params=", params);
             if(newdata!==undefined) {
                 this.setData(newdata);
             }

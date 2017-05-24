@@ -233,7 +233,7 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane", "request"], function(d
             if (params&&params.callOnUpdateContent===false) return;
             this.onUpdateContent();
         },
-        resetSelection: function(){                                                                 console.log("HTableSimple resetSelection ",this.getSelectedRows()," rowIDName=", this.handsonTable.rowIDName);
+        resetSelection: function(){                                                                 //console.log("HTableSimple resetSelection ",this.getSelectedRows()," rowIDName=", this.handsonTable.rowIDName);
             var newData= this.getContent();
             var newSelection= null, newSelectionFirstRowIndex, oldSelection= this.getSelectedRows();
             if (oldSelection){
@@ -303,8 +303,8 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane", "request"], function(d
                         ,/*postaction*/function(success,result){
                             if(!success) result=null;
                             if(!success||!result||result.error) {
-                                var errorMsg="Error="+(result&&result.error)?result.error:"";
-                                console.log("HTableSimple setContentFromUrl Request.getJSONData DATA ERROR!!! "+errorMsg);
+                                var errorMsg=(result&&result.error)?"Error:":"",error=(result&&result.error)?result.error:"";
+                                console.log("HTableSimple setContentFromUrl Request.getJSONData DATA ERROR!!! "+errorMsg,error);
                                 instance.updateContent(result, {callUpdateContent:params.callUpdateContent});
                                 return;
                             }
@@ -313,8 +313,8 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane", "request"], function(d
                                 ,/*postaction*/function(success,result){
                                     if(!success) result=null;
                                     if(!success||!result||result.error) {
-                                        var errorMsg="Error="+(result&&result.error)?result.error:"";
-                                        console.log("HTableSimple setContentFromUrl Request.getJSONData DATA ERROR!!! "+errorMsg);
+                                        var errorMsg=(result&&result.error)?"Error:":"",error=(result&&result.error)?result.error:"";
+                                        console.log("HTableSimple setContentFromUrl Request.getJSONData DATA ERROR!!! "+errorMsg,error);
                                         instance.updateContent({ columns:instance.htColumns, items:[] }, {callUpdateContent:params.callUpdateContent});
                                         return;
                                     }
@@ -329,8 +329,8 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane", "request"], function(d
                     ,/*postaction*/function(success,result){
                         if(!success) result=null;
                         if(!success||!result||result.error) {
-                            var errorMsg="Error="+(result&&result.error)?result.error:"";
-                            console.log("HTableSimple setContentFromUrl Request.getJSONData DATA ERROR!!! "+errorMsg);
+                            var errorMsg=(result&&result.error)?"Error:":"",error=(result&&result.error)?result.error:"";
+                            console.log("HTableSimple setContentFromUrl Request.getJSONData DATA ERROR!!! "+errorMsg,error);
                             instance.updateContent({ columns:instance.htColumns, items:[] }, {callUpdateContent:params.callUpdateContent});
                             return;
                         }
@@ -343,8 +343,8 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane", "request"], function(d
                     /*postaction*/function(success,result){
                         if(!success) result=null;
                         if(!success||!result||result.error) {
-                            var errorMsg="Error="+(result&&result.error)?result.error:"";
-                            console.log("HTableSimple setContentFromUrl Request.getJSONData DATA ERROR!!! "+errorMsg);
+                            var errorMsg=(result&&result.error)?"Error:":"",error=(result&&result.error)?result.error:"";
+                            console.log("HTableSimple setContentFromUrl Request.getJSONData DATA ERROR!!! "+errorMsg,error);
                             instance.updateContent(result, {callUpdateContent:params.callUpdateContent});
                             return;
                         }
@@ -353,8 +353,8 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane", "request"], function(d
                             /*postaction*/function(success,result){
                                 if(!success) result=null;
                                 if(!success||!result||result.error) {
-                                    var errorMsg="Error="+(result&&result.error)?result.error:"";
-                                    console.log("HTableSimple setContentFromUrl Request.getJSONData DATA ERROR!!! "+errorMsg);
+                                    var errorMsg=(result&&result.error)?"Error:":"",error=(result&&result.error)?result.error:"";
+                                    console.log("HTableSimple setContentFromUrl Request.getJSONData DATA ERROR!!! "+errorMsg,error);
                                     instance.updateContent({ columns:instance.htColumns, items:[] }, {callUpdateContent:params.callUpdateContent});
                                     return;
                                 }
@@ -369,8 +369,8 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane", "request"], function(d
                 /*postaction*/function(success,result){
                     if(!success) result=null;
                     if(!success||!result||result.error) {
-                        var errorMsg="Error="+(result&&result.error)?result.error:"";
-                        console.log("HTableSimple setContentFromUrl Request.getJSONData DATA ERROR!!! "+errorMsg);
+                        var errorMsg=(result&&result.error)?"Error:":"",error=(result&&result.error)?result.error:"";
+                        console.log("HTableSimple setContentFromUrl Request.getJSONData DATA ERROR!!! "+errorMsg,error);
                         instance.updateContent({ columns:instance.htColumns, items:[] }, {callUpdateContent:params.callUpdateContent});
                         return;
                     }

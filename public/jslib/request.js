@@ -89,7 +89,7 @@ define(["dojo/_base/declare", "dojo/request/xhr", "dijit/registry", "dialogs"],
              */
             getJSONData: function(params,callback){
                 if (!params) return;
-                var url= params["url"],condition=params["condition"],consoleLog=params["consoleLog"];
+                var url= params["url"],condition=params["condition"],consoleLog=params["consoleLog"],timeout=params["timeout"];;
                 if(condition && typeof(condition)==="object"){
                     var scondition;
                     for(var condItem in condition){
@@ -102,7 +102,9 @@ define(["dojo/_base/declare", "dojo/request/xhr", "dijit/registry", "dialogs"],
                 if (showRequestErrorDialog==undefined) showRequestErrorDialog= this.showRequestErrorDialog;
                 var requestErrorDialog;
                 if (showRequestErrorDialog===true) requestErrorDialog= dialogs.doRequestErrorDialog;
-                xhr.get(url, {headers:this.jsonHeader,handleAs:"json"}).then(
+                var prop={headers: this.jsonHeader, handleAs: "json"};
+                prop.timeout= (timeout)?timeout:"600000";
+                xhr.get(url, prop).then(
                     function(respdata){
                         if(callback)callback(true, respdata);
                     }, function(resperror){

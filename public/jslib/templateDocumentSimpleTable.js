@@ -39,7 +39,7 @@ define(["dojo/_base/declare", "app", "templateDocumentBase", "hTableSimpleFilter
                     instance.onSelectDetailContent(firstSelectedRowData, selection);
                 };
             },
-            setDetailContent: function(){                                                                   console.log("TemplateDocumentSimpleTable setDetailContent condition=",this.condition);
+            setDetailContent: function(){                                                                   //console.log("TemplateDocumentSimpleTable setDetailContent condition=",this.condition);
                 var condition = (this.condition)?this.condition:{};
                 if (this.beginDateBox) condition[this.beginDateBox.conditionName] =
                     this.beginDateBox.format(this.beginDateBox.get("value"),{selector:"date",datePattern:"yyyy-MM-dd"});
@@ -52,7 +52,7 @@ define(["dojo/_base/declare", "app", "templateDocumentBase", "hTableSimpleFilter
                 if (loadDetailContentCallback) this.loadDetailContent= loadDetailContentCallback;
                 return this;
             },
-            loadDetailContent: function(detailContentHTable, url, condition, topTableErrorMsg, detailContentErrorMsg){console.log("TemplateDocumentSimpleTable loadDetailContent condition=",this.condition);
+            loadDetailContent: function(detailContentHTable, url, condition, topTableErrorMsg, detailContentErrorMsg){//console.log("TemplateDocumentSimpleTable loadDetailContent condition=",this.condition);
                 detailContentHTable.setContentFromUrl({url:url,condition:condition}
                     /*,
                     function(success,result){
