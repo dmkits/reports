@@ -158,7 +158,9 @@ app.post("/sysadmin/sql_queries/get_result_to_request", function (req, res) {   
     database.getResultToNewQuery(newQuery, req.query,
         function (err,result) {
            var outData = {};
-            if (err) outData.error = err.message;                                             log.error("database.getResultToNewQuery err =",err);
+            if (err) {
+                outData.error = err.message;                                             log.error("database.getResultToNewQuery err =",err);
+            }
             outData.result = result;
             res.send(outData);
         }
@@ -249,7 +251,8 @@ app.get("/reports/retail_sales", function(req, res){                            
 app.get("/reports/retail_sales/get_sales_by/*", function(req, res){                                              log.info("app.get app.get /reports/retail_sales/get_sales_by ",req.url,req.query,req.params, new Date());
     var filename = req.params[0];
     var outData={};
-    outData.columns=JSON.parse(fs.readFileSync('./reportsConfig/'+filename+'.json', 'utf8'));
+    var fileContentString=fs.readFileSync('./reportsConfig/'+filename+'.json', 'utf8');
+    outData.columns=JSON.parse(getJSONWithoutComments(fileContentString));
     var bdate = req.query.BDATE, edate = req.query.EDATE;
     if (!bdate&&!edate) {
         res.send(outData);

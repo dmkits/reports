@@ -1,6 +1,20 @@
-
+/*
+dfasdfadsf
+*/
 [
   { "data":"PCatName", "name":"Бренд", "width":400, "type":"text" },
   { "data":"TotalQty", "name":"Кол-во", "width":100, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.[#########]" },
   { "data":"TotalSum", "name":"Сумма", "width":150, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.00[#######]" }
 ]
+
+/*
+{"parameters":[
+],
+"columns":[
+  { "data":"PCatName", "name":"Бренд", "width":400, "type":"text" },
+  { "data":"TotalQty", "name":"Кол-во", "width":100, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.[#########]" },
+  { "data":"TotalSum", "name":"Сумма", "width":150, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.00[#######]" }
+],
+"totals":[
+]}
+*/
