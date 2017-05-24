@@ -327,21 +327,24 @@ define(["dojo/_base/declare", "hTableSimple"], function(declare, HTableSimple){
         },
         /*
          * calls on load/set/reset data to table or on change data after store
-         * default callOnUpdateContent!=false
-         * if callOnUpdateContent==false not call onUpdateContent
+         * params= { callOnUpdateContent=true/false, resetSelection=true/false }
+         * default params.resetSelection!=false
+         * if params.resetSelection==false not call resetSelection
+         * default params.callOnUpdateContent!=false
+         * if params.callOnUpdateContent==false not call onUpdateContent
          */
-        updateContent: function(newdata,callOnUpdateContent) {                                                          //console.log("HTableSimpleFiltered updateContent newdata=",newdata," htVisibleColumns=", this.htVisibleColumns,this.htData);
+        updateContent: function(newdata,params) {                                                          console.log("HTableSimpleFiltered updateContent newdata=",newdata," params=", params);
             if(newdata!==undefined) {
                 this.setData(newdata);
             }
             var filtered=false;
             if(this.htData!==null) {//loadTableContent
                 filtered= this.filterContentData();
-                this.resetSelection();
+                if(params.resetSelection!==false) this.resetSelection();
             } else {//clearTableDataContent
                 this.clearContent();
             }
-            if (callOnUpdateContent===false) return;
+            if (params.callOnUpdateContent===false) return;
             this.onUpdateContent({filtered:filtered});
         },
         /*
