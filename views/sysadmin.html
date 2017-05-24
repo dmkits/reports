@@ -23,6 +23,7 @@
             <div id="sysadmin_dbName" style="display:inline;;margin-left:20px;"></div>
             <div id="sysadmin_connectToDBState" style="display:inline;margin-left:20px;"></div>
             <div id="sysadmin_dbValidateState" style="display:inline;margin-left:20px;"></div>
+            <div id="sysadmin_ConnUserName" style="display:inline;margin-left:20px;"></div>
         </div>
         <div id="sysadmin_TopActions">
             <button id="display_startup_params">Startup params</button>
@@ -99,6 +100,10 @@
                                         if (result.dbConnection != "Connected") {
                                             dbConnection_color.setAttribute("style", "color:red");
                                         }else dbConnection_color.setAttribute("style", "color:dimgrey");
+                                    }
+                                    if(result.connUserName){
+                                        document.getElementById("sysadmin_ConnUserName").innerHTML =
+                                                "<b>USER:<span> <b style='color:dimgrey'>" + result.connUserName + "</span></b>";
                                     }
                                 } else {
                                     sysadmin_MainContainer.mainContentData = [];

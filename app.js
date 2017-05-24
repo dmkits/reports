@@ -79,6 +79,7 @@ app.get("/sysadmin/app_state", function(req, res){                              
     var outData= {};
     outData.mode= app_params.mode;
     outData.port=port;
+    outData.connUserName=database.getDBConfig().user;
     if (ConfigurationError) {
         outData.error= ConfigurationError;
         res.send(outData);
@@ -170,10 +171,11 @@ app.post("/sysadmin/sql_queries/save_sql_file", function (req, res) {           
         var textSQL = newQuery.textSQL;
         var textJSON = newQuery.textJSON;
 
+        var formattedJSONText=getJSONWithoutComments(textJSON);
         if (textJSON) {
             var JSONparseERROR;
             try {
-                JSON.parse(textJSON);
+                JSON.parse(formattedJSONText);
             } catch (e) {
                 outData.JSONerror = "JSON file not saved! Reason:" + e.message;
                 JSONparseERROR = e;
@@ -182,7 +184,6 @@ app.post("/sysadmin/sql_queries/save_sql_file", function (req, res) {           
                 fs.writeFile("./reportsConfig/" + filename + ".json", textJSON, function (err) {
                     if (textSQL) {
                         fs.writeFile("./reportsConfig/" + filename + ".sql", textSQL, function (err) {
-                            outData.SQLfilename=filename.sql;
                             if (err) {
                                 outData.SQLerror = "SQL file not saved! Reason:" + err.message;
                             } else {
@@ -195,7 +196,6 @@ app.post("/sysadmin/sql_queries/save_sql_file", function (req, res) {           
                             return;
                         });
                     }else {
-                        outData.JSONfilename=filename + ".json";
                         if (err)outData.JSONerror = "JSON file not saved! Reason:" + err.message;
                         else outData.JSONsaved = "JSON file saved!";
                         outData.success = "Connected to server!";
@@ -217,7 +217,6 @@ app.post("/sysadmin/sql_queries/save_sql_file", function (req, res) {           
                     outData.success = "Connected to server 192!";
                     res.send(outData);
                 }
-
             }//else end
         }
     });
@@ -231,7 +230,6 @@ app.get("/get_main_data", function(req, res){                                   
     outData.title= "REPORTS";
     outData.mode=app_params.mode;
     outData.modeName= app_params.mode.toUpperCase();
-    outData.user=  database.getDBConfig().user;
 
     if (ConfigurationError) {
         outData.error= ConfigurationError;                                                         log.error("req.ConfigurationError=",ConfigurationError);
@@ -271,7 +269,8 @@ app.get("/reports/retail_sales/get_sales_by/*", function(req, res){             
 
 app.get("/sysadmin/sql_queries/get_reports_list", function (req, res) {                                             log.info("app.get /sysadmin/sql_queries/get_reports_list");
     var outData={};
-    outData.jsonText= fs.readFileSync('./reportsConfig/reports_list.json').toString();
+    outData.jsonText =fs.readFileSync('./reportsConfig/reports_list.json').toString();
+    outData.jsonFormattedText = getJSONWithoutComments(outData.jsonText);
     res.send(outData);
 });
 
@@ -285,6 +284,18 @@ app.listen(port, function (err) {
     log.info("app runs on port "+ port);
 });
 
+function getJSONWithoutComments(text){
+    var target = "/*";
+    var pos = 0;
+    while (true) {
+        var foundPos = text.indexOf(target, pos);
+        if (foundPos < 0)break;
+        var comment = text.substring(foundPos, text.indexOf("*/", foundPos)+2);
+        text=text.replace(comment,"");
+        pos = foundPos + 1;
+    }
+    return text;
+}
 
 
 

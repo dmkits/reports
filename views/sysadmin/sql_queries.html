@@ -23,9 +23,11 @@
                 </td>
                 <td width="440px;"></td>
             </tr>
+            </table>
+        <table>
             <tr>
-                <td width="200px;">
-                    <div id="saved_filename"></div>
+                <td width="100%;">
+                    <div id="saved_files_info"></div>
                 </td>
             </tr>
         </table>
@@ -104,7 +106,7 @@
                                 }
                                 document.getElementById("filename").innerHTML = "reports_list";
                                 displayFileContentJSON.value = data.jsonText;
-                                var items=JSON.parse(data.jsonText);
+                                var items=JSON.parse(data.jsonFormattedText);
                                 for (var i in items) {
                                     detailContentSQL.addButtonTo(leftContentSQL, items[i].id, items[i].id);
                                 }
@@ -234,6 +236,8 @@
                             });
                 };
                 btnSaveSQl.onClick = function () {
+                    var savedInfo = document.getElementById("saved_files_info");
+                    savedInfo.innerHTML="";
                     var newQueryText = document.getElementById("sql_display_content").value;
                     var newJSONText = document.getElementById("json_display_content").value;
                     confirmDialog.show();
@@ -249,10 +253,20 @@
                                         borderContainer.showSimpleDialog("Файл не сохранен! \n Error in request");
                                         return;
                                     }
-                                    if (data.SQLerror) borderContainer.showSimpleDialog(data.SQLerror);
-                                    if (data.SQLsaved) borderContainer.showSimpleDialog(data.SQLsaved);
-                                    if (data.JSONerror) borderContainer.showSimpleDialog(data.JSONerror);
-                                    if (data.JSONsaved) borderContainer.showSimpleDialog(data.JSONsaved);
+
+                                    var nowSrt=moment().format('DD.MM.YYYY HH:mm:ss') +" ";
+                                    var ReportIDstr= "<b> ReportID: </b>"+ filename+" ";
+                                    var SQLsavedInfo;
+                                    var JSONsavedInfo;
+                                    if (data.SQLerror) SQLsavedInfo="<span style='color:red'> SQL NOT SAVED! "+data.SQLerror+"</span>";
+                                    if (data.SQLsaved) SQLsavedInfo="SQL SAVED";
+                                    if (data.JSONerror) JSONsavedInfo="<span style='color:red'> Config NOT SAVED!"+data.JSONerror+"</span>";
+                                    if (data.JSONsaved) JSONsavedInfo="Config  SAVED";
+
+                                    SQLsavedInfo=(SQLsavedInfo)?", "+SQLsavedInfo:"";
+                                    var saveResult="<b> Result: </b> "+JSONsavedInfo +SQLsavedInfo;
+                                    savedInfo.innerHTML='<span >'+nowSrt+ReportIDstr +saveResult+'</span>';
+
                                 });
                     }
                 };

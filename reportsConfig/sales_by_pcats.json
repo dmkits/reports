@@ -1,3 +1,5 @@
+/*sdvgsdgadrg*/
+
 [
   { "data":"PCatName", "name":"Бренд", "width":400, "type":"text" },
   { "data":"TotalQty", "name":"Кол-во", "width":100, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.[#########]" },
