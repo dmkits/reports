@@ -1,6 +1,7 @@
-var fs = require('fs');
-var sql = require('mssql');
-var app = require('./app');
+
+var fs = require('fs');       console.log('module for dataBase.js  fs');
+var sql = require('mssql');   console.log('module for dataBase.js mssql');
+var app = require('./app');   console.log('module for dataBase.js ./app');
 var dbConfig;
 var dbConfigFilePath;
 var conn=null;

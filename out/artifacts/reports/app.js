@@ -1,71 +1,90 @@
-
-function startupParams(){
+console.log("Starting...");
+var startTime = new Date().getTime();
+function startupParams() {
     var app_params = {};
-    if(process.argv.length==0) {
-        app_params.mode='production';
-        app_params.port=8080;
+    if (process.argv.length == 0) {
+        app_params.mode = 'production';
+        app_params.port = 8080;
         return app_params;
     }
-    for(var i=2;i<process.argv.length;i++){
-        if(process.argv[i].indexOf('-p:')==0){
-            var port=process.argv[i].replace("-p:","");
-            if(port>0 && port<65536){
-                app_params.port=port;
+    for (var i = 2; i < process.argv.length; i++) {
+        if (process.argv[i].indexOf('-p:') == 0) {
+            var port = process.argv[i].replace("-p:", "");
+            if (port > 0 && port < 65536) {
+                app_params.port = port;
             }
-        }else if(process.argv[i].charAt(0).toUpperCase()>'A'&&process.argv[i].charAt(0).toUpperCase()<'Z'){
+        } else if (process.argv[i].charAt(0).toUpperCase() > 'A' && process.argv[i].charAt(0).toUpperCase() < 'Z') {
             app_params.mode = process.argv[i];
+        } else if (process.argv[i].indexOf('-log:') == 0) {
+            var logParam = process.argv[i].replace("-log:", "");
+            if (logParam.toLowerCase() == "console") {
+                app_params.logToConsole = true;
+            }
         }
     }
-    if(!app_params.port)app_params.port=8080;
-    if(!app_params.mode)app_params.mode = 'production';
-  return app_params;
+    if (!app_params.port)app_params.port = 8080;
+    if (!app_params.mode)app_params.mode = 'production';
+    return app_params;
 }
 
 var app_params=startupParams();
 
+var log = require('winston');                     console.log("module  winston", new Date().getTime() - startTime);
+
+if (!app_params.logToConsole) {
+    log.add(log.transports.File, {filename: 'history.log', level: 'debug', timestamp: true});
+    log.remove(log.transports.Console);
+}
+
 module.exports.startupMode = app_params.mode;
 
-var fs = require('fs');
-var express = require('express');
+var fs = require('fs');                             console.log("module  fs",new Date().getTime() - startTime);
+var express = require('express');                   console.log("module  express",new Date().getTime() - startTime);
 var app = express();
-var port=app_params.port;                                         console.log("port=",port);
-var path=require ('path');
-var bodyParser = require('body-parser');
-var cookieParser = require('cookie-parser');
+var port=app_params.port;
+var path=require ('path');                          console.log("module  path",new Date().getTime() - startTime);
+var bodyParser = require('body-parser');            console.log("module body-parser",new Date().getTime() - startTime);
+
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(bodyParser.text());
 app.use('/',express.static('public'));
-var database = require('./dataBase');
+var database = require('./dataBase');               console.log("module ./dataBase",new Date().getTime() - startTime);
 var ConfigurationError, DBConnectError;
 
+process.on('uncaughtException', function(err) {
+    log.error('Server process failed! Reason:', err);
+    console.log('Server process failed! Reason:', err);
+});
+
 tryLoadConfiguration();
-function tryLoadConfiguration(){
+function tryLoadConfiguration(){      console.log('tryLoadConfiguration...', new Date().getTime() - startTime);
     try {
         database.loadConfig();
         ConfigurationError=null;
-    } catch (e) {
+    } catch (e) {                    console.log('ConfigurationError=', ConfigurationError);
         ConfigurationError= "Failed to load configuration! Reason:"+e;
     }
 }
  if (!ConfigurationError) tryDBConnect();
-function tryDBConnect(postaction) {                                          console.log('tryDBConnect...');//test
+function tryDBConnect(postaction) {                                        console.log('tryDBConnect...', new Date().getTime() - startTime);    //console.log('tryDBConnect...');//test
     database.databaseConnection(function (err) {
         DBConnectError = null;
         if (err) {
-            DBConnectError = "Failed to connect to database! Reason:" + err;
+            DBConnectError = "Failed to connect to database! Reason:" + err;            console.log('DBConnectError=', DBConnectError);
         }
-        if (postaction)postaction(err);                                      console.log('tryDBConnect DBConnectError=',DBConnectError);//test
+        if (postaction)postaction(err);                                                  console.log('tryDBConnect DBConnectError=',DBConnectError);
     });
 }
-app.get("/sysadmin", function(req, res){
+app.get("/sysadmin", function(req, res){                                               log.info("app.get /sysadmin");
     res.sendFile(path.join(__dirname, '/views', 'sysadmin.html'));
 });
-app.get("/sysadmin/app_state", function(req, res){
+app.get("/sysadmin/app_state", function(req, res){                                     log.info("app.get /sysadmin/app_state");
     var outData= {};
     outData.mode= app_params.mode;
     outData.port=port;
+    outData.connUserName=database.getDBConfig().user;
     if (ConfigurationError) {
         outData.error= ConfigurationError;
         res.send(outData);
@@ -78,10 +97,10 @@ app.get("/sysadmin/app_state", function(req, res){
         outData.dbConnection='Connected';
     res.send(outData);
 });
-app.get("/sysadmin/startup_parameters", function (req, res) {
+app.get("/sysadmin/startup_parameters", function (req, res) {                            log.info("app.get /sysadmin/startup_parameters");
     res.sendFile(path.join(__dirname, '/views/sysadmin', 'startup_parameters.html'));
 });
-app.get("/sysadmin/startup_parameters/get_app_config", function (req, res) {
+app.get("/sysadmin/startup_parameters/get_app_config", function (req, res) {             log.info("app.get /sysadmin/startup_parameters/get_app_config");
     if (ConfigurationError) {
         res.send({error:ConfigurationError});
         return;
@@ -90,7 +109,7 @@ app.get("/sysadmin/startup_parameters/get_app_config", function (req, res) {
     outData=database.getDBConfig();
     res.send(outData);
 });
-app.get("/sysadmin/startup_parameters/load_app_config", function (req, res) {
+app.get("/sysadmin/startup_parameters/load_app_config", function (req, res) {           log.info("app.get /sysadmin/startup_parameters/load_app_config");
     tryLoadConfiguration();
     if (ConfigurationError) {
         res.send({error:ConfigurationError});
@@ -100,7 +119,7 @@ app.get("/sysadmin/startup_parameters/load_app_config", function (req, res) {
     outData=database.getDBConfig();
     res.send(outData);
 });
-app.post("/sysadmin/startup_parameters/store_app_config_and_reconnect", function (req, res) {
+app.post("/sysadmin/startup_parameters/store_app_config_and_reconnect", function (req, res) {     log.info("app.post /sysadmin/startup_parameters/store_app_config_and_reconnect");
     var newDBConfigString = req.body;
     database.setDBConfig(newDBConfigString);
     var outData = {};
@@ -114,10 +133,10 @@ app.post("/sysadmin/startup_parameters/store_app_config_and_reconnect", function
         }
     );
 });
-app.get("/sysadmin/reports_config", function (req, res) {
+app.get("/sysadmin/reports_config", function (req, res) {                                    log.info("app.get /sysadmin/reports_config");
     res.sendFile(path.join(__dirname, '/views/sysadmin', 'sql_queries.html'));
 });
-app.get("/sysadmin/sql_queries/get_script", function (req, res) {
+app.get("/sysadmin/sql_queries/get_script", function (req, res) {                            log.info("app.get /sysadmin/sql_queries/get_script "+req.query.filename);
     var outData={};
     var sqlFile = './reportsConfig/' + req.query.filename + ".sql";
     var jsonFile='./reportsConfig/' + req.query.filename + ".json";
@@ -136,7 +155,7 @@ app.get("/sysadmin/sql_queries/get_script", function (req, res) {
     res.send(outData);
 });
 
-app.post("/sysadmin/sql_queries/get_result_to_request", function (req, res) {
+app.post("/sysadmin/sql_queries/get_result_to_request", function (req, res) {                 log.info("app.post /sysadmin/sql_queries/get_result_to_request");
    var newQuery = req.body;
     var sUnitlist = req.query.stocksList;
     var bdate = req.query.bdate;
@@ -144,43 +163,83 @@ app.post("/sysadmin/sql_queries/get_result_to_request", function (req, res) {
     database.getResultToNewQuery(newQuery, req.query,
         function (err,result) {
            var outData = {};
-            if (err) outData.error = err.message;
+            if (err) {
+                outData.error = err.message;                                             log.error("database.getResultToNewQuery err =",err);
+            }
             outData.result = result;
             res.send(outData);
         }
     );
 });
-app.post("/sysadmin/sql_queries/save_sql_file", function (req, res) {
-    var newQuery = req.body;
-    var filename= req.query.filename;
-    var outData = {};
-    if(newQuery.textSQL) {
-        fs.writeFile("./reportsConfig/" + filename + ".sql", newQuery.textSQL, function (err) {
-            if (err)outData.error = err.message;
-        });
-    }
-    if(newQuery.textJSON) {
-        fs.writeFile("./reportsConfig/" + filename + ".json", newQuery.textJSON, function (err) {
-            if (err)outData.error = err.message;
-        });
-    }
-    outData.success="Файл сохранен!";
-    res.send(outData);
-});
+app.post("/sysadmin/sql_queries/save_sql_file", function (req, res) {                         log.info("app.post /sysadmin/sql_queries/save_sql_file");
+        var newQuery = req.body;
+        var filename = req.query.filename;
+        var outData = {};
+        var textSQL = newQuery.textSQL;
+        var textJSON = newQuery.textJSON;
 
-app.get("/", function(req, res){
+        var formattedJSONText=getJSONWithoutComments(textJSON);
+        if (textJSON) {
+            var JSONparseERROR;
+            try {
+                JSON.parse(formattedJSONText);
+            } catch (e) {
+                outData.JSONerror = "JSON file not saved! Reason:" + e.message;
+                JSONparseERROR = e;
+            }
+            if (!JSONparseERROR) {
+                fs.writeFile("./reportsConfig/" + filename + ".json", textJSON, function (err) {
+                    if (textSQL) {
+                        fs.writeFile("./reportsConfig/" + filename + ".sql", textSQL, function (err) {
+                            if (err) {
+                                outData.SQLerror = "SQL file not saved! Reason:" + err.message;
+                            } else {
+                                outData.SQLsaved = "SQL file saved!";
+                            }
+                            if (err)outData.JSONerror = "JSON file not saved! Reason:" + err.message;
+                            else outData.JSONsaved = "JSON file saved!";
+                            outData.success = "Connected to server!";
+                            res.send(outData);
+                            return;
+                        });
+                    }else {
+                        if (err)outData.JSONerror = "JSON file not saved! Reason:" + err.message;
+                        else outData.JSONsaved = "JSON file saved!";
+                        outData.success = "Connected to server!";
+                        res.send(outData);
+                    }
+                });
+            } else {
+                if (textSQL) {
+                    fs.writeFile("./reportsConfig/" + filename + ".sql", textSQL, function (err) {
+                        if (err) {
+                            outData.SQLerror = "SQL file not saved! Reason:" + err.message;
+                        } else {
+                            outData.SQLsaved = "SQL file saved!";
+                        }
+                        outData.success = "Connected to server!";
+                        res.send(outData);
+                    });
+                }else{
+                    outData.success = "Connected to server 192!";
+                    res.send(outData);
+                }
+            }//else end
+        }
+    });
+
+app.get("/", function(req, res){                                                                     log.info("app.get /");
     res.sendFile(path.join(__dirname, '/views', 'main.html'));
 });
-app.get("/get_main_data", function(req, res){
+app.get("/get_main_data", function(req, res){                                                        log.info("app.get /get_main_data");
     var outData = {};//main data
     var menuBar= [];//menu bar list
     outData.title= "REPORTS";
-    outData.mode= "test";
-    outData.modeName= "TEST";
-    outData.user= "user";
+    outData.mode=app_params.mode;
+    outData.modeName= app_params.mode.toUpperCase();
 
     if (ConfigurationError) {
-        outData.error= ConfigurationError;                                                  console.log("req.ConfigurationError=",ConfigurationError);
+        outData.error= ConfigurationError;                                                         log.error("req.ConfigurationError=",ConfigurationError);
     }
     menuBar.push({itemname:"menuBarItemRetailSales",itemtitle:"Отчеты retail", action:"open",content:"/reports/retail_sales", id:"ReportRetailSales",title:"Отчеты retail", closable:false});
     menuBar.push({itemname:"menuBarClose",itemtitle:"Выход",action:"close"});
@@ -190,34 +249,66 @@ app.get("/get_main_data", function(req, res){
     outData.autorun.push({menuitem:"menuBarItemRetailSales", runaction:1});
     res.send(outData);
 });
-app.get("/reports/retail_sales", function(req, res){
+app.get("/reports/retail_sales", function(req, res){                                                             log.info("app.get /reports/retail_sales");
     res.sendFile(path.join(__dirname, '/views/reports', 'retail_sales.html'));
 });
 
-app.get("/reports/retail_sales/get_sales_by", function(req, res){
-    var bdate = req.query.BDATE;
-    var edate = req.query.EDATE;
-    var filename = req.query.action;
+app.get("/reports/retail_sales/get_sales_by/*", function(req, res){                                              log.info("app.get app.get /reports/retail_sales/get_sales_by ",req.url,req.query,req.params, new Date());
+    var filename = req.params[0];
+    var outData={};
+    var fileContentString=fs.readFileSync('./reportsConfig/'+filename+'.json', 'utf8');
+    outData.columns=JSON.parse(getJSONWithoutComments(fileContentString));
+    var bdate = req.query.BDATE, edate = req.query.EDATE;
+    if (!bdate&&!edate) {
+        res.send(outData);
+        return;
+    }
     database.getSalesBy(filename+".sql",bdate,edate,
         function (error,recordset) {
-            if (error){
-                res.send({error:""});
+            if (error){                                                                                              log.error("database.getSalesBy " +filename +" error=",error);
+                outData.error=error;
+                res.send(outData);
                 return;
             }
-            var outData={};
             outData.items=recordset;
-            outData.columns=JSON.parse(fs.readFileSync('./reportsConfig/'+filename+'.json', 'utf8'));
-           res.send(outData);
+            res.send(outData);
         });
 });
-app.get("/sysadmin/sql_queries/get_reports_list", function (req, res) {
+
+app.get("/sysadmin/sql_queries/get_reports_list", function (req, res) {                                             log.info("app.get /sysadmin/sql_queries/get_reports_list");
     var outData={};
-   outData.jsonText= fs.readFileSync('./reportsConfig/reports_list.json').toString();
+    outData.jsonText =fs.readFileSync('./reportsConfig/reports_list.json').toString();
+    outData.jsonFormattedText = getJSONWithoutComments(outData.jsonText);
     res.send(outData);
 });
 
-app.listen(port, function (err) {
+app.get("/print/printSimpleDocument", function(req, res){                                                           log.info("app.get /print/printSimpleDocument");
+    res.sendFile(path.join(__dirname, '/views/print', 'printSimpleDocument.html'));
 });
+
+function getJSONWithoutComments(text){
+    var target = "/*";
+    var pos = 0;
+    while (true) {
+        var foundPos = text.indexOf(target, pos);
+        if (foundPos < 0)break;
+        var comment = text.substring(foundPos, text.indexOf("*/", foundPos)+2);
+        text=text.replace(comment,"");
+        pos = foundPos + 1;
+    }
+    return text;
+}
+
+app.listen(port, function (err) {
+    if (err) {
+        log.error(err);
+        console.log(err);
+        return;
+    }
+    console.log("app runs on port " + port, new Date().getTime() - startTime);
+    log.info("app runs on port " + port);
+});
+
 
 
 

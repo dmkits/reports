@@ -7,13 +7,14 @@ define(["dojo/_base/declare", "dijit/layout/BorderContainer", "dijit/layout/Layo
         return declare("TemplateDocumentBase", [BorderContainer], {
             constructor: function(args,parentName){
                 declare.safeMixin(this,args);
-                if (this.printFormats === undefined) this.printFormats = {
-                    numericFormat: "0,000,000.[00]",
-                    dateFormat: "DD.MM.YY",
-                    currencyFormat: "0,000,000.[00]"
-                };
+                if (this.printFormats === undefined)
+                    this.printFormats = {
+                        dateFormat:"DD.MM.YY", numericFormat:"#,###,###,###,##0.#########", currencyFormat:"#,###,###,###,##0.00#######"
+                    };
             },
-
+            postCreate: function(){
+                //TODO actions of create document elements on parent
+            },
             setContainer: function(params, style, tagName){
                 if (!params) params={};
                 if (style) params.style= style;
@@ -102,7 +103,7 @@ define(["dojo/_base/declare", "dijit/layout/BorderContainer", "dijit/layout/Layo
                 var tableCell = document.createElement("td");
                 if (width!=undefined) tableCell.setAttribute("width", width+"px");
                 if (!style) style="";
-                tableCell.setAttribute("style", "white-space:nowrap;"+style);                   //console.log("addLeftCellToTableRow ",style);
+                tableCell.setAttribute("style", "white-space:nowrap;"+style);                                           //console.log("addLeftCellToTableRow ",style);
                 tableRow.insertBefore(tableCell, tableRow.lastChild);
                 return tableCell;
             },
@@ -165,7 +166,7 @@ define(["dojo/_base/declare", "dijit/layout/BorderContainer", "dijit/layout/Layo
                 return new DateTextBox(dateBoxParams,inputDateBox);
             },
             /*
-             * params= {labelText, labelStyle, inputStyle, cellWidth, cellStyle, initValue, inputParams}
+             * params= {cellWidth, cellStyle, labelText, labelStyle, inputParam, inputStyle, initValues}
              */
             addTableCellNumberTextBoxTo: function(tableRowNode, params){
                 if (!params) params={};
@@ -177,38 +178,55 @@ define(["dojo/_base/declare", "dijit/layout/BorderContainer", "dijit/layout/Layo
                 if (params.inputStyle) numberTextBoxParams.style=params.inputStyle;
                 return new NumberTextBox(numberTextBoxParams,inputNumberTextBox);
             },
-
-            addPrintDataEmptyTo: function(printTableRowData,width){
-                var printTableCellData= {};
-                printTableCellData["width"]= width;
-                printTableRowData[printTableRowData.length]= printTableCellData;
+            /*
+             * params { style, newTable:true/false }
+             */
+            addPrintDataItemTo: function(printData, sectionName, params){
+                if (!printData[sectionName]) printData[sectionName]=[];
+                var sectionItems= printData[sectionName];
+                var sectionItemData={items:[]};
+                if (params&&params.style) sectionItemData["style"]= params.style;
+                if (params&&params.newTable) sectionItemData["newTable"]= params.newTable;
+                sectionItems.push(sectionItemData);
+                return printData;
             },
-            addPrintDataTextTo: function(printTableRowData, label, width, style){
-                var printTableCellData= {};
-                printTableCellData["label"]= label;
-                printTableCellData["width"]= width;
-                printTableCellData["style"]= style;
-                printTableRowData[printTableRowData.length]= printTableCellData;
+            /*
+             * params { width, style, contentStyle, label, labelStyle, value, type, valueStyle, printFormat }
+             */
+            addPrintDataSubItemTo: function(printData, sectionName, params){
+                if (!printData[sectionName]) printData[sectionName]=[];
+                var sectionData= printData[sectionName];
+                if (sectionData.length==0) sectionData.push({items:[]});
+                var sectionSubItems= sectionData[sectionData.length-1].items;
+                var printDataItem= {};
+                if (!params){
+                    sectionSubItems.push(printDataItem);
+                    return printDataItem;
+                }
+                if (params.style!==undefined) printDataItem["style"]= params.style;
+                if (params.width!==undefined) printDataItem["width"]= params.width;
+                if (params.contentStyle!==undefined) printDataItem["contentStyle"]= params.contentStyle;
+                if (params.label!==undefined) printDataItem["label"]= params.label;
+                if (params.labelStyle!==undefined) printDataItem["labelStyle"]= params.labelStyle;
+                if (params.value!==undefined) printDataItem["value"]= params.value;
+                if (params.type!==undefined) printDataItem["type"]= params.type;
+                if (params.valueStyle!==undefined) printDataItem["valueStyle"]= params.valueStyle;
+                if (params.printFormat!==undefined) printDataItem["printFormat"]= params.printFormat;
+                sectionSubItems.push(printDataItem);
             },
-            addPrintDataCellTo: function(printTableRowData, label, value, type, width, value_width, style){
-                var printTableCellData= {};
-                printTableCellData["label"]= label;
-                printTableCellData["value"]= value;
-                printTableCellData["type"]= type;
-                printTableCellData["width"]= width;
-                if (value_width) printTableCellData["value_width"]= value_width;
-                if (style) printTableCellData["style"]= style;
-                printTableRowData[printTableRowData.length]= printTableCellData;
-
-            },
+            /*
+             * printFormats = { dateFormat:"DD.MM.YY", numericFormat:"#,###,###,###,##0.#########", currencyFormat:"#,###,###,###,##0.00#######" }
+             */
             setPrintDataFormats: function(printData, printFormats){
                 if (!printData) return;
                 if (!printFormats) printFormats= this.printFormats;
                 if (printData.columns){
                     for(var colIndex in printData.columns){
                         var colData= printData.columns[colIndex];
-                        if (printFormats.numericFormat&&colData.type==="numeric") colData.format= printFormats.numericFormat;
-                        if (printFormats.dateFormat&&colData.type==="date"&&!colData.format) colData.format= printFormats.dateFormat;
+                        if(!colData.type||colData.type==="text"||colData.format||colData.printFormat) continue;
+                        if (colData.type==="date"&&printFormats.dateFormat) colData.printFormat= printFormats.dateFormat;
+                        if (colData.type==="numeric"&&printFormats.numericFormat) colData.printFormat= printFormats.numericFormat;
+                        if (colData.type==="currency"&&printFormats.currencyFormat) colData.printFormat= printFormats.currencyFormat;
                         //if (printFormats.dateFormat&&colData.type==="text"&&colData.dateFormat) colData.dateFormat= printFormats.dateFormat;
                     }
                 }

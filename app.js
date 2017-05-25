@@ -44,7 +44,7 @@ var app = express();
 var port=app_params.port;
 var path=require ('path');                          console.log("module  path",new Date().getTime() - startTime);
 var bodyParser = require('body-parser');            console.log("module body-parser",new Date().getTime() - startTime);
-//var cookieParser = require('cookie-parser');        console.log("module");
+
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -52,6 +52,11 @@ app.use(bodyParser.text());
 app.use('/',express.static('public'));
 var database = require('./dataBase');               console.log("module ./dataBase",new Date().getTime() - startTime);
 var ConfigurationError, DBConnectError;
+
+process.on('uncaughtException', function(err) {
+    log.error('Server process failed! Reason:', err);
+    console.log('Server process failed! Reason:', err);
+});
 
 tryLoadConfiguration();
 function tryLoadConfiguration(){      console.log('tryLoadConfiguration...', new Date().getTime() - startTime);
@@ -281,12 +286,6 @@ app.get("/print/printSimpleDocument", function(req, res){                       
     res.sendFile(path.join(__dirname, '/views/print', 'printSimpleDocument.html'));
 });
 
-app.listen(port, function (err) {
-    if(err) log.error(err);
-    console.log("app runs on port "+ port,new Date().getTime() - startTime  );
-    log.info("app runs on port "+ port);
-});
-
 function getJSONWithoutComments(text){
     var target = "/*";
     var pos = 0;
@@ -299,6 +298,18 @@ function getJSONWithoutComments(text){
     }
     return text;
 }
+
+app.listen(port, function (err) {
+    if (err) {
+        log.error(err);
+        console.log(err);
+        return;
+    }
+    console.log("app runs on port " + port, new Date().getTime() - startTime);
+    log.info("app runs on port " + port);
+});
+
+
 
 
 

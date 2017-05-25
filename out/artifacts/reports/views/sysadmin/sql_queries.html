@@ -23,6 +23,13 @@
                 </td>
                 <td width="440px;"></td>
             </tr>
+            </table>
+        <table>
+            <tr>
+                <td width="100%;">
+                    <div id="saved_files_info"></div>
+                </td>
+            </tr>
         </table>
     </div>
     <div id="sql_queries_LeftContent" style="width:180px;height:100%; margin:0;padding:0; ">
@@ -54,11 +61,11 @@
                 "request"],
             function (APP, BorderContainer, LayoutContainer, ContentPane, ItemFileReadStore, TextBox, DateTextBox, Button, ConfirmDialog,Dialog,
                       Request) {
-                var borderContainer = APP.initElem("sql_queries_PageContent", BorderContainer, {});
-                var topContentSQL = APP.initElem("sql_queries_TopContent", ContentPane, {region: "top"});
-                var leftContentSQL = APP.initElem("sql_queries_LeftContent", ContentPane, {region: "left"});
-                var detailContentSQL = APP.initElem("sql_queries_DetailContent", ContentPane, {region: "center"});
-                var rightContentSQL = APP.initElem("sql_queries_RightContent", ContentPane, {
+                var borderContainer = APP.instanceForID("sql_queries_PageContent", BorderContainer, {});
+                var topContentSQL = APP.instanceForID("sql_queries_TopContent", ContentPane, {region: "top"});
+                var leftContentSQL = APP.instanceForID("sql_queries_LeftContent", ContentPane, {region: "left"});
+                var detailContentSQL = APP.instanceForID("sql_queries_DetailContent", ContentPane, {region: "center"});
+                var rightContentSQL = APP.instanceForID("sql_queries_RightContent", ContentPane, {
                     region: "right",
                     splitter: true
                 });
@@ -67,14 +74,14 @@
                 var displayQueryResultSQl = document.getElementById("sql_display_result");
 
                 detailContentSQL.addButtonTo = function (parent, htmlId, fileName) {
-                    var button = APP.initChildTo(parent, htmlId, Button, {filename: fileName, label: htmlId});
+                    var button = APP.childFor(parent, htmlId, Button, {filename: fileName, label: htmlId});
                     button.onClick = function () {
                         detailContentSQL.showRequestSqlText(this.filename)
                     };
                     button.domNode.firstChild.setAttribute("style", "width:150px;");
                 };
 
-                var reportsListBtn = APP.initChildTo(leftContentSQL, "reports_list", Button, {label: "reports_list"});
+                var reportsListBtn = APP.childFor(leftContentSQL, "reports_list", Button, {label: "reports_list"});
                 reportsListBtn.domNode.firstChild.setAttribute("style", "width:150px;");
                 reportsListBtn.startup();
                 reportsListBtn.onClick = function () {
@@ -99,14 +106,14 @@
                                 }
                                 document.getElementById("filename").innerHTML = "reports_list";
                                 displayFileContentJSON.value = data.jsonText;
-                                var items=JSON.parse(data.jsonText);
+                                var items=JSON.parse(data.jsonFormattedText);
                                 for (var i in items) {
                                     detailContentSQL.addButtonTo(leftContentSQL, items[i].id, items[i].id);
                                 }
                             });
                 };
-                var btnRunSQL = APP.initElem("sql_runBtn", Button, {});
-                var btnSaveSQl = APP.initElem("sql_saveBtn", Button, {});
+                var btnRunSQL = APP.instanceForID("sql_runBtn", Button, {});
+                var btnSaveSQl = APP.instanceForID("sql_saveBtn", Button, {});
                 var sql_params = document.getElementById("sql_params");
                 borderContainer.startup();
                 var confirmDialog = new ConfirmDialog({content: "Сохранить изменеия в файл?"});
@@ -229,6 +236,8 @@
                             });
                 };
                 btnSaveSQl.onClick = function () {
+                    var savedInfo = document.getElementById("saved_files_info");
+                    savedInfo.innerHTML="";
                     var newQueryText = document.getElementById("sql_display_content").value;
                     var newJSONText = document.getElementById("json_display_content").value;
                     confirmDialog.show();
@@ -239,16 +248,25 @@
                                     url: "/sysadmin/sql_queries/save_sql_file", condition: "filename=" + filename,
                                     data: {textSQL: newQueryText, textJSON:newJSONText}, consoleLog: true
                                 },
-                                function (success, data) {
+                                function (success, data) {              console.log("data=", data);
                                     if (!success) {
                                         borderContainer.showSimpleDialog("Файл не сохранен! \n Error in request");
                                         return;
                                     }
-                                    if (data.error)
-                                        borderContainer.showSimpleDialog("Файл не сохранен!"+data.error);
-                                    else{
-                                        borderContainer.showSimpleDialog("Файл сохранен!");
-                                    }
+
+                                    var nowSrt=moment().format('DD.MM.YYYY HH:mm:ss') +" ";
+                                    var ReportIDstr= "<b> ReportID: </b>"+ filename+" ";
+                                    var SQLsavedInfo;
+                                    var JSONsavedInfo;
+                                    if (data.SQLerror) SQLsavedInfo="<span style='color:red'> SQL NOT SAVED! "+data.SQLerror+"</span>";
+                                    if (data.SQLsaved) SQLsavedInfo="SQL SAVED";
+                                    if (data.JSONerror) JSONsavedInfo="<span style='color:red'> Config NOT SAVED!"+data.JSONerror+"</span>";
+                                    if (data.JSONsaved) JSONsavedInfo="Config  SAVED";
+
+                                    SQLsavedInfo=(SQLsavedInfo)?", "+SQLsavedInfo:"";
+                                    var saveResult="<b> Result: </b> "+JSONsavedInfo +SQLsavedInfo;
+                                    savedInfo.innerHTML='<span >'+nowSrt+ReportIDstr +saveResult+'</span>';
+
                                 });
                     }
                 };
