@@ -244,11 +244,12 @@ app.get("/get_main_data", function(req, res){                                   
     outData.autorun.push({menuitem:"menuBarItemRetailSales", runaction:1});
     res.send(outData);
 });
+
 app.get("/reports/retail_sales", function(req, res){                                                             log.info("app.get /reports/retail_sales");
     res.sendFile(path.join(__dirname, '/views/reports', 'retail_sales.html'));
 });
 
-app.get("/reports/retail_sales/get_sales_by/*", function(req, res){                                              log.info("app.get app.get /reports/retail_sales/get_sales_by ",req.url,req.query,req.params, new Date());
+app.get("/reports/retail_sales/get_sales_by/*", function(req, res){                                              log.info("app.get /reports/retail_sales/get_sales_by ",req.url,req.query,req.params, new Date());
     var filename = req.params[0];
     var outData={};
     outData.columns=JSON.parse(fs.readFileSync('./reportsConfig/'+filename+'.json', 'utf8'));
