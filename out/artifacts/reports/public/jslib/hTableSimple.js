@@ -70,7 +70,7 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane", "request"], function(d
             this.htColumns = newDataColumns;
             this.htVisibleColumns= this.getVisibleColumnsFrom(newDataColumns);
         },
-        setData: function(data) {
+        setData: function(data) {                                                                                       console.log("HTableSimple setData ",data);
             if (!data) { data={ identifier:null, columns:[], items:[] }; }
             if(data.identifier) { this.handsonTable.rowIDName=data.identifier; }
             this.setDataColumns(data.columns);
@@ -86,7 +86,9 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane", "request"], function(d
         getRowIDName: function(){
             return this.handsonTable.rowIDName;
         },
-        getColumns: function(){ return this.htColumns; },
+        getColumns: function(){                                                                                         console.log("HTableSimple getColumns ",this.htColumns);
+            return this.htColumns;
+        },
         getVisibleColumns: function(){ return this.htVisibleColumns; },
         createHandsonTable: function(){
             var content = document.createElement('div');
@@ -133,7 +135,7 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane", "request"], function(d
                         else td.innerHTML="";
                     }
                     var rowSourceData= instance.getContentRow(row);
-                    if(rowSourceData[instance.getSettings().htDataSelectedProp]===true) td.classList.add('hTableCurrentRow');
+                    if(rowSourceData&&rowSourceData[instance.getSettings().htDataSelectedProp]===true) td.classList.add('hTableCurrentRow');
                     return cellProperties;
                 },
                 cells: function (row, col, prop) {
@@ -143,6 +145,12 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane", "request"], function(d
                     if (data) data[this.htDataSelectedProp]= true;
                     if (olddata && olddata!==data) olddata[this.htDataSelectedProp]= false;
                 },
+                /*beforeSetRangeStart: function(coords){                                                                console.log("HTableSimple beforeSetRangeStart coords=",coords);
+
+                },*/
+                /*beforeSetRangeEnd: function(coords){                                                                  console.log("HTableSimple beforeSetRangeEnd coords=",coords);
+
+                },*/
                 afterSelectionEnd: function(r,c,r2,c2) {
                     var selection= [], firstItem=r;
                     if (r<=r2)
@@ -154,7 +162,7 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane", "request"], function(d
                     parent.onSelect(selection[firstItem], selection);
                 }
             });
-            this.handsonTable.updateSettings({fillHandle: false});//it's for use fillHandle in childrens
+            //this.handsonTable.updateSettings({fillHandle: false});//it's for use fillHandle in childrens
             this.handsonTable.getContent= function(){
                 return this.getSourceData();
             };
@@ -206,47 +214,51 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane", "request"], function(d
         //},
         /*
          * calls on load/set/reset data to table or on change data after store
-         * default callOnUpdateContent!=false
-         * if callOnUpdateContent==false not call onUpdateContent
+         * params= { callOnUpdateContent=true/false, resetSelection=true/false }
+         * default params.resetSelection!=false
+         * if params.resetSelection==false not call resetSelection
+         * default params.callOnUpdateContent!=false
+         * if params.callOnUpdateContent==false not call onUpdateContent
          */
-        updateContent: function(newdata,callOnUpdateContent) {                                //console.log("HTableSimple updateContent ",callOnUpdateContent," htVisibleColumns=", this.htVisibleColumns,this.htData);
+        updateContent: function(newdata,params) {                                                           //console.log("HTableSimple updateContent newdata=",newdata," params=", params);
             if(newdata!==undefined) this.setData(newdata);
             if(this.htData!==null) {//loadTableContent
                 this.handsonTable.updateSettings(
                     {columns:this.htVisibleColumns, data:this.getData(), readOnly:this.readOnly, comments:this.enableComments}
                 );
-                this.resetSelection();
+                if(params&&params.resetSelection!==false) this.resetSelection();
             } else {//clearTableDataContent
                 this.clearContent();
             }
-            if (callOnUpdateContent===false) return;
+            if (params&&params.callOnUpdateContent===false) return;
             this.onUpdateContent();
         },
-        resetSelection: function(){
+        resetSelection: function(){                                                                         //console.log("HTableSimple resetSelection ",this.getSelectedRows()," rowIDName=", this.handsonTable.rowIDName);
             var newData= this.getContent();
             var newSelection= null, newSelectionFirstRowIndex, oldSelection= this.getSelectedRows();
             if (oldSelection){
                 var rowIDName= this.handsonTable.rowIDName;
                 for (var oldSelectionRowIndex in oldSelection){
                     var oldSelectionRowData= oldSelection[oldSelectionRowIndex];
-                    if (newData[oldSelectionRowIndex]
-                        && oldSelectionRowData[rowIDName]===newData[oldSelectionRowIndex][rowIDName]){
-                        if (!newSelection) newSelection= [];
-                        newSelectionFirstRowIndex=oldSelectionRowIndex;
-                        newSelection[oldSelectionRowIndex]=newData[oldSelectionRowIndex];
-                    } else {
-                        for(var filteredDataRowIndex in newData)
-                            if (newData[filteredDataRowIndex][rowIDName]===oldSelectionRowData[rowIDName]){
-                                if (!newSelection) newSelection= [];
-                                newSelectionFirstRowIndex=filteredDataRowIndex;
-                                newSelection[filteredDataRowIndex]=newData[filteredDataRowIndex];
-                                break;
-                            }
+                    if (newData[oldSelectionRowIndex]){
+                        if(!rowIDName || (rowIDName && oldSelectionRowData[rowIDName]===newData[oldSelectionRowIndex][rowIDName]) ){
+                            if (!newSelection) newSelection= [];
+                            newSelectionFirstRowIndex=oldSelectionRowIndex;
+                            newSelection[oldSelectionRowIndex]=newData[oldSelectionRowIndex];
+                            break;
+                        }
                     }
+                    for(var filteredDataRowIndex in newData)
+                        if (rowIDName && newData[filteredDataRowIndex][rowIDName]===oldSelectionRowData[rowIDName]){
+                            if (!newSelection) newSelection= [];
+                            newSelectionFirstRowIndex=filteredDataRowIndex;
+                            newSelection[filteredDataRowIndex]=newData[filteredDataRowIndex];
+                            break;
+                        }
                     break;
                 }
             }
-            this.setSelection( (newSelection)?newSelection[newSelectionFirstRowIndex]:null, newSelection);
+            this.setSelection( (newSelection)?newSelection[newSelectionFirstRowIndex]:null, newSelection);              //console.log("HTableSimple resetSelection END",this.getSelectedRows()," rowIDName=", this.handsonTable.rowIDName);
         },
         setContent: function(newdata) {                                                                                 //console.log("HTableSimple setContent newdata=", newdata);
             this.updateContent(newdata);
@@ -275,23 +287,94 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane", "request"], function(d
             //TODO actions on/after update table content (after set/reset/reload/clear table content data)
         },
         /*
-         * params: {method=get/post , url, condition, data, callUpdateContent}
+         * params: {method=get/post , url, condition:string or object, duplexRequest:true/false, data, callUpdateContent:true/false}
+         * if (duplexRequest=true) or (duplexRequest=undefined and no htColumns data),
+         *     sends two requests: first request without parameters to get columns data without table data
+         *     and second request with parameters from params.condition to get table data;
+         * if duplexRequest=false, sends only one request to get table data with columns data.
          */
         setContentFromUrl: function(params){
             if (!params.method) params.method="get";
+            var duplexRequest= (params.duplexRequest===true)||( (!this.htColumns||this.htColumns.length==0)&&(params.duplexRequest!==false) );
             var instance = this;
             if (params.method!="post") {
+                if (duplexRequest){
+                    Request.getJSONData({url:params.url, condition:null, consoleLog:true}
+                        ,/*postaction*/function(success,result){
+                            if(!success) result=null;
+                            if(!success||!result||result.error) {
+                                var errorMsg=(result&&result.error)?"Error=":"", error=(result&&result.error)?result.error:"";
+                                console.log("HTableSimple setContentFromUrl Request.getJSONData DATA ERROR!!! "+errorMsg,error);
+                                instance.updateContent(result, {callUpdateContent:params.callUpdateContent});
+                                return;
+                            }
+                            instance.updateContent(result, {callUpdateContent:params.callUpdateContent, resetSelection:false});
+                            Request.getJSONData({url:params.url, condition:params.condition, consoleLog:true}
+                                ,/*postaction*/function(success,result){
+                                    if(!success) result=null;
+                                    if(!success||!result||result.error) {
+                                        var errorMsg=(result&&result.error)?"Error=":"", error=(result&&result.error)?result.error:"";
+                                        console.log("HTableSimple setContentFromUrl Request.getJSONData DATA ERROR!!! "+errorMsg,error);
+                                        instance.updateContent({ columns:instance.htColumns, items:[] }, {callUpdateContent:params.callUpdateContent});
+                                        return;
+                                    }
+                                    instance.updateContent(result, {callUpdateContent:params.callUpdateContent});
+                                });
+                        });
+                    return;
+                }
+                if(this.htData&&this.htData.length>0)
+                    instance.updateContent({ columns:this.htColumns, items:[] }, {callUpdateContent:params.callUpdateContent, resetSelection:false});
                 Request.getJSONData({url:params.url, condition:params.condition, consoleLog:true}
                     ,/*postaction*/function(success,result){
                         if(!success) result=null;
-                        instance.updateContent(result, params.callUpdateContent);
+                        if(!success||!result||result.error) {
+                            var errorMsg=(result&&result.error)?"Error=":"", error=(result&&result.error)?result.error:"";
+                            console.log("HTableSimple setContentFromUrl Request.getJSONData DATA ERROR!!! "+errorMsg,error);
+                            instance.updateContent({ columns:instance.htColumns, items:[] }, {callUpdateContent:params.callUpdateContent});
+                            return;
+                        }
+                        instance.updateContent(result, {callUpdateContent:params.callUpdateContent});
                     });
                 return;
             }
+            if (duplexRequest){
+                Request.postJSONData({url:params.url, condition:null, consoleLog:true},
+                    /*postaction*/function(success,result){
+                        if(!success) result=null;
+                        if(!success||!result||result.error) {
+                            var errorMsg=(result&&result.error)?"Error=":"", error=(result&&result.error)?result.error:"";
+                            console.log("HTableSimple setContentFromUrl Request.getJSONData DATA ERROR!!! "+errorMsg,error);
+                            instance.updateContent(result, {callUpdateContent:params.callUpdateContent});
+                            return;
+                        }
+                        instance.updateContent(result, {callUpdateContent:params.callUpdateContent, resetSelection:false});
+                        Request.postJSONData({url:params.url, condition:params.condition, data:params.data, consoleLog:true},
+                            /*postaction*/function(success,result){
+                                if(!success) result=null;
+                                if(!success||!result||result.error) {
+                                    var errorMsg=(result&&result.error)?"Error=":"", error=(result&&result.error)?result.error:"";
+                                    console.log("HTableSimple setContentFromUrl Request.getJSONData DATA ERROR!!! "+errorMsg,error);
+                                    instance.updateContent({ columns:instance.htColumns, items:[] }, {callUpdateContent:params.callUpdateContent});
+                                    return;
+                                }
+                                instance.updateContent(result, {callUpdateContent:params.callUpdateContent});
+                            });
+                    });
+                return;
+            }
+            if(this.htData&&this.htData.length>0)
+                instance.updateContent({ columns:this.htColumns, items:[] }, {callUpdateContent:params.callUpdateContent, resetSelection:false});
             Request.postJSONData({url:params.url, condition:params.condition, data:params.data, consoleLog:true},
                 /*postaction*/function(success,result){
                     if(!success) result=null;
-                    instance.updateContent(result, params.callUpdateContent);
+                    if(!success||!result||result.error) {
+                        var errorMsg=(result&&result.error)?"Error=":"", error=(result&&result.error)?result.error:"";
+                        console.log("HTableSimple setContentFromUrl Request.getJSONData DATA ERROR!!! "+errorMsg,error);
+                        instance.updateContent({ columns:instance.htColumns, items:[] }, {callUpdateContent:params.callUpdateContent});
+                        return;
+                    }
+                    instance.updateContent(result, {callUpdateContent:params.callUpdateContent});
                 });
         },
         setSelectedRow: function(rowIndex){

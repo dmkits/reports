@@ -30,7 +30,20 @@
                 var  reports_button_list=document.getElementById("reports_button_list");
                 var firstButton;
 
-                reports_retail_PageContainer.layout();
+                reports_retail_PageContainer.createReportButtons=function(){
+                    Request.getJSONData({url: "/sysadmin/sql_queries/get_reports_list",consoleLog: true},
+                            function (success, data) {
+                                if (!success) {
+                                    reports_retail_ContentPaneDetailContainer.innerHTML = "<div><b style='color:red'>No connection!</b></div>";
+                                    return;
+                                }
+                                var item = JSON.parse(data.jsonFormattedText);
+                                for (var i in item) {
+                                    reports_retail_PageContainer.addButtonTo(reports_button_list, item[i].id, item[i].name);
+                                }
+                                firstButton.onClick();
+                            });
+                };
 
                 reports_retail_PageContainer.addButtonTo = function (parent, id, name) {
                     var button = new Button({id:id, label:name});
@@ -39,10 +52,12 @@
                         if (!button.document){
                             button.document =
                                     APP.childFor(reports_retail_ContentPaneDetailContainer, "reports_retail_TableSales"+instance.id,
-                                            TDocumentSimpleTable, {titleText:instance.label, dataURL:'/reports/retail_sales/get_sales_by',dataURLAction:instance.id})//"/reports/retail_sales/get_"+instance.id})
-                                            .setBeginDateBox("с","BDATE").setEndDateBox("по","EDATE")
-                                            .setTotalSumBoldfont("ИТОГО кол-во:","TotalQty", 500)
-                                            .setTotalSumBoldfont("ИТОГО сумма:","TotalSum", 180)
+                                            TDocumentSimpleTable, {titleText:instance.label, dataURL:'/reports/retail_sales/get_sales_by/'+instance.id})
+                                            .addBeginDateBox("с","BDATE","2017-03-01").addEndDateBox("по","EDATE")
+                                            .addTotalCountNumberBox("ИТОГО строк:", 140, {style:"font-weight:bold;",inputStyle:"width:40px;"})
+                                            .addTotalSumNumberTextBox("ИТОГО кол-во:",260, "TotalQty", {style:"font-weight:bold;",inputStyle:"width:60px;"})
+                                            .addTotalSumNumberTextBox("ИТОГО сумма:",200, "TotalSum", {style:"font-weight:bold;",inputStyle:"width:80px;",
+                                                pattern:"###,###,##0.00#######"})
                                             .startUp();
                         }
                         reports_retail_ContentPaneDetailContainer.selectChild(button.document);
@@ -53,24 +68,8 @@
                     if(!firstButton)firstButton=button;
                 };
 
-                reports_retail_PageContainer.createReportButtons=function(){
-                    Request.getJSONData({
-                                url: "/sysadmin/sql_queries/get_reports_list",
-                                consoleLog: true
-                            }
-                            , function (success, data) {
-                                if (!success) {
-                                    reports_retail_ContentPaneDetailContainer.innerHTML = "<div><b style='color:red'>No connection!</b></div>";
-                                    return;
-                                }
-                                var item = JSON.parse(data.jsonText);
-                                for (var i in item) {
-                                    reports_retail_PageContainer.addButtonTo(reports_button_list, item[i].id, item[i].name);
-                                }
-                                firstButton.onClick();
-                            });
-                };
                 reports_retail_PageContainer.createReportButtons();
+                reports_retail_PageContainer.layout();
         });
 </script>
 </html>

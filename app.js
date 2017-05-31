@@ -44,7 +44,7 @@ var app = express();
 var port=app_params.port;
 var path=require ('path');                          console.log("module  path",new Date().getTime() - startTime);
 var bodyParser = require('body-parser');            console.log("module body-parser",new Date().getTime() - startTime);
-//var cookieParser = require('cookie-parser');        console.log("module");
+
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -52,6 +52,11 @@ app.use(bodyParser.text());
 app.use('/',express.static('public'));
 var database = require('./dataBase');               console.log("module ./dataBase",new Date().getTime() - startTime);
 var ConfigurationError, DBConnectError;
+
+process.on('uncaughtException', function(err) {
+    log.error('Server process failed! Reason:', err);
+    console.log('Server process failed! Reason:', err);
+});
 
 tryLoadConfiguration();
 function tryLoadConfiguration(){      console.log('tryLoadConfiguration...', new Date().getTime() - startTime);
@@ -79,6 +84,7 @@ app.get("/sysadmin/app_state", function(req, res){                              
     var outData= {};
     outData.mode= app_params.mode;
     outData.port=port;
+    outData.connUserName=database.getDBConfig().user;
     if (ConfigurationError) {
         outData.error= ConfigurationError;
         res.send(outData);
@@ -157,7 +163,9 @@ app.post("/sysadmin/sql_queries/get_result_to_request", function (req, res) {   
     database.getResultToNewQuery(newQuery, req.query,
         function (err,result) {
            var outData = {};
-            if (err) outData.error = err.message;                                             log.error("database.getResultToNewQuery err =",err);
+            if (err) {
+                outData.error = err.message;                                             log.error("database.getResultToNewQuery err =",err);
+            }
             outData.result = result;
             res.send(outData);
         }
@@ -170,10 +178,11 @@ app.post("/sysadmin/sql_queries/save_sql_file", function (req, res) {           
         var textSQL = newQuery.textSQL;
         var textJSON = newQuery.textJSON;
 
+        var formattedJSONText=getJSONWithoutComments(textJSON);
         if (textJSON) {
             var JSONparseERROR;
             try {
-                JSON.parse(textJSON);
+                JSON.parse(formattedJSONText);
             } catch (e) {
                 outData.JSONerror = "JSON file not saved! Reason:" + e.message;
                 JSONparseERROR = e;
@@ -182,7 +191,6 @@ app.post("/sysadmin/sql_queries/save_sql_file", function (req, res) {           
                 fs.writeFile("./reportsConfig/" + filename + ".json", textJSON, function (err) {
                     if (textSQL) {
                         fs.writeFile("./reportsConfig/" + filename + ".sql", textSQL, function (err) {
-                            outData.SQLfilename=filename.sql;
                             if (err) {
                                 outData.SQLerror = "SQL file not saved! Reason:" + err.message;
                             } else {
@@ -195,7 +203,6 @@ app.post("/sysadmin/sql_queries/save_sql_file", function (req, res) {           
                             return;
                         });
                     }else {
-                        outData.JSONfilename=filename + ".json";
                         if (err)outData.JSONerror = "JSON file not saved! Reason:" + err.message;
                         else outData.JSONsaved = "JSON file saved!";
                         outData.success = "Connected to server!";
@@ -217,7 +224,6 @@ app.post("/sysadmin/sql_queries/save_sql_file", function (req, res) {           
                     outData.success = "Connected to server 192!";
                     res.send(outData);
                 }
-
             }//else end
         }
     });
@@ -231,7 +237,6 @@ app.get("/get_main_data", function(req, res){                                   
     outData.title= "REPORTS";
     outData.mode=app_params.mode;
     outData.modeName= app_params.mode.toUpperCase();
-    outData.user=  database.getDBConfig().user;
 
     if (ConfigurationError) {
         outData.error= ConfigurationError;                                                         log.error("req.ConfigurationError=",ConfigurationError);
@@ -252,7 +257,8 @@ app.get("/reports/retail_sales", function(req, res){                            
 app.get("/reports/retail_sales/get_sales_by/*", function(req, res){                                              log.info("app.get /reports/retail_sales/get_sales_by ",req.url,req.query,req.params, new Date());
     var filename = req.params[0];
     var outData={};
-    outData.columns=JSON.parse(fs.readFileSync('./reportsConfig/'+filename+'.json', 'utf8'));
+    var fileContentString=fs.readFileSync('./reportsConfig/'+filename+'.json', 'utf8');
+    outData.columns=JSON.parse(getJSONWithoutComments(fileContentString));
     var bdate = req.query.BDATE, edate = req.query.EDATE;
     if (!bdate&&!edate) {
         res.send(outData);
@@ -272,7 +278,8 @@ app.get("/reports/retail_sales/get_sales_by/*", function(req, res){             
 
 app.get("/sysadmin/sql_queries/get_reports_list", function (req, res) {                                             log.info("app.get /sysadmin/sql_queries/get_reports_list");
     var outData={};
-    outData.jsonText= fs.readFileSync('./reportsConfig/reports_list.json').toString();
+    outData.jsonText =fs.readFileSync('./reportsConfig/reports_list.json').toString();
+    outData.jsonFormattedText = getJSONWithoutComments(outData.jsonText);
     res.send(outData);
 });
 
@@ -280,11 +287,29 @@ app.get("/print/printSimpleDocument", function(req, res){                       
     res.sendFile(path.join(__dirname, '/views/print', 'printSimpleDocument.html'));
 });
 
+function getJSONWithoutComments(text){
+    var target = "/*";
+    var pos = 0;
+    while (true) {
+        var foundPos = text.indexOf(target, pos);
+        if (foundPos < 0)break;
+        var comment = text.substring(foundPos, text.indexOf("*/", foundPos)+2);
+        text=text.replace(comment,"");
+        pos = foundPos + 1;
+    }
+    return text;
+}
+
 app.listen(port, function (err) {
-    if(err) log.error(err);
-    console.log("app runs on port "+ port,new Date().getTime() - startTime  );
-    log.info("app runs on port "+ port);
+    if (err) {
+        log.error(err);
+        console.log(err);
+        return;
+    }
+    console.log("app runs on port " + port, new Date().getTime() - startTime);
+    log.info("app runs on port " + port);
 });
+
 
 
 

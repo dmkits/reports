@@ -11,7 +11,7 @@
     <script type="text/javascript" src="/jslib/dojo/dojo.js" data-dojo-config="async:true,parseOnLoad:false"></script>
     <link rel="stylesheet" type="text/css" href="/css/sysadmin.css" media="screen">
 
-    <title>SINTA MOBILE (SYSADMIN)</title>
+    <title>REPORTS</title>
 </head>
 <body class="claro">
 <div id="sysadmin_MainContainer">
@@ -23,6 +23,7 @@
             <div id="sysadmin_dbName" style="display:inline;;margin-left:20px;"></div>
             <div id="sysadmin_connectToDBState" style="display:inline;margin-left:20px;"></div>
             <div id="sysadmin_dbValidateState" style="display:inline;margin-left:20px;"></div>
+            <div id="sysadmin_ConnUserName" style="display:inline;margin-left:20px;"></div>
         </div>
         <div id="sysadmin_TopActions">
             <button id="display_startup_params">Startup params</button>
@@ -37,24 +38,24 @@
                 "dijit/form/ToggleButton", "dojox/layout/ContentPane", "dijit/form/Button",  "request", "dojo/domReady!"],
             function (APP, BorderContainer, StackContainer, ContentPane, ToggleButton, XContentPane, Button, Request) {                    console.log("STARTING SYSADMIN PAGE...");//!!!IT'S FOR TESTING!!!
                moment.locale("uk");
-                var sysadmin_MainContainer = APP.initElem("sysadmin_MainContainer", BorderContainer, {design: "headline"});
-                var sysadmin_TopContainer = APP.initElem("sysadmin_TopContainer",
+                var sysadmin_MainContainer = APP.instanceForID("sysadmin_MainContainer", BorderContainer, {design: "headline"});
+                var sysadmin_TopContainer = APP.instanceForID("sysadmin_TopContainer",
                         BorderContainer, {
                             region: "top",
                             design: "sidebar",
                             class: "sysadmin_TopContent",
                             gutters: true
                         });
-                var sysadmin_TopImg = APP.initElem("sysadmin_TopImg", ContentPane, {
+                var sysadmin_TopImg = APP.instanceForID("sysadmin_TopImg", ContentPane, {
                     region: "left",
                     class: "sysadmin_TopContent"
                 });
                 sysadmin_TopImg.set("content", "<image src='/icons/profits40x40.ico' ,style=\"position:absolute; top:5px\">");
-                var sysadmin_TopStateInfo = APP.initElem("sysadmin_TopStateInfo", ContentPane, {
+                var sysadmin_TopStateInfo = APP.instanceForID("sysadmin_TopStateInfo", ContentPane, {
                     region: "top",
                     class: "sysadmin_TopContent"
                 });
-                var sysadmin_TopActions = APP.initElem("sysadmin_TopActions", ContentPane, {
+                var sysadmin_TopActions = APP.instanceForID("sysadmin_TopActions", ContentPane, {
                     region: "bottom",
                     class: "sysadmin_TopContent"
                 });
@@ -62,7 +63,7 @@
                 var startupBtn = new Button({id:"display_startup_params"},"display_startup_params");
                 var sqlBtn = new Button({id:"display_reports_config"},"display_reports_config");
 
-                var sysadmin_ContentContainer = APP.initElem("sysadmin_ContentContainer",
+                var sysadmin_ContentContainer = APP.instanceForID("sysadmin_ContentContainer",
                         StackContainer, {region: "center", tabPosition: "top", class: "sysadmin_Content"});
                 sysadmin_MainContainer.startup();
 
@@ -100,6 +101,10 @@
                                             dbConnection_color.setAttribute("style", "color:red");
                                         }else dbConnection_color.setAttribute("style", "color:dimgrey");
                                     }
+                                    if(result.connUserName){
+                                        document.getElementById("sysadmin_ConnUserName").innerHTML =
+                                                "<b>USER:<span> <b style='color:dimgrey'>" + result.connUserName + "</span></b>";
+                                    }
                                 } else {
                                     sysadmin_MainContainer.mainContentData = [];
                                     sysadmin_MainContainer.mainContentData["error"] = result;
@@ -110,7 +115,7 @@
                 sysadmin_MainContainer.runSysadminContentPage = function (id, title, closable, contentURL) {
                     console.log("sysadmin_MainContainer.runSysadminContentPage: ", contentURL);//!!!IT'S FOR TESTING!!!
                     var pageContentPane =
-                            APP.initChildTo(sysadmin_ContentContainer, "PageContentPane_" + id,
+                            APP.childFor(sysadmin_ContentContainer, "PageContentPane_" + id,
                                     XContentPane, {title: title, closable: closable,parseOnLoad: false,style: "margin:0;padding:0;"});
                     sysadmin_ContentContainer.selectChild(pageContentPane);
                     pageContentPane.set("content", "");
