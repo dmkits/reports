@@ -52,8 +52,9 @@ module.exports.getResultToNewQuery=function(newQuery, parameters, callback ){
 };
 
 module.exports.getSalesBy=function(filename, bdate,edate, callback ){
+    var configDirectoryName=dbConfig["reports.config"]?'reportsConfig'+dbConfig["reports.config"]:"reportsConfig";
     var reqSql = new sql.Request(conn);
-    var query_str = fs.readFileSync('./reportsConfig/'+filename, 'utf8');
+    var query_str = fs.readFileSync('./'+configDirectoryName+'/'+filename, 'utf8');
     reqSql.input('BDATE',sql.Date, bdate);
     reqSql.input('EDATE',sql.Date, edate);
     reqSql.query(query_str,

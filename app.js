@@ -137,9 +137,10 @@ app.get("/sysadmin/reports_config", function (req, res) {                       
     res.sendFile(path.join(__dirname, '/views/sysadmin', 'sql_queries.html'));
 });
 app.get("/sysadmin/sql_queries/get_script", function (req, res) {                            log.info("app.get /sysadmin/sql_queries/get_script "+req.query.filename);
+    var configDirectoryName=getConfigDirectoryName();
     var outData={};
-    var sqlFile = './reportsConfig/' + req.query.filename + ".sql";
-    var jsonFile='./reportsConfig/' + req.query.filename + ".json";
+    var sqlFile = './'+configDirectoryName+'/' + req.query.filename + ".sql";
+    var jsonFile='./'+configDirectoryName+'/' + req.query.filename + ".json";
     if(fs.existsSync(sqlFile)){
         outData.sqlText = fs.readFileSync(sqlFile,'utf8');
     }else{
@@ -172,7 +173,9 @@ app.post("/sysadmin/sql_queries/get_result_to_request", function (req, res) {   
     );
 });
 app.post("/sysadmin/sql_queries/save_sql_file", function (req, res) {                         log.info("app.post /sysadmin/sql_queries/save_sql_file");
-        var newQuery = req.body;
+    var configDirectoryName  = getConfigDirectoryName();
+
+    var newQuery = req.body;
         var filename = req.query.filename;
         var outData = {};
         var textSQL = newQuery.textSQL;
@@ -188,9 +191,9 @@ app.post("/sysadmin/sql_queries/save_sql_file", function (req, res) {           
                 JSONparseERROR = e;
             }
             if (!JSONparseERROR) {
-                fs.writeFile("./reportsConfig/" + filename + ".json", textJSON, function (err) {
+                fs.writeFile("./"+configDirectoryName+"/" + filename + ".json", textJSON, function (err) {
                     if (textSQL) {
-                        fs.writeFile("./reportsConfig/" + filename + ".sql", textSQL, function (err) {
+                        fs.writeFile("./"+configDirectoryName+"/" + filename + ".sql", textSQL, function (err) {
                             if (err) {
                                 outData.SQLerror = "SQL file not saved! Reason:" + err.message;
                             } else {
@@ -211,7 +214,7 @@ app.post("/sysadmin/sql_queries/save_sql_file", function (req, res) {           
                 });
             } else {
                 if (textSQL) {
-                    fs.writeFile("./reportsConfig/" + filename + ".sql", textSQL, function (err) {
+                    fs.writeFile("./"+configDirectoryName+"/" + filename + ".sql", textSQL, function (err) {
                         if (err) {
                             outData.SQLerror = "SQL file not saved! Reason:" + err.message;
                         } else {
@@ -255,10 +258,12 @@ app.get("/reports/retail_sales", function(req, res){                            
 });
 
 app.get("/reports/retail_sales/get_sales_by/*", function(req, res){                                              log.info("app.get /reports/retail_sales/get_sales_by ",req.url,req.query,req.params, new Date());
+    var configDirectoryName=getConfigDirectoryName();
     var filename = req.params[0];
     var outData={};
-    var fileContentString=fs.readFileSync('./reportsConfig/'+filename+'.json', 'utf8');
-    outData.columns=JSON.parse(getJSONWithoutComments(fileContentString));
+    var fileContentString=fs.readFileSync('./'+configDirectoryName+'/'+filename+'.json', 'utf8');
+    var pureJSONTxt=JSON.parse(getJSONWithoutComments(fileContentString));
+    outData.columns=pureJSONTxt.columns;
     var bdate = req.query.BDATE, edate = req.query.EDATE;
     if (!bdate&&!edate) {
         res.send(outData);
@@ -278,7 +283,8 @@ app.get("/reports/retail_sales/get_sales_by/*", function(req, res){             
 
 app.get("/sysadmin/sql_queries/get_reports_list", function (req, res) {                                             log.info("app.get /sysadmin/sql_queries/get_reports_list");
     var outData={};
-    outData.jsonText =fs.readFileSync('./reportsConfig/reports_list.json').toString();
+    var configDirectoryName=getConfigDirectoryName();
+    outData.jsonText =fs.readFileSync('./'+configDirectoryName+'/reports_list.json').toString();
     outData.jsonFormattedText = getJSONWithoutComments(outData.jsonText);
     res.send(outData);
 });
@@ -299,6 +305,13 @@ function getJSONWithoutComments(text){
     }
     return text;
 }
+
+function getConfigDirectoryName(){
+    //console.log("getConfigDirectoryName dbConfig()=",database.getDBConfig(),"dbConfig['reports.config']=",database.getDBConfig()["reports.config"]);
+    var dirName=database.getDBConfig()["reports.config"]?"reportsConfig"+database.getDBConfig()["reports.config"]:"reportsConfig";
+    console.log("getConfigDirectoryName dirName=",dirName);
+    return dirName;
+};
 
 app.listen(port, function (err) {
     if (err) {
