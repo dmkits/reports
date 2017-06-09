@@ -1,0 +1,8 @@
+/*Comment*/
+
+[
+  {   "id": "sales_by_pcats",    "name": "Продажи по категориям"  },                                 /*Comment*/
+  {  "id": "sales_by_prods",   "name": "Продажи по наименованию" },
+  {  "id": "sales_by_days", "name": "Продажи по дням" }
+]
+/*Comment*/

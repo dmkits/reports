@@ -95,6 +95,11 @@
                             }
                         }
                     }
+
+                    var paramsList=document.getElementById('sql_params_table');
+                    while (paramsList.firstChild) {
+                        paramsList.removeChild(paramsList.firstChild);
+                    }
                     Request.getJSONData({
                                 url: "/sysadmin/sql_queries/get_reports_list",
                                 consoleLog: true
