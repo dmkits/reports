@@ -16,6 +16,7 @@
 ],
 "columns":[
   { "data":"PGrName2", "name":"Вид", "width":150, "type":"text" },
+  { "data":"DocName", "name":"Имя документа", "width":175, "type":"text"},
   { "data":"PGrName3", "name":"Тип", "width":200, "type":"text" },
   { "data":"Article1", "name":"Артикул", "width":120, "type":"text" },
   { "data":"ProdName", "name":"Наименование", "width":400, "type":"text" },

@@ -1,8 +1,7 @@
-/*Comment*/
+
 
 [
-  {   "id": "sales_by_pcats",    "name": "Продажи по категориям"  },                                 /*Comment*/
-  {  "id": "sales_by_prods",   "name": "Продажи по наименованию" },
-  {  "id": "sales_by_days", "name": "Продажи по дням" }
+  {  "id": "sales_by_pcats",    "name": "Реализация по категориям"  },
+  {  "id": "sales_by_prods",   "name": "Реализация по наименованию" },
+  {  "id": "sales_by_days", "name": "Реализация по дням" }
 ]
-/*Comment*/
