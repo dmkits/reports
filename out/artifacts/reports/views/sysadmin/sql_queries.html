@@ -32,7 +32,7 @@
             </tr>
         </table>
     </div>
-    <div id="sql_queries_LeftContent" style="width:180px;height:100%; margin:0;padding:0; ">
+    <div id="sql_queries_LeftContent" style="width:165px;height:100%; margin:0;padding:0; ">
     </div>
     <div id="sql_queries_DetailContent" style="width:100%;height:100%; margin:0;padding:0;">
         <table width='100%' height='100%'>
@@ -94,6 +94,11 @@
                                 childrenList[i].destroy(false);
                             }
                         }
+                    }
+
+                    var paramsList=document.getElementById('sql_params_table');
+                    while (paramsList.firstChild) {
+                        paramsList.removeChild(paramsList.firstChild);
                     }
                     Request.getJSONData({
                                 url: "/sysadmin/sql_queries/get_reports_list",

@@ -43,6 +43,10 @@
                         <td><label for="db.password">db.password </label></td>
                         <td><input id="db.password" type="text" aria-disabled="false"/></td>
                     </tr>
+                    <tr>
+                        <td><label for="reports.config">reports.config</label></td>
+                        <td><input id="reports.config" type="text" aria-disabled="false"/></td>
+                    </tr>
                 </table>
             </td>
         </tr>
@@ -71,7 +75,8 @@
                 var portInput=new TextBox({id:"db.port"},"db.port");
                 var databaseInput=new TextBox({id:"db.name"},"db.name");
                 var userInput=new TextBox({id:"db.user"},"db.user");
-                var dbPasswordInput=new TextBox({id:"db.password"},"db.password");
+                var dbPasswordInput=new TextBox({id:"db.password"},"db.password"); //reports.config
+                var reportsConfigInput=new TextBox({id:"reports.config"},"reports.config");
                 var sa_startup_params_appLocalConfig = document.getElementById("sa_startup_params_appLocalConfig");
                 var reloadBtn = new Button({id: "SA_startup_params_BtnAppLocalConfigLoad"}, "SA_startup_params_BtnAppLocalConfigLoad");
                 var saveAndReconnectBtn = new Button({id: "SA_startup_params_BtnAppLocalConfigSaveAndReconnect"}, "SA_startup_params_BtnAppLocalConfigSaveAndReconnect");
@@ -116,6 +121,7 @@
                     databaseInput.set("value",configData["database"] );
                     userInput.set("value",configData["user"]);
                     dbPasswordInput.set("value",configData["password"]);
+                    if(configData["reports.config"])reportsConfigInput.set("value",configData["reports.config"]);
                 }
 
                 saveAndReconnectBtn.onClick = function () {
@@ -126,7 +132,8 @@
                         "port": portInput.get('value'),
                         "database": databaseInput.get('value'),
                         "user": userInput.get('value'),
-                        "password": dbPasswordInput.get('value')
+                        "password": dbPasswordInput.get('value'),
+                        "reports.config":reportsConfigInput.get('value')
                     };
 
                     Request.postJSONData({url:  "/sysadmin/startup_parameters/store_app_config_and_reconnect", data: newDBConfig, consoleLog: true},

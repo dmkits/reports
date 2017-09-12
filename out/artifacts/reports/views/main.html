@@ -80,7 +80,6 @@
                                     } else if (!result.mode)
                                         eAppMode.innerHTML =  eAppMode.innerHTML+"<b>UNKNOWN MODE!!!</b>";
 
-
                                     if(result.user) document.getElementById("main_username").innerHTML =  "<b>"+result.user+"</b>";
                                 } else {
                                     main_MainContainer.mainContentData = [];
@@ -89,6 +88,7 @@
                                 if(postaction)postaction();
                             });
                 };
+
                 main_MainContainer.createMainMenu = function(){
                     var mainmenu = main_MainContainer.mainContentData.menuBar;
                     for(var i in mainmenu) {// create and add main menu items
@@ -164,10 +164,6 @@
                             main_MainContainer.createMainMenu();
                             main_MainContainer.runAutorunActions();
                     });
-
-
-
-
             });
 </script>
 </html>
