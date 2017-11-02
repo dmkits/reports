@@ -35,25 +35,26 @@ module.exports.databaseConnection=function(callback){
 };
 
 
-module.exports.getResultToNewQuery=function(newQuery, parameters, callback ){
+module.exports.getResultToNewQuery=function(newQuery, parameters, callback ){    //getQueryResult
     var reqSql = new sql.Request(conn);
     var newQueryString=newQuery.text;
 
     for(var paramName in parameters) reqSql.input(paramName, deleteSpaces(parameters[paramName]));
 
-        reqSql.query(newQueryString,
-            function (err, result) {
-                if (err) {
-                    callback(err);
-                } else {
-                    callback(null,result);
-                }
-            })
+    reqSql.query(newQueryString,
+        function (err, result) {
+            if (err) {
+                callback(err);
+            } else {
+                callback(null,result);
+            }
+        })
 };
 
-module.exports.getSalesBy=function(filename, bdate,edate, callback ){
+module.exports.getSalesBy=function(filename, bdate,edate, callback ){      //changeName
     var configDirectoryName=dbConfig["reports.config"]?'reportsConfig'+dbConfig["reports.config"]:"reportsConfig";
     var reqSql = new sql.Request(conn);
+    //try-catch
     var query_str = fs.readFileSync('./'+configDirectoryName+'/'+filename, 'utf8');
     reqSql.input('BDATE',sql.Date, bdate);
     reqSql.input('EDATE',sql.Date, edate);
