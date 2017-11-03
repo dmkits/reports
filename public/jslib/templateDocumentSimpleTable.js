@@ -113,8 +113,11 @@ define(["dojo/_base/declare", "app", "templateDocumentBase","dijit/form/Select",
                 return this.contentTable.getContentItemSum(tableItemName);
             },
             onUpdateTableContent: function(){
-                if(this.contentTable.getDataError())
-                    this.topTableErrorMsg.innerHTML= "<b style='color:red'>"+this.detailContentErrorMsg+" Reason: "+this.contentTable.getDataError()+"</b>";
+                if(this.contentTable.getDataError()){
+                    if(this.contentTable.getDataError()["msgForUser"]){
+                        this.topTableErrorMsg.innerHTML= "<b style='color:red'>"+this.contentTable.getDataError()["msgForUser"]+"</b>";
+                    }else this.topTableErrorMsg.innerHTML= "<b style='color:red'>"+this.detailContentErrorMsg+" Reason: "+this.contentTable.getDataError()+"</b>";
+                }
                 else
                     this.topTableErrorMsg.innerHTML="";
                 if (!this.totals) return;

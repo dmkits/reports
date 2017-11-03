@@ -26,7 +26,6 @@ function startupParams() {
     if (!app_params.mode)app_params.mode = 'production';
     return app_params;
 }
-
 var app_params=startupParams();
 
 var log = require('winston');                     console.log("module  winston", new Date().getTime() - startTime);
@@ -54,7 +53,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.text());
 app.use('/',express.static('public'));
 var database = require('./dataBase');               console.log("module ./dataBase",new Date().getTime() - startTime);
-var ConfigurationError, DBConnectError;
+var ConfigurationError, DBConnectError="No connection";
 
 process.on('uncaughtException', function(err) {
     log.error('Server process failed! Reason:', err);
@@ -80,7 +79,6 @@ function tryDBConnect(postaction) {                                        conso
         if (postaction)postaction(err);                                                  console.log('tryDBConnect DBConnectError=',DBConnectError);
     });
 }
-
 var tempExcelRepDir=path.join(__dirname, './temp/');
 try {
     if (!fs.existsSync(tempExcelRepDir)) {

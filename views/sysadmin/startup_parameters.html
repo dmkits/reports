@@ -110,6 +110,7 @@
                                     return;
                                 }
                                 sa_startup_params_appLocalConfig.innerHTML = "<div><b>Configuration reloaded.</b></div>";
+                                setDBConfigContent(result);
                                 if (sa_startup_params_PageContent.getParent().updateDBState)  sa_startup_params_PageContent.getParent().updateDBState();
                             }
                     );

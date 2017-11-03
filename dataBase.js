@@ -6,25 +6,25 @@ var dbConfig;
 var dbConfigFilePath;
 var conn=null;
 
-module.exports.getDBConfig=function(){          console.log("dbConfig getDBConfig 9 dataBAse=",dbConfig);
-    return dbConfig;
-};
 module.exports.setDBConfig=function(newDBConfig){
     dbConfig= newDBConfig;
 };
 module.exports.loadConfig=function(){
     dbConfigFilePath='./' + app.startupMode + '.cfg';
     var stringConfig = fs.readFileSync(dbConfigFilePath);
-    dbConfig = JSON.parse(stringConfig);                                            console.log("dbConfig 18 dataBase=",dbConfig);
+    dbConfig = JSON.parse(stringConfig);                                            console.log("dbConfig 17 dataBase=",dbConfig);
+};
+module.exports.getDBConfig=function(){          console.log("dbConfig getDBConfig 20 dataBAse=",dbConfig);
+    return dbConfig;
 };
 module.exports.saveConfig=function(callback) {
     fs.writeFile(dbConfigFilePath, JSON.stringify(dbConfig), function (err, success) {
         callback(err,success);
     })
 };
-
 module.exports.databaseConnection=function(callback){
     if(conn) conn.close();
+   // callback("sfghsfdh");   //for test
     conn = new sql.Connection(dbConfig);
     conn.connect(function (err) {
         if (err) {
@@ -34,7 +34,6 @@ module.exports.databaseConnection=function(callback){
         callback(null,conn);
     });
 };
-
 module.exports.getQueryResult=function(newQuery, parameters, callback ){
     checkDBConnection(0,function(err){
         if(err){
@@ -91,13 +90,13 @@ function deleteSpaces(text){
     return text;
 }
 
-function checkDBConnection(ind,callback){
+function checkDBConnection(ind,callback){                        console.log("checkDBConnection ind=", ind);
     if(conn){
         callback();
         return;
     }
-    if(ind==5){
-        callback({DBConnError:"FAILED to set DB connection!"});
+    if(ind==4){
+        callback({msgForUser:"Не удалось подключиться к базе данных!"});
         return;
     }
     setTimeout(function(){
