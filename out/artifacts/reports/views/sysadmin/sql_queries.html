@@ -202,8 +202,8 @@
                     var edate = document.getElementById("EDATE");
                     var stocksList = document.getElementById("StocksList");
                     if (bdate) {
-                        var startOfYear = moment().startOf('year').format('YYYY-MM-DD');
-                        bdate.setAttribute("value", startOfYear);
+                        var BeginDate = moment().startOf('month').format('YYYY-MM-DD');
+                        bdate.setAttribute("value", BeginDate);
                     }
                     if (edate) {
                         var now = moment().format('YYYY-MM-DD');

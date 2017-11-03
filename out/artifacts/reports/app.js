@@ -26,7 +26,6 @@ function startupParams() {
     if (!app_params.mode)app_params.mode = 'production';
     return app_params;
 }
-
 var app_params=startupParams();
 
 var log = require('winston');                     console.log("module  winston", new Date().getTime() - startTime);
@@ -44,6 +43,9 @@ var app = express();
 var port=app_params.port;
 var path=require ('path');                          console.log("module  path",new Date().getTime() - startTime);
 var bodyParser = require('body-parser');            console.log("module body-parser",new Date().getTime() - startTime);
+var XLSX = require('xlsx');                         console.log("xlsx",new Date().getTime() - startTime);
+var uid = require('uniqid');                        console.log("uniqid",new Date().getTime() - startTime);
+var BigNumber = require('big-number');              console.log("big-number",new Date().getTime() - startTime);
 
 
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -51,7 +53,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.text());
 app.use('/',express.static('public'));
 var database = require('./dataBase');               console.log("module ./dataBase",new Date().getTime() - startTime);
-var ConfigurationError, DBConnectError;
+var ConfigurationError, DBConnectError="No connection";
 
 process.on('uncaughtException', function(err) {
     log.error('Server process failed! Reason:', err);
@@ -67,16 +69,25 @@ function tryLoadConfiguration(){      console.log('tryLoadConfiguration...', new
         ConfigurationError= "Failed to load configuration! Reason:"+e;
     }
 }
- if (!ConfigurationError) tryDBConnect();
-function tryDBConnect(postaction) {                                        console.log('tryDBConnect...', new Date().getTime() - startTime);    //console.log('tryDBConnect...');//test
+if (!ConfigurationError) tryDBConnect();
+function tryDBConnect(postaction) {                                        console.log('tryDBConnect...', new Date().getTime() - startTime);
     database.databaseConnection(function (err) {
         DBConnectError = null;
         if (err) {
-            DBConnectError = "Failed to connect to database! Reason:" + err;            console.log('DBConnectError=', DBConnectError);
+            DBConnectError = "Failed to connect to database! Reason:" + err;              console.log('DBConnectError=', DBConnectError);
         }
-        if (postaction)postaction(err);                                                  console.log('tryDBConnect DBConnectError=',DBConnectError);
+        if (postaction)postaction(err);
     });
 }
+var tempExcelRepDir=path.join(__dirname, './temp/');
+try {
+    if (!fs.existsSync(tempExcelRepDir)) {
+        fs.mkdirSync(tempExcelRepDir);
+    }
+}catch (e){                                                                                         log.warn('Failed create XLSX_temp directory! Reason:'+e);
+    tempExcelRepDir=null;
+}
+
 app.get("/sysadmin", function(req, res){                                               log.info("app.get /sysadmin");
     res.sendFile(path.join(__dirname, '/views', 'sysadmin.html'));
 });
@@ -156,16 +167,16 @@ app.get("/sysadmin/sql_queries/get_script", function (req, res) {               
     res.send(outData);
 });
 
-app.post("/sysadmin/sql_queries/get_result_to_request", function (req, res) {                 log.info("app.post /sysadmin/sql_queries/get_result_to_request");
-   var newQuery = req.body;
+app.post("/sysadmin/sql_queries/get_result_to_request", function (req, res) {                 log.info("app.post /sysadmin/sql_queries/get_result_to_request", req.body,{});
+    var newQuery = req.body;
     var sUnitlist = req.query.stocksList;
     var bdate = req.query.bdate;
     var edate = req.query.edate;
-    database.getResultToNewQuery(newQuery, req.query,
+    database.getQueryResult(newQuery, req.query,
         function (err,result) {
            var outData = {};
             if (err) {
-                outData.error = err.message;                                             log.error("database.getResultToNewQuery err =",err);
+                outData.error = err.message;                                             log.error("database.getQueryResult err =",err);
             }
             outData.result = result;
             res.send(outData);
@@ -292,6 +303,53 @@ app.get("/sysadmin/sql_queries/get_reports_list", function (req, res) {         
 app.get("/print/printSimpleDocument", function(req, res){                                                           log.info("app.get /print/printSimpleDocument");
     res.sendFile(path.join(__dirname, '/views/print', 'printSimpleDocument.html'));
 });
+app.post("/sys/getExcelFile", function(req, res){
+    try {
+        var body = JSON.parse(req.body), columns=body.columns, rows=body.rows;
+    }catch(e){
+        res.sendStatus(500);                                                    log.error("Impossible to parse data! Reason:"+e);
+        return;
+    }
+    if(!columns) {
+        res.sendStatus(500);                                                    log.error("Error: No columns data to create excel file.");
+        return;
+    }
+    if(!rows) {
+        res.sendStatus(500);                                                    log.error("Error: No table data to create excel file.");
+        return;
+    }
+    var uniqueFileName = getUIDNumber();
+    var fname = path.join(tempExcelRepDir, uniqueFileName + '.xlsx');
+    try {fs.writeFileSync(fname);
+    } catch (e) {                                                               log.error("Impossible to write file! Reason:",e);
+        res.sendStatus(500);
+        return;
+    }
+    try {
+        var wb = XLSX.readFileSync(fname);
+    }catch(e){                                                                  log.error("Impossible to create workbook! Reason:",e);
+        res.sendStatus(500);
+        return;
+    }
+    wb.SheetNames = [];
+    wb.SheetNames.push('Sheet1');
+
+    fillTable(wb,columns,rows);
+
+    XLSX.writeFileAsync(fname, wb, {bookType: "xlsx", /*cellStyles: true,*/ cellDates:true}, function(err){
+        if (err) {
+            res.sendStatus(500);                                                 log.error("send xls file err=", err);
+            return;
+        }
+        var options = {headers: {'Content-Disposition': 'attachment; filename =out.xlsx'}};
+        res.sendFile(fname, options, function (err) {
+            if (err) {
+                res.sendStatus(500);                                             log.error("send xls file err=", err);
+            }
+            fs.unlinkSync(fname);
+        })
+    });
+});
 
 function getJSONWithoutComments(text){
     var target = "/*";
@@ -307,11 +365,71 @@ function getJSONWithoutComments(text){
 }
 
 function getConfigDirectoryName(){
-    //console.log("getConfigDirectoryName dbConfig()=",database.getDBConfig(),"dbConfig['reports.config']=",database.getDBConfig()["reports.config"]);
     var dirName=database.getDBConfig()["reports.config"]?"reportsConfig"+database.getDBConfig()["reports.config"]:"reportsConfig";
-    console.log("getConfigDirectoryName dirName=",dirName);
     return dirName;
 };
+
+function getUIDNumber(){
+    var str= uid.time();
+    var len = str.length;
+    var num = BigNumber(0);
+    for (var i = (len - 1); i >= 0; i--)
+        num.plus(BigNumber(256).pow(i).mult(str.charCodeAt(i)));
+    return num.toString();
+};
+
+function fillTable(wb,columns,rows){
+    fillHeaders(wb,columns);
+    var lineNum=1;
+    for (var i in rows){
+        fillRowData(wb,rows[i],columns,lineNum);
+        lineNum++;
+    }
+}
+function fillHeaders(wb,columns){
+    var worksheetColumns = [];
+    wb.Sheets['Sheet1'] = {
+        '!cols': worksheetColumns
+    };
+    for (var j = 0; j < columns.length; j++) {
+        worksheetColumns.push({wpx: columns[j].width});
+        var currentHeader = XLSX.utils.encode_cell({c: j, r: 0});
+        wb.Sheets['Sheet1'][currentHeader] = {t: "s", v: columns[j].name, s: {font: {bold: true}}};
+    }
+}
+
+function fillRowData(wb,rowData,columns, lineNum){
+    var lastCellInRaw;
+    for (var i = 0; i < columns.length; i++) {
+        var column=columns[i];
+        var columnDataID = column.data;
+
+        var cellType=getCellType(column);
+        var displayValue =  rowData[columnDataID] || "";
+        var currentCell = XLSX.utils.encode_cell({c: i, r: lineNum});
+
+        lastCellInRaw=currentCell;
+        wb.Sheets['Sheet1'][currentCell]={};
+        var wbCell=wb.Sheets['Sheet1'][currentCell];
+        wbCell.t=cellType;
+        wbCell.v=displayValue;
+        if(wbCell.t=="d"){
+            wbCell.z=column.datetimeFormat || "DD.MM.YYYY";
+        }
+        if(wbCell.t=="n"){
+            if(column.format.indexOf("0.00")>0 )wbCell.z= '#,###,##0.00';
+            if(column.format.indexOf("0.[")>0 )wbCell.z= '#,###,##0';
+        }
+        wb.Sheets['Sheet1']['!ref']='A1:'+lastCellInRaw;
+    }
+}
+
+function getCellType(columnData){
+    if(!columnData.type) return's';
+    if(columnData.type=="numeric") return'n';
+    if(columnData.type=="text" && columnData.datetimeFormat) return'd';
+    else return's';
+}
 
 app.listen(port, function (err) {
     if (err) {
