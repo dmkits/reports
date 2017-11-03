@@ -82,7 +82,7 @@
                 var saveAndReconnectBtn = new Button({id: "SA_startup_params_BtnAppLocalConfigSaveAndReconnect"}, "SA_startup_params_BtnAppLocalConfigSaveAndReconnect");
                 sa_startup_params_PageContent.getAppConfiguration = function(){
                     Request.getJSONData({url: "/sysadmin/startup_parameters/get_app_config", consoleLog: true},
-                            function (success, result) {
+                            function (success, result) { console.log("sa_startup_params_PageContent.getAppConfiguration result=",result);
                                 if (!success) {
                                     sa_startup_params_appLocalConfig.innerHTML = "<div><b style='color:red'>No connection to the server!</b></div>";
                                     return;
@@ -99,7 +99,7 @@
                 reloadBtn.onClick= function() {
                     sa_startup_params_appLocalConfig.innerHTML = "<div><b>Loading configuration parameters...</b></div>";
                     Request.getJSONData({url: "/sysadmin/startup_parameters/load_app_config", consoleLog: true},
-                            function (success, result) {
+                            function (success, result) { console.log("reloadBtn.onClick result=",result);
 
                                 if (!success) {
                                     sa_startup_params_appLocalConfig.innerHTML = "<div><b style='color:red'>No connection to the server!</b></div>";
@@ -137,7 +137,7 @@
                     };
 
                     Request.postJSONData({url:  "/sysadmin/startup_parameters/store_app_config_and_reconnect", data: newDBConfig, consoleLog: true},
-                            function (success, data) {
+                            function (success, data) {   console.log("saveAndReconnectBtn.onClick data=",data);
                                 if (!success) {
                                     sa_startup_params_appLocalConfig.innerHTML = "<div><b style='color:red'>No connection!</b></div>";
                                     return;

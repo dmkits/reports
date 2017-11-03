@@ -6,7 +6,7 @@ var dbConfig;
 var dbConfigFilePath;
 var conn=null;
 
-module.exports.getDBConfig=function(){
+module.exports.getDBConfig=function(){          console.log("dbConfig getDBConfig 9 dataBAse=",dbConfig);
     return dbConfig;
 };
 module.exports.setDBConfig=function(newDBConfig){
@@ -15,7 +15,7 @@ module.exports.setDBConfig=function(newDBConfig){
 module.exports.loadConfig=function(){
     dbConfigFilePath='./' + app.startupMode + '.cfg';
     var stringConfig = fs.readFileSync(dbConfigFilePath);
-    dbConfig = JSON.parse(stringConfig);
+    dbConfig = JSON.parse(stringConfig);                                            console.log("dbConfig 18 dataBase=",dbConfig);
 };
 module.exports.saveConfig=function(callback) {
     fs.writeFile(dbConfigFilePath, JSON.stringify(dbConfig), function (err, success) {
@@ -57,7 +57,7 @@ module.exports.getQueryResult=function(newQuery, parameters, callback ){
     });
 };
 
-module.exports.getSalesBy=function(filename, bdate,edate, callback ){      //changeName
+module.exports.getSalesBy=function(filename, bdate,edate, callback ){
     checkDBConnection(0,function(err){
         if(err){
             callback(err);
@@ -91,24 +91,23 @@ function deleteSpaces(text){
     return text;
 }
 
-function checkDBConnection(ind,callback){                           console.log("checkDBConnection conn 94=",conn);
-    callback();
-  //  if(conn){
-  //      callback();
-  //      return;
-  //  }
-  //  if(ind==5){
-  //      callback({DBConnError:"FAILED to set DB connection!"});
-  //      return;
-  //  }
-  //  setTimeout(function(){
-  //      exports.databaseConnection(function(err, conn){
-  //          if(err&&!conn){
-  //              checkDBConnection(ind+1,callback);
-  //              return;
-  //          }
-  //          callback();
-  //      })
-  //  }, 6000);
+function checkDBConnection(ind,callback){
+    if(conn){
+        callback();
+        return;
+    }
+    if(ind==5){
+        callback({DBConnError:"FAILED to set DB connection!"});
+        return;
+    }
+    setTimeout(function(){
+        exports.databaseConnection(function(err, conn){
+            if(err&&!conn){
+                checkDBConnection(ind+1,callback);
+                return;
+            }
+            callback();
+        })
+    }, 6000);
 }
 

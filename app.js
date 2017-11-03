@@ -67,7 +67,7 @@ function tryLoadConfiguration(){      console.log('tryLoadConfiguration...', new
         ConfigurationError= "Failed to load configuration! Reason:"+e;
     }
 }
- if (!ConfigurationError) tryDBConnect();
+if (!ConfigurationError) tryDBConnect();
 function tryDBConnect(postaction) {                                        console.log('tryDBConnect...', new Date().getTime() - startTime);    //console.log('tryDBConnect...');//test
     database.databaseConnection(function (err) {
         DBConnectError = null;
@@ -106,7 +106,7 @@ app.get("/sysadmin/startup_parameters/get_app_config", function (req, res) {    
         return;
     }
     var outData={};
-    outData=database.getDBConfig();
+    outData=database.getDBConfig();                          console.log("outData 109 get app config=",outData);
     res.send(outData);
 });
 app.get("/sysadmin/startup_parameters/load_app_config", function (req, res) {           log.info("app.get /sysadmin/startup_parameters/load_app_config");
@@ -116,7 +116,7 @@ app.get("/sysadmin/startup_parameters/load_app_config", function (req, res) {   
         return;
     }
     var outData={};
-    outData=database.getDBConfig();
+    outData=database.getDBConfig();                                         console.log("outData 119 load_app_config=",outData);
     res.send(outData);
 });
 app.post("/sysadmin/startup_parameters/store_app_config_and_reconnect", function (req, res) {     log.info("app.post /sysadmin/startup_parameters/store_app_config_and_reconnect");
