@@ -161,11 +161,11 @@ app.post("/sysadmin/sql_queries/get_result_to_request", function (req, res) {   
     var sUnitlist = req.query.stocksList;
     var bdate = req.query.bdate;
     var edate = req.query.edate;
-    database.getResultToNewQuery(newQuery, req.query,
+    database.getQueryResult(newQuery, req.query,
         function (err,result) {
            var outData = {};
             if (err) {
-                outData.error = err.message;                                             log.error("database.getResultToNewQuery err =",err);
+                outData.error = err.message;                                             log.error("database.getQueryResult err =",err);
             }
             outData.result = result;
             res.send(outData);

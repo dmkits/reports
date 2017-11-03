@@ -22,6 +22,7 @@ module.exports.saveConfig=function(callback) {
         callback(err,success);
     })
 };
+
 module.exports.databaseConnection=function(callback){
     if(conn) conn.close();
     conn = new sql.Connection(dbConfig);
@@ -30,42 +31,57 @@ module.exports.databaseConnection=function(callback){
             callback(err.message);
             return;
         }
-        callback(null,"connected");
+        callback(null,conn);
     });
 };
 
+module.exports.getQueryResult=function(newQuery, parameters, callback ){
+    checkDBConnection(0,function(err){
+        if(err){
+            callback(err);
+            return;
+        }
+        var reqSql = new sql.Request(conn);
+        var newQueryString=newQuery.text;
 
-module.exports.getResultToNewQuery=function(newQuery, parameters, callback ){    //getQueryResult
-    var reqSql = new sql.Request(conn);
-    var newQueryString=newQuery.text;
+        for(var paramName in parameters) reqSql.input(paramName, deleteSpaces(parameters[paramName]));
 
-    for(var paramName in parameters) reqSql.input(paramName, deleteSpaces(parameters[paramName]));
-
-    reqSql.query(newQueryString,
-        function (err, result) {
-            if (err) {
-                callback(err);
-            } else {
-                callback(null,result);
-            }
-        })
+        reqSql.query(newQueryString,
+            function (err, result) {
+                if (err) {
+                    callback(err);
+                } else {
+                    callback(null,result);
+                }
+            })
+    });
 };
 
 module.exports.getSalesBy=function(filename, bdate,edate, callback ){      //changeName
-    var configDirectoryName=dbConfig["reports.config"]?'reportsConfig'+dbConfig["reports.config"]:"reportsConfig";
-    var reqSql = new sql.Request(conn);
-    //try-catch
-    var query_str = fs.readFileSync('./'+configDirectoryName+'/'+filename, 'utf8');
-    reqSql.input('BDATE',sql.Date, bdate);
-    reqSql.input('EDATE',sql.Date, edate);
-    reqSql.query(query_str,
-        function (err, result) {
-            if (err) {
-                callback(err);
-            } else {
-                callback(null,result);
-            }
-        });
+    checkDBConnection(0,function(err){
+        if(err){
+            callback(err);
+            return;
+        }
+        var configDirectoryName=dbConfig["reports.config"]?'reportsConfig'+dbConfig["reports.config"]:"reportsConfig";
+        var reqSql = new sql.Request(conn);
+        try {
+            var query_str = fs.readFileSync('./' + configDirectoryName + '/' + filename, 'utf8');
+        }catch(e){
+            callback(e);
+            return;
+        }
+        reqSql.input('BDATE',sql.Date, bdate);
+        reqSql.input('EDATE',sql.Date, edate);
+        reqSql.query(query_str,
+            function (err, result) {
+                if (err) {
+                    callback(err);
+                } else {
+                    callback(null,result);
+                }
+            });
+    });
 };
 
 function deleteSpaces(text){
@@ -74,3 +90,24 @@ function deleteSpaces(text){
     }
     return text;
 }
+
+function checkDBConnection(ind,callback){                           console.log("checkDBConnection conn 94=",conn);
+    if(conn){
+        callback();
+        return;
+    }
+    if(ind==5){
+        callback({DBConnError:"FAILED to set DB connection!"});
+        return;
+    }
+    setTimeout(function(){
+        exports.databaseConnection(function(err, conn){
+            if(err&&!conn){
+                checkDBConnection(ind+1,callback);
+                return;
+            }
+            callback();
+        })
+    }, 6000);
+}
+
