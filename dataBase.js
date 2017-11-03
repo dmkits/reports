@@ -12,9 +12,9 @@ module.exports.setDBConfig=function(newDBConfig){
 module.exports.loadConfig=function(){
     dbConfigFilePath='./' + app.startupMode + '.cfg';
     var stringConfig = fs.readFileSync(dbConfigFilePath);
-    dbConfig = JSON.parse(stringConfig);                                            console.log("dbConfig 17 dataBase=",dbConfig);
+    dbConfig = JSON.parse(stringConfig);
 };
-module.exports.getDBConfig=function(){          console.log("dbConfig getDBConfig 20 dataBAse=",dbConfig);
+module.exports.getDBConfig=function(){
     return dbConfig;
 };
 module.exports.saveConfig=function(callback) {
@@ -90,7 +90,7 @@ function deleteSpaces(text){
     return text;
 }
 
-function checkDBConnection(ind,callback){                        console.log("checkDBConnection ind=", ind);
+function checkDBConnection(ind,callback){
     if(conn){
         callback();
         return;

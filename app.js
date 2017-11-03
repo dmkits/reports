@@ -70,13 +70,13 @@ function tryLoadConfiguration(){      console.log('tryLoadConfiguration...', new
     }
 }
 if (!ConfigurationError) tryDBConnect();
-function tryDBConnect(postaction) {                                        console.log('tryDBConnect...', new Date().getTime() - startTime);    //console.log('tryDBConnect...');//test
+function tryDBConnect(postaction) {                                        console.log('tryDBConnect...', new Date().getTime() - startTime);
     database.databaseConnection(function (err) {
         DBConnectError = null;
         if (err) {
-            DBConnectError = "Failed to connect to database! Reason:" + err;            console.log('DBConnectError=', DBConnectError);
+            DBConnectError = "Failed to connect to database! Reason:" + err;              console.log('DBConnectError=', DBConnectError);
         }
-        if (postaction)postaction(err);                                                  console.log('tryDBConnect DBConnectError=',DBConnectError);
+        if (postaction)postaction(err);
     });
 }
 var tempExcelRepDir=path.join(__dirname, './temp/');
@@ -117,7 +117,7 @@ app.get("/sysadmin/startup_parameters/get_app_config", function (req, res) {    
         return;
     }
     var outData={};
-    outData=database.getDBConfig();                          console.log("outData 109 get app config=",outData);
+    outData=database.getDBConfig();
     res.send(outData);
 });
 app.get("/sysadmin/startup_parameters/load_app_config", function (req, res) {           log.info("app.get /sysadmin/startup_parameters/load_app_config");
@@ -127,7 +127,7 @@ app.get("/sysadmin/startup_parameters/load_app_config", function (req, res) {   
         return;
     }
     var outData={};
-    outData=database.getDBConfig();                                         console.log("outData 119 load_app_config=",outData);
+    outData=database.getDBConfig();
     res.send(outData);
 });
 app.post("/sysadmin/startup_parameters/store_app_config_and_reconnect", function (req, res) {     log.info("app.post /sysadmin/startup_parameters/store_app_config_and_reconnect");
@@ -365,9 +365,7 @@ function getJSONWithoutComments(text){
 }
 
 function getConfigDirectoryName(){
-    //console.log("getConfigDirectoryName dbConfig()=",database.getDBConfig(),"dbConfig['reports.config']=",database.getDBConfig()["reports.config"]);
     var dirName=database.getDBConfig()["reports.config"]?"reportsConfig"+database.getDBConfig()["reports.config"]:"reportsConfig";
-    console.log("getConfigDirectoryName dirName=",dirName);
     return dirName;
 };
 
