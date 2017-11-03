@@ -156,8 +156,8 @@ app.get("/sysadmin/sql_queries/get_script", function (req, res) {               
     res.send(outData);
 });
 
-app.post("/sysadmin/sql_queries/get_result_to_request", function (req, res) {                 log.info("app.post /sysadmin/sql_queries/get_result_to_request");
-   var newQuery = req.body;
+app.post("/sysadmin/sql_queries/get_result_to_request", function (req, res) {                 log.info("app.post /sysadmin/sql_queries/get_result_to_request", req.body,{});
+    var newQuery = req.body;
     var sUnitlist = req.query.stocksList;
     var bdate = req.query.bdate;
     var edate = req.query.edate;

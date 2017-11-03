@@ -92,22 +92,23 @@ function deleteSpaces(text){
 }
 
 function checkDBConnection(ind,callback){                           console.log("checkDBConnection conn 94=",conn);
-    if(conn){
-        callback();
-        return;
-    }
-    if(ind==5){
-        callback({DBConnError:"FAILED to set DB connection!"});
-        return;
-    }
-    setTimeout(function(){
-        exports.databaseConnection(function(err, conn){
-            if(err&&!conn){
-                checkDBConnection(ind+1,callback);
-                return;
-            }
-            callback();
-        })
-    }, 6000);
+    callback();
+  //  if(conn){
+  //      callback();
+  //      return;
+  //  }
+  //  if(ind==5){
+  //      callback({DBConnError:"FAILED to set DB connection!"});
+  //      return;
+  //  }
+  //  setTimeout(function(){
+  //      exports.databaseConnection(function(err, conn){
+  //          if(err&&!conn){
+  //              checkDBConnection(ind+1,callback);
+  //              return;
+  //          }
+  //          callback();
+  //      })
+  //  }, 6000);
 }
 
