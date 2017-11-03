@@ -5,27 +5,46 @@ define(["dojo/_base/declare", "hTableSimple"], function(declare, HTableSimple){
     return declare("HTableSimpleFiltered", [HTableSimple], {
         useFilters: false,
         filtered: false,
+        globalFilter:{ value:null },
         constructor: function(args,parentName){
             this.useFilters= false;
             this.filtered= false;
+            this.globalFilter= { value:null };
             declare.safeMixin(this,args);
         },
         setHandsonTableFilterSettings: function () {
-            if(this.useFilters===true){
-                var lbl= document.createElement("label"); lbl.innerHTML="Фильтр по таблице:";
-                lbl.className = "changeTypeLbl";
-                var input = document.createElement("input");
-                input.className = "changeTypeC";
-
-                var clearFilterButton = document.createElement('BUTTON'); clearFilterButton.id = "clearfilters_button";
-                clearFilterButton.innerHTML = "\u2612 Снять фильтры"; clearFilterButton.className = "changeTypeC";
-
-                this.setAddingHeaderRow(""+lbl.outerHTML+input.outerHTML+clearFilterButton.outerHTML+"");
-            }
+            if(this.useFilters!==true) return;
+            var lblGlobalFilter= document.createElement("label"); this.globalFilter.label=lblGlobalFilter;
+            lblGlobalFilter.innerHTML="Фильтр по таблице:"; lblGlobalFilter.className = "changeTypeLbl";
+            var inputGlobalFilter = document.createElement("input"); this.globalFilter.input=inputGlobalFilter;
+            inputGlobalFilter.id = "inputGlobalFilter"; inputGlobalFilter.className = "changeTypeC";
+            this.globalFilter.setGlobalFilter=function(value){
+                if(value!==null&&value.length>0){
+                    this.value= value.trim();
+                    this.input.classList.add("changeTypeAccent"); this.label.classList.add("changeTypeAccent");
+                } else {
+                    this.value= null; this.input.value=null;
+                    this.input.classList.remove("changeTypeAccent"); this.label.classList.remove("changeTypeAccent");
+                }
+            };
+            var thisGlobalFilter= this.globalFilter;
+            inputGlobalFilter.onblur=function(){                                                                        //console.log("HTableSimpleFiltered inputGlobalFilter.onblur ");
+                this.value=thisGlobalFilter.value;
+            };
+            inputGlobalFilter.onkeypress=function(event){                                                               //console.log("HTableSimpleFiltered inputGlobalFilter.onkeypress ",event);
+                if(event.key==="Enter") {                                                                               //console.log("HTableSimpleFiltered inputGlobalFilter.onkeypress key=",event.key);
+                    thisGlobalFilter.setGlobalFilter(this.value);
+                    parent.onUpdateContent({filtered:parent.filterContentData()});
+                }
+            };
+            var clearAllFiltersButton = document.createElement('BUTTON'); clearAllFiltersButton.id = "clearAllFiltersButton";
+            clearAllFiltersButton.innerHTML = "\u2612 Снять фильтры"; clearAllFiltersButton.className = "changeTypeC";
+            this.setAddingHeaderRow({"label":lblGlobalFilter, "input":inputGlobalFilter, "button":clearAllFiltersButton});
             var handsontableSettings= this.handsonTable.getSettings();
             var parent= this;
             handsontableSettings.colHeadersFilterButton= function (colIndex) {
                 if(parent.useFilters!=true) return "";
+                if(parent.htVisibleColumns&&parent.htVisibleColumns[colIndex]&&parent.htVisibleColumns[colIndex].useFilter===false) return "";
                 var filterButton = document.createElement('BUTTON');
                 filterButton.id = "filter_button_for_col_"+colIndex; filterButton.innerHTML = "\u25BC"; filterButton.className = "changeType";
                 if (this.columns[colIndex]["filtered"]==true) filterButton.style.color = 'black'; else filterButton.style.color = '#bbb';
@@ -33,8 +52,15 @@ define(["dojo/_base/declare", "hTableSimple"], function(declare, HTableSimple){
                 return filterButton.outerHTML;
             };
             handsontableSettings.colHeaders= function(colIndex){
-                return this.getColumnHeader(colIndex)+this.colHeadersFilterButton(colIndex);
+                return "<span style=\"float:right\">"+this.colHeadersFilterButton(colIndex)+"</span><span>"+this.getColumnHeader(colIndex)+"</span>";
             };
+            //this.handsonTable.updateSettings({
+            //    afterGetColHeader:function(col, TH) {                             console.log("afterGetColHeader",col,TH);
+            //    }
+            //    //afterRenderer:function(TD, row, col, prop, value, cellProperties) {                             console.log("afterRenderer",TD,row,col);
+            //    //
+            //    //}
+            //});
             this.handsonTable.updateSettings({
                 beforeOnCellMouseDown:function(event, coords, element) {
                     if(event.target.id.indexOf("filter_menu")<0)/*filter menu closed if filter button focusout*/
@@ -51,12 +77,14 @@ define(["dojo/_base/declare", "hTableSimple"], function(declare, HTableSimple){
                 if(event.target.id.indexOf("filter_menu_")<0)/*filter menu closed if filter button focusout*/
                     parent.handsonTable.hideFilterMenu();
             });
+            var thisGlobalFilter=this.globalFilter;
             Handsontable.Dom.addEvent(this.handsonTable.rootElement, 'mouseup', function (event) {                      //console.log("HTableSimpleFiltered mouseup ",event);
                 if(event.target.id.indexOf("filter_button_for_")>=0){
                     var button= event.target;
                     parent.handsonTable.showFilterMenu(button);
                 }
-                if(event.target.id.indexOf("clearfilters_button")>=0) {
+                if(event.target.id.indexOf("clearAllFiltersButton")>=0) {
+                    thisGlobalFilter.setGlobalFilter(null);
                     parent.clearDataColumnsFilters();
                     parent.onUpdateContent({filtered:parent.filterContentData()});
                 }
@@ -83,8 +111,60 @@ define(["dojo/_base/declare", "hTableSimple"], function(declare, HTableSimple){
                 if(!filterMenu) {
                     filterMenu = document.createElement('UL');
                     filterMenu.id = "filter_menu"; filterMenu.className = "changeTypeMenu";
-                    this.filterMenu = filterMenu;
+                    this.filterMenu = filterMenu; filterMenu.filterButton=button;
                     document.body.appendChild(filterMenu);
+                    var menuBtnOkOnClick= function(filterMenu){
+                        if(!filterMenu) return;
+                        var filterColProps= filterMenu.colProps, filterValues= filterColProps["filterValues"];
+                        var filtered = false;
+                        if(filterMenu.valueType=="text") {
+                            if(filterMenu.valueEdit) {
+                                if(filterMenu.valueEdit.value=="") filterColProps["filterValue"]=null;
+                                else {
+                                    filterColProps["filterValue"]= filterMenu.valueEdit.value;
+                                    filtered=true;
+                                    for(var filterMenuItemName in filterMenu.valueItems) {
+                                        var filterMenuItem=filterMenu.valueItems[filterMenuItemName];
+                                        filterMenuItem.checked= filterMenuItem.value.toString().indexOf(filterMenu.valueEdit.value)>=0;
+                                    }
+                                }
+                            }
+                            for(var filterMenuItemName in filterMenu.valueItems) {
+                                var filterMenuItem = filterMenu.valueItems[filterMenuItemName];
+                                var filterItemValue=filterMenuItem["value"];
+                                filterValues[filterItemValue]=filterMenuItem.checked;
+                            }
+                            for(var filterMenuItemName in filterMenu.valueItems)
+                                if(filterMenu.valueItems[filterMenuItemName].checked==false){ filtered=true; break; }
+                        } else if(filterMenu.valueType=="numeric") {
+                            for(var filterValueItem in filterValues) filterValues[filterValueItem]= null;
+                            if(filterMenu.valueEdit.value!="") {
+                                var filterEditValues = filterMenu.valueEdit.value, filterValueNum=1;
+                                while(filterEditValues.length>0){
+                                    var posDelimiter = filterEditValues.indexOf(","); if(posDelimiter<0) posDelimiter=filterEditValues.length;
+                                    var filterEditValueItem = filterEditValues.substring(0,posDelimiter);
+                                    var posInterval= filterEditValueItem.indexOf("-");
+                                    if(posInterval<0){
+                                        var filterValueItem= parseFloat(filterEditValueItem);
+                                        if(!isNaN(filterValueItem)) filterValues["value_"+filterValueNum] = filterValueItem;
+                                    } else {
+                                        filterValues["value_"+filterValueNum] = [];
+                                        var filterEditValueItemFrom= parseFloat(filterEditValueItem.substring(0,posInterval));
+                                        if(!isNaN(filterEditValueItemFrom)) filterValues["value_"+filterValueNum]["from"] = filterEditValueItemFrom;
+                                        var filterEditValueItemTo= parseFloat(filterEditValueItem.substring(posInterval+1,filterEditValueItem.length));
+                                        if(!isNaN(filterEditValueItemTo)) filterValues["value_"+filterValueNum]["to"] = filterEditValueItemTo;
+                                    }
+                                    filterEditValues= filterEditValues.substring(posDelimiter+1,filterEditValues.length);
+                                    filterValueNum++;
+                                }
+                            }
+                            for(var filterValueItem in filterValues) if(filterValues[filterValueItem]!=null) { filtered= true; break; }
+                        }
+                        filterColProps["filtered"]= filtered;
+                        if (filtered==true) filterMenu.filterButton.style.color = 'black'; else filterMenu.filterButton.style.color = '#bbb';
+                        parent.handsonTable.hideFilterMenu();
+                        parent.onUpdateContent({filtered:parent.filterContentData()});
+                    };
                     Handsontable.Dom.addEvent(filterMenu, 'click', function (event) {/*menu item click*/                //console.log("HTableSimpleFiltered.handsonTable.showFilterMenu filterMenu click ",event.target);
                         var eventTarget = event.target, eventTargetID = event.target.id;
                         if (eventTargetID.indexOf("filter_menu_item_elem_")==0&&eventTargetID.indexOf("buttonCancel")>0) {   //console.log("HTableSimpleFiltered.handsonTable.showFilterMenu filterMenu click filter_menu_item_ buttonCancel", event.target);
@@ -96,59 +176,7 @@ define(["dojo/_base/declare", "hTableSimple"], function(declare, HTableSimple){
                             parent.handsonTable.hideFilterMenu();
                             parent.onUpdateContent({filtered:parent.filterContentData()});
                         } else if (eventTargetID.indexOf("filter_menu_item_elem_")==0&&eventTargetID.indexOf("buttonOK")>0) { //console.log("HTableSimpleFiltered.handsonTable.showFilterMenu filterMenu click filter_menu_item_ buttonOK", event.target);
-                            var filterColProps= eventTarget.filterMenu.colProps;
-                            var filterValues= filterColProps["filterValues"];
-                            var filterMenu= eventTarget.filterMenu;
-                            var filtered = false;
-                            if(eventTarget.filterMenu.valueType=="text") {
-
-                                if(filterMenu.valueEdit) {
-                                    if(filterMenu.valueEdit.value=="") filterColProps["filterValue"]=null;
-                                    else {
-                                        filterColProps["filterValue"]= filterMenu.valueEdit.value;
-                                        filtered=true;
-                                        for(var filterMenuItemName in filterMenu.valueItems) {
-                                            var filterMenuItem=filterMenu.valueItems[filterMenuItemName];
-                                            filterMenuItem.checked= filterMenuItem.value.toString().indexOf(filterMenu.valueEdit.value)>=0;
-                                        }
-                                    }
-                                }
-                                for(var filterMenuItemName in filterMenu.valueItems) {
-                                    var filterMenuItem = filterMenu.valueItems[filterMenuItemName];
-                                    var filterItemValue=filterMenuItem["value"];
-                                    filterValues[filterItemValue]=filterMenuItem.checked;
-                                }
-                                for(var filterMenuItemName in filterMenu.valueItems)
-                                    if(filterMenu.valueItems[filterMenuItemName].checked==false){ filtered=true; break; }
-                            } else if(eventTarget.filterMenu.valueType=="numeric") {
-                                for(var filterValueItem in filterValues) filterValues[filterValueItem]= null;
-                                if(filterMenu.valueEdit.value!="") {
-                                    var filterEditValues = filterMenu.valueEdit.value, filterValueNum=1;
-                                    while(filterEditValues.length>0){
-                                        var posDelimiter = filterEditValues.indexOf(","); if(posDelimiter<0) posDelimiter=filterEditValues.length;
-                                        var filterEditValueItem = filterEditValues.substring(0,posDelimiter);
-                                        var posInterval= filterEditValueItem.indexOf("-");
-                                        if(posInterval<0){
-                                            var filterValueItem= parseFloat(filterEditValueItem);
-                                            if(!isNaN(filterValueItem)) filterValues["value_"+filterValueNum] = filterValueItem;
-                                        } else {
-                                            filterValues["value_"+filterValueNum] = [];
-                                            var filterEditValueItemFrom= parseFloat(filterEditValueItem.substring(0,posInterval));
-                                            if(!isNaN(filterEditValueItemFrom)) filterValues["value_"+filterValueNum]["from"] = filterEditValueItemFrom;
-                                            var filterEditValueItemTo= parseFloat(filterEditValueItem.substring(posInterval+1,filterEditValueItem.length));
-                                            if(!isNaN(filterEditValueItemTo)) filterValues["value_"+filterValueNum]["to"] = filterEditValueItemTo;
-                                        }
-                                        filterEditValues= filterEditValues.substring(posDelimiter+1,filterEditValues.length);
-                                        filterValueNum++;
-                                    }
-                                }
-                                for(var filterValueItem in filterValues) if(filterValues[filterValueItem]!=null) { filtered= true; break; }
-                            }
-                            filterColProps["filtered"]= filtered;
-                            var filterButton = event.target.filterButton;
-                            if (filtered==true) filterButton.style.color = 'black'; else filterButton.style.color = '#bbb';
-                            parent.handsonTable.hideFilterMenu();
-                            parent.onUpdateContent({filtered:parent.filterContentData()});
+                            menuBtnOkOnClick(eventTarget.filterMenu);
                         } else if (eventTargetID.indexOf("filter_menu_item_elem_")==0&&eventTargetID.indexOf("buttonClearAll")>0) {
                             if(eventTarget.filterMenu.valueItems){
                                 for(var filterValueItemName in eventTarget.filterMenu.valueItems)
@@ -158,7 +186,17 @@ define(["dojo/_base/declare", "hTableSimple"], function(declare, HTableSimple){
                             if(eventTarget.filterMenu.valueEdit) eventTarget.filterMenu.valueEdit.value="";
                         }
                     });
+                    filterMenu.onkeyup=function(event){
+                        if(event.key=='Enter'&&(event.code=='Enter'||event.code=='NumpadEnter')) {
+                            if(event.target&&event.target.filterMenu)
+                            menuBtnOkOnClick(event.target.filterMenu);
+                        }
+                        if(event.key=='Escape'&&event.code=='Escape')parent.handsonTable.hideFilterMenu();
+                    };
                 }
+                button.onkeyup=function(event){
+                    if(event.key=='Escape'&&event.code=='Escape')parent.handsonTable.hideFilterMenu();
+                };
                 filterMenu.style.display = 'block'; filterMenu.isOpen = true;
                 var position = button.getBoundingClientRect();
                 filterMenu.style.top = (position.top + (window.scrollY || window.pageYOffset)) + 2 + 'px';
@@ -200,7 +238,9 @@ define(["dojo/_base/declare", "hTableSimple"], function(declare, HTableSimple){
                             filterMenuElem.filterMenu = filterMenu; filterMenu.valueItems[idPostfix+"_"+i] = filterMenuElem;
                             filterMenuElemLabel = document.createElement("label"); filterMenuElemLabel.id = "filter_menu_item_elem_label_"+idPostfix+"_"+i;
                             if(elemValue=="")elemValue="(Без значения)";
-                            filterMenuElemLabel.htmlFor = filterMenuElem.id; filterMenuElemLabel.appendChild(document.createTextNode(elemValue));
+                            filterMenuElemLabel.htmlFor = filterMenuElem.id;
+                            var filterMenuElemLabelText=elemValue; //
+                            filterMenuElemLabel.appendChild(document.createTextNode(filterMenuElemLabelText));
                             filterMenuElem.label = filterMenuElemLabel;
                             filterMenuItemElemDIV.appendChild(filterMenuElem); filterMenuItemElemDIV.appendChild(filterMenuElemLabel);
                         }
@@ -275,7 +315,7 @@ define(["dojo/_base/declare", "hTableSimple"], function(declare, HTableSimple){
                 } else if (!colData["filterValues"]) colData["filterValues"] = [];
             }
         },
-        filterContentData: function(){                                                                                  //console.log("HTableSimpleFiltered filterContentData");
+        filterContentData: function(){                                                                                  //console.log("HTableSimpleFiltered filterContentData globalFilter=",this.globalFilter);
             var filtered=false;
             if (!this.htData||this.htData.length==0){
                 this.handsonTable.updateSettings(
@@ -283,16 +323,17 @@ define(["dojo/_base/declare", "hTableSimple"], function(declare, HTableSimple){
                 );
                 return filtered;
             }
-            var htVisColumns= this.htVisibleColumns, filteredData=[];
+            var htVisColumns= this.htVisibleColumns, filteredData=[], globalFilterValue=this.globalFilter.value;
             for(var rowInd=0; rowInd<this.htData.length; rowInd++){
                 var rowData=this.htData[rowInd];
-                var rowVisible=true;
+                if(!rowData) continue;
+                var rowVisible=true, rowVisibleByGlobalFilter=(globalFilterValue!==null)?false:true;
                 for(var colIndex in htVisColumns){
-                    var colProps = htVisColumns[colIndex], itemVisible=true;
-                    if(colProps["filtered"]==true&&rowData){
+                    var colProps = htVisColumns[colIndex], colPropName = colProps["data"], dataItemVal = rowData[colPropName], itemVisible=true;
+                    var colFiltered= colProps["filtered"];
+                    if(colFiltered==true){
                         itemVisible= false;
-                        var colPropName = colProps["data"];
-                        var dataItemVal = rowData[colPropName]; if(dataItemVal==null) dataItemVal="";
+                        if(dataItemVal==null) dataItemVal="";
                         if(colProps["type"]=="text"&&dataItemVal!==undefined){
                             if(colProps["filterValue"]&&dataItemVal.toString().indexOf(colProps["filterValue"])>=0) itemVisible=true;
                             if(colProps["filterValues"]&&colProps["filterValues"][dataItemVal.toString()]===true) itemVisible=true;
@@ -314,9 +355,17 @@ define(["dojo/_base/declare", "hTableSimple"], function(declare, HTableSimple){
                                 }
                             }
                         }
+                        if(globalFilterValue!==null && !rowVisibleByGlobalFilter && itemVisible==true) {
+                            var sdataItemVal=(dataItemVal)?dataItemVal.toString():"", sGlobalFilterVal=globalFilterValue.toString();
+                            if(sdataItemVal===sGlobalFilterVal||sdataItemVal.indexOf(" "+sGlobalFilterVal+" ")>=0) rowVisibleByGlobalFilter= true;
+                        }
+                    } else if(globalFilterValue!==null && !rowVisibleByGlobalFilter) {                                  //console.log("HTableSimpleFiltered filterContentData globalFilterValue=",globalFilterValue,dataItemVal);
+                        var sdataItemVal=(dataItemVal)?dataItemVal.toString():"", sGlobalFilterVal=globalFilterValue.toString();
+                        if(sdataItemVal===sGlobalFilterVal||sdataItemVal.indexOf(" "+sGlobalFilterVal+" ")>=0) rowVisibleByGlobalFilter= true;
                     }
                     rowVisible=rowVisible&&itemVisible;
                 }
+                rowVisible=rowVisible&&rowVisibleByGlobalFilter;
                 filtered=filtered||!rowVisible;
                 if (rowVisible) filteredData.push(rowData);
             }
@@ -325,7 +374,7 @@ define(["dojo/_base/declare", "hTableSimple"], function(declare, HTableSimple){
             );
             return filtered;
         },
-        /*
+        /**
          * calls on load/set/reset data to table or on change data after store
          * params= { callOnUpdateContent=true/false, resetSelection=true/false }
          * default params.resetSelection!=false
@@ -333,7 +382,7 @@ define(["dojo/_base/declare", "hTableSimple"], function(declare, HTableSimple){
          * default params.callOnUpdateContent!=false
          * if params.callOnUpdateContent==false not call onUpdateContent
          */
-        updateContent: function(newdata,params) {                                                               //console.log("HTableSimpleFiltered updateContent newdata=",newdata," params=", params);
+        updateContent: function(newdata,params) {                                                                       //console.log("HTableSimpleFiltered updateContent newdata=",newdata," params=", params);
             if(newdata!==undefined) {
                 this.setData(newdata);
             }
@@ -347,11 +396,14 @@ define(["dojo/_base/declare", "hTableSimple"], function(declare, HTableSimple){
             if (params.callOnUpdateContent===false) return;
             this.onUpdateContent({filtered:filtered});
         },
-        /*
-         * params: { filtered }
+        /**
+         * param = { updatedRows, filtered }
+         * param.updatedRows has values if call updateRowData
+         * param.filtered = true if in table use columns filters or global filter
          */
         onUpdateContent: function(params){                                                                              //console.log("HTableSimpleFiltered onUpdateContent params=",params);
             //TODO actions on/after update table content (after set/reset/reload/clear table content data)
+            //TODO actions and after call updateRowData({rowData,newRowData})
             //TODO actions after set/clear table filters
         }
     });
