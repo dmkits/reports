@@ -37,7 +37,7 @@ if (!app_params.logToConsole) {
 
 module.exports.startupMode = app_params.mode;
 
-var access = require('./access');
+var cookieParser = require('cookie-parser');        console.log("module  cookie-parser",new Date().getTime() - startTime);
 var fs = require('fs');                             console.log("module  fs",new Date().getTime() - startTime);
 var express = require('express');                   console.log("module  express",new Date().getTime() - startTime);
 var app = express();
@@ -48,13 +48,15 @@ var XLSX = require('xlsx');                         console.log("xlsx",new Date(
 var uid = require('uniqid');                        console.log("uniqid",new Date().getTime() - startTime);
 var BigNumber = require('big-number');              console.log("big-number",new Date().getTime() - startTime);
 
-
+app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(bodyParser.text());
 app.use('/',express.static('public'));
 var database = require('./dataBase');               console.log("module ./dataBase",new Date().getTime() - startTime);
 var ConfigurationError, DBConnectError="No connection";
+
+var access = require('./access')(app);
 
 process.on('uncaughtException', function(err) {
     log.error('Server process failed! Reason:', err);

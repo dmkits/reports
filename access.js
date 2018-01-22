@@ -1,6 +1,8 @@
 //var server= require("./server"), log= server.log, config= server.getConfig(),
 //    getDBConnectError= require("./database").getDBConnectError, modules= require("./modules");
-var getDBConnectError= require("./database").getDBConnectError;
+var getDBConnectError= require("./dataBase").getDBConnectError;
+var database=require("./dataBase");
+var path=require('path');
 
 module.exports= function(app){                                                            //  log.info("Initing ACCESS CONTROLLER...");
 
@@ -11,15 +13,33 @@ module.exports= function(app){                                                  
     //    return (headers&&headers["content-type"]=="application/json;charset=UTF-8"&&headers["Accept"]=="application/json");
     //};
 
-    app.use(function (req, res, next) {
+    app.use(function (req, res, next) {              console.log("app.use from access=");
         //if(!server.logDebug)log.info("ACCESS CONTROLLER for check user access:"," params:",req.query);
         //else if(server.logDebug&&req.method=="GET")log.debug("ACCESS CONTROLLER for check user access:"," params:",req.query,{});
         //else if(server.logDebug&&req.method=="POST")log.debug("ACCESS CONTROLLER for check user access:"," params:",req.query,"\n body:",req.body,{});
+
+        if(!req.cookie||!req.cookie.lpid){
+            res.sendFile(path.join(__dirname,"views/login.html"));
+            //next();
+            return;
+        }
+
         if(req.originalUrl=="/login" && req.method=="POST"){
             var userName=req.body.user, userPswrd=req.body.pswrd;
-            res.cookie("mduUser", userName);
-            res.cookie("mduPswrd", userPswrd);
-           // res.cookie("lpid", userPswrd);
+            //res.cookie("mduUser", userName);
+            //res.cookie("mduPswrd", userPswrd);
+            //res.cookie("lpid", userPswrd);
+            database.getPswdByLogin(userName,function(err,res){
+                if(res.pswd==userPswrd){
+                    database.setPLIDForUserSession(res.userID, function(err){
+
+                    })
+                }else{
+                    res.sendFile(path.join(__dirname,"views/login.html"));
+                }
+
+
+            });
             res.send({result:"success"});
             return;
         }

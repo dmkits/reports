@@ -118,3 +118,21 @@ function checkDBConnection(ind,callback){
     }, 6000);
 }
 
+module.exports.getPswdByLogin=function(login, callback ){
+    checkDBConnection(0,function(err){
+        if(err){
+            callback(err);
+            return;
+        }
+        var reqSql = new sql.Request(conn);
+        reqSql.input('EmpName',login);
+        reqSql.query("select LPAss from r_Emps where EmpName=@EmpName",
+            function (err, result) {
+                if (err) {
+                    callback(err);
+                } else {
+                    callback(null,result);
+                }
+            });
+    });
+};
