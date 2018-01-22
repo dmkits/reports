@@ -5,6 +5,7 @@ var app = require('./app');   console.log('module for dataBase.js ./app');
 var dbConfig;
 var dbConfigFilePath;
 var conn=null;
+var dbConnectError=null;
 
 module.exports.setDBConfig=function(newDBConfig){
     dbConfig= newDBConfig;
@@ -24,16 +25,23 @@ module.exports.saveConfig=function(callback) {
 };
 module.exports.databaseConnection=function(callback){
     if(conn) conn.close();
-   // callback("sfghsfdh");   //for test
+    dbConnectError = null;
     conn = new sql.Connection(dbConfig);
     conn.connect(function (err) {
         if (err) {
             callback(err.message);
+            dbConnectError = "Failed to connect to database! Reason:" + err;
             return;
         }
         callback(null,conn);
     });
 };
+
+module.exports.getDBConnectError= function(){
+    setImmediate(function(){
+        return dbConnectError;
+    })};
+
 module.exports.getQueryResult=function(newQuery, parameters, callback ){
     checkDBConnection(0,function(err){
         if(err){

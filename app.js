@@ -37,6 +37,7 @@ if (!app_params.logToConsole) {
 
 module.exports.startupMode = app_params.mode;
 
+var access = require('./access');
 var fs = require('fs');                             console.log("module  fs",new Date().getTime() - startTime);
 var express = require('express');                   console.log("module  express",new Date().getTime() - startTime);
 var app = express();
