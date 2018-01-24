@@ -2,6 +2,9 @@
 var fs = require('fs');       console.log('module for dataBase.js  fs');
 var sql = require('mssql');   console.log('module for dataBase.js mssql');
 var app = require('./app');   console.log('module for dataBase.js ./app');
+var uid = require('uniqid');
+var BigNumber = require('big-number');
+
 var dbConfig;
 var dbConfigFilePath;
 var conn=null;
@@ -126,13 +129,67 @@ module.exports.getPswdByLogin=function(login, callback ){
         }
         var reqSql = new sql.Request(conn);
         reqSql.input('EmpName',login);
-        reqSql.query("select LPAss from r_Emps where EmpName=@EmpName",
+        reqSql.query("select LPAss,EmpID from r_Emps where EmpName=@EmpName",
             function (err, result) {
                 if (err) {
                     callback(err);
                 } else {
-                    callback(null,result);
+                    callback(null,result[0]);
                 }
             });
     });
+};
+
+module.exports.setPLIDForUserSession=function(EmpID, callback){
+    checkDBConnection(0,function(err){
+        if(err){
+            callback(err);
+            return;
+        }
+        var LPID=getUIDNumber();
+        var reqSql = new sql.Request(conn);
+        reqSql.input('EmpID',EmpID);
+        reqSql.input('LPID',LPID);
+        reqSql.query("update r_Emps set LPID=@LPID where EmpID=@EmpID",
+            function (err, result) {
+                if (err) {
+                    callback(err);
+                } else {
+                    callback(null,LPID);
+                }
+            });
+    });
+};
+
+
+module.exports.getLPID=function(LPID, callback){
+    checkDBConnection(0,function(err){
+        if(err){
+            callback(err);
+            return;
+        }
+        var reqSql = new sql.Request(conn);
+        reqSql.input('LPID',LPID);
+        reqSql.query("select  EmpID, LPID from r_Emps where LPID=@LPID",
+            function (err, result) {
+                if (err) {
+                    callback(err);
+                } else {
+                    if(result[0]&&result[0].LPID){
+                        callback(null,result[0].LPID);
+                        return;
+                    }
+                    callback(null,null);
+                }
+            });
+    });
+};
+
+function getUIDNumber() {
+    var str= uid.time();
+    var len = str.length;
+    var num = BigNumber(0);
+    for (var i = (len - 1); i >= 0; i--)
+        num.plus(BigNumber(256).pow(i).mult(str.charCodeAt(i)));
+    return num.toString();
 };
