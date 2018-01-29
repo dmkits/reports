@@ -180,6 +180,8 @@ app.post("/sysadmin/sql_queries/get_result_to_request", function (req, res) {   
            var outData = {};
             if (err) {
                 outData.error = err.message;                                             log.error("database.getQueryResult err =",err);
+                res.send(outData);
+                return;
             }
             outData.result = result;
             res.send(outData);
