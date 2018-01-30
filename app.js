@@ -250,6 +250,21 @@ app.post("/sysadmin/sql_queries/save_sql_file", function (req, res) {           
 app.get("/", function(req, res){                                                                     log.info("app.get /");
     res.sendFile(path.join(__dirname, '/views', 'main.html'));
 });
+app.post("/", function(req, res){                                                                   log.info("app.post /  req.body=",req.body);
+    var outData={};
+    if(req.body["action"] && req.body["action"]=="exit"){
+        var cookiesArr=Object.keys(req.cookies);     console.log("cookiesArr=",cookiesArr);
+        for(var i in cookiesArr){
+            res.clearCookie(cookiesArr[i]);
+        }
+        outData.actionResult="successfull";
+        res.send(outData);
+        return;
+    }
+    outData.error="Не удалось завершить сессию.";
+    res.send(outData);
+});
+
 app.get("/get_main_data", function(req, res){                                                        log.info("app.get /get_main_data");
     var outData = {};//main data
     var menuBar= [];//menu bar list

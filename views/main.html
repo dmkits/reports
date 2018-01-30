@@ -64,8 +64,7 @@
 
                 main_MainContainer.getMainData = function(postaction){//getting main json data from server and run action parameter function
                     Request.getJSONData({url:"/get_main_data", consoleLog:true},
-                            function(success,result){
-                                if(success){
+                            function(result){
                                     if(result===undefined||result==null) result = [];
                                     main_MainContainer.mainContentData = result;
 
@@ -81,10 +80,10 @@
                                         eAppMode.innerHTML =  eAppMode.innerHTML+"<b>UNKNOWN MODE!!!</b>";
 
                                     if(result.user) document.getElementById("main_username").innerHTML =  "<b>"+result.user+"</b>";
-                                } else {
-                                    main_MainContainer.mainContentData = [];
-                                    main_MainContainer.mainContentData["error"]= result;
-                                }
+                                    if(result.error){
+                                        main_MainContainer.mainContentData = [];
+                                        main_MainContainer.mainContentData["error"]= result;
+                                    }
                                 if(postaction)postaction();
                             });
                 };
@@ -118,10 +117,10 @@
                     if (actionData.action=="close") {
                         main_MainMenu.destroy();
                         main_ContentContainer.destroy();
-                        Request.postJSONData({url:"/",condition:"action=exit"},
-                                /*posaction*/function(success,result){
+                        Request.postJSONData({url:"/",data:{action:"exit"},consoleLog:true},
+                                function(result){
                                     var resultContent;
-                                    if (success&&result&&result.actionResult=="successfull") resultContent= "<div>Вы закрыли все окна и вышли из рабочей сессии.</div>";
+                                    if (result&&result.actionResult=="successfull") resultContent= "<div>Вы закрыли все окна и вышли из рабочей сессии.</div>";
                                     else resultContent= "<div>Вы закрыли все окна.</div>";
                                     main_MainContainer.addChild(new ContentPane({id:"finish", title:"finish", region:"center",content:resultContent}) );
                                 });

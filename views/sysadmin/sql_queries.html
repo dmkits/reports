@@ -100,22 +100,15 @@
                     while (paramsList.firstChild) {
                         paramsList.removeChild(paramsList.firstChild);
                     }
-                    Request.getJSONData({
-                                url: "/sysadmin/sql_queries/get_reports_list",
-                                consoleLog: true
+                    Request.getJSONData({url: "/sysadmin/sql_queries/get_reports_list"},
+                        function (result) {
+                            document.getElementById("filename").innerHTML = "reports_list";
+                            displayFileContentJSON.value = result.jsonText;
+                            var items=JSON.parse(result.jsonFormattedText);
+                            for (var i in items) {
+                                detailContentSQL.addButtonTo(leftContentSQL, items[i].id, items[i].id);
                             }
-                            , function (success, data) {
-                                if (!success) {
-                                    displayFileContentJSON.value = "<div><b style='color:red'>No connection!</b></div>";
-                                    return;
-                                }
-                                document.getElementById("filename").innerHTML = "reports_list";
-                                displayFileContentJSON.value = data.jsonText;
-                                var items=JSON.parse(data.jsonFormattedText);
-                                for (var i in items) {
-                                    detailContentSQL.addButtonTo(leftContentSQL, items[i].id, items[i].id);
-                                }
-                            });
+                        });
                 };
                 var btnRunSQL = APP.instanceForID("sql_runBtn", Button, {});
                 var btnSaveSQl = APP.instanceForID("sql_saveBtn", Button, {});
@@ -127,22 +120,14 @@
                 detailContentSQL.showRequestSqlText = function (filename) {
                     displayFileContentSQL.value ="" ;
                     displayFileContentJSON.value ="" ;
-                    Request.getJSONData({
-                                url: "/sysadmin/sql_queries/get_script",
-                                condition: "filename=" + filename,
-                                consoleLog: true
-                            }
-                            , function (success, data) {
-                                if (!success) {
-                                    displayFileContentSQL.value = "<div><b style='color:red'>No connection!</b></div>";
-                                    return;
-                                }
-                               if(data.sqlText) displayFileContentSQL.value = data.sqlText;
-                                if(data.jsonText)displayFileContentJSON.value = data.jsonText;
-                                displayQueryResultSQl.innerHTML = "";
-                                document.getElementById("filename").innerHTML = filename;
-                                topContentSQL.showParamsInput(data.sqlText);
-                            });
+                    Request.getJSONData({url: "/sysadmin/sql_queries/get_script", condition: "filename=" + filename},
+                        function (data) {
+                            if(data.sqlText) displayFileContentSQL.value = data.sqlText;
+                            if(data.jsonText)displayFileContentJSON.value = data.jsonText;
+                            displayQueryResultSQl.innerHTML = "";
+                            document.getElementById("filename").innerHTML = filename;
+                            topContentSQL.showParamsInput(data.sqlText);
+                        });
                 };
                 topContentSQL.showParamsInput = function (queryString) {
                     var tr = document.getElementById("sql_params_tr");
@@ -224,21 +209,10 @@
                         condition += input.id + "=" + input.value;
 
                     }
-                    Request.postJSONData({
-                                url: "/sysadmin/sql_queries/get_result_to_request",
-                                condition: condition,
-                                data: {text: newQueryText}, consoleLog: true
-                            },
-                            function (success, data) {
-                                if (!success) {
-                                    displayQueryResultSQl.innerHTML = "<div><b style='color:red'>Error in request</b></div>";
-                                    return;
-                                }
-                                if (data.error)
-                                    displayQueryResultSQl.innerHTML = "<div><b style='color:red'>" + data.error + "</b></div>";
-                                else
-                                    displayQueryResultSQl.innerHTML = JSON.stringify(data.result);
-                            });
+                    Request.postJSONData({url: "/sysadmin/sql_queries/get_result_to_request", condition: condition, data: {text: newQueryText}},
+                        function (data) {
+                            displayQueryResultSQl.innerHTML = JSON.stringify(data.result);
+                        });
                 };
                 btnSaveSQl.onClick = function () {
                     var savedInfo = document.getElementById("saved_files_info");
@@ -249,30 +223,22 @@
                     confirmDialog.onExecute = function () {
                         confirmDialog.hide();
                         var filename = document.getElementById("filename").innerText;
-                        Request.postJSONData({
-                                    url: "/sysadmin/sql_queries/save_sql_file", condition: "filename=" + filename,
-                                    data: {textSQL: newQueryText, textJSON:newJSONText}, consoleLog: true
-                                },
-                                function (success, data) {              console.log("data=", data);
-                                    if (!success) {
-                                        borderContainer.showSimpleDialog("Файл не сохранен! \n Error in request");
-                                        return;
-                                    }
+                        Request.postJSONData({url: "/sysadmin/sql_queries/save_sql_file", condition: "filename=" + filename, data: {textSQL: newQueryText, textJSON:newJSONText}},
+                            function (data) {
+                                var nowSrt=moment().format('DD.MM.YYYY HH:mm:ss') +" ";
+                                var ReportIDstr= "<b> ReportID: </b>"+ filename+" ";
+                                var SQLsavedInfo;
+                                var JSONsavedInfo;
+                                if (data.SQLerror) SQLsavedInfo="<span style='color:red'> SQL NOT SAVED! "+data.SQLerror+"</span>";
+                                if (data.SQLsaved) SQLsavedInfo="SQL SAVED";
+                                if (data.JSONerror) JSONsavedInfo="<span style='color:red'> Config NOT SAVED!"+data.JSONerror+"</span>";
+                                if (data.JSONsaved) JSONsavedInfo="Config  SAVED";
 
-                                    var nowSrt=moment().format('DD.MM.YYYY HH:mm:ss') +" ";
-                                    var ReportIDstr= "<b> ReportID: </b>"+ filename+" ";
-                                    var SQLsavedInfo;
-                                    var JSONsavedInfo;
-                                    if (data.SQLerror) SQLsavedInfo="<span style='color:red'> SQL NOT SAVED! "+data.SQLerror+"</span>";
-                                    if (data.SQLsaved) SQLsavedInfo="SQL SAVED";
-                                    if (data.JSONerror) JSONsavedInfo="<span style='color:red'> Config NOT SAVED!"+data.JSONerror+"</span>";
-                                    if (data.JSONsaved) JSONsavedInfo="Config  SAVED";
+                                SQLsavedInfo=(SQLsavedInfo)?", "+SQLsavedInfo:"";
+                                var saveResult="<b> Result: </b> "+JSONsavedInfo +SQLsavedInfo;
+                                savedInfo.innerHTML='<span >'+nowSrt+ReportIDstr +saveResult+'</span>';
 
-                                    SQLsavedInfo=(SQLsavedInfo)?", "+SQLsavedInfo:"";
-                                    var saveResult="<b> Result: </b> "+JSONsavedInfo +SQLsavedInfo;
-                                    savedInfo.innerHTML='<span >'+nowSrt+ReportIDstr +saveResult+'</span>';
-
-                                });
+                            });
                     }
                 };
                 borderContainer.showSimpleDialog = function (content) {

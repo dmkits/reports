@@ -84,7 +84,7 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane","dojox/widget/Standby",
              * if no data table data setted to { identifier:null, columns:[], items:[] }; }
              * if no data.items data.items setted to []
              */
-            setData: function(data) {                                                                                       console.log("HTableSimple setData ",data);
+            setData: function(data) {
                 if (!data) { data={ identifier:null, columns:[], items:[], error:null }; }
                 if(data.error) { this.htDataError=data.error; } else this.htDataError=null;
                 if(data.identifier) { this.handsonTable.rowIDName=data.identifier; }
@@ -205,7 +205,12 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane","dojox/widget/Standby",
                 this.createHandsonTable();
             },
             getHandsonTable: function(){ return this.handsonTable; },
-            setHT: function(params){
+            setReadOnly: function(readOnly){
+                if (readOnly===undefined) readOnly=true;
+                this.readOnly= readOnly;
+                this.handsonTable.updateSettings({readOnly:readOnly});
+            },
+            setHTParams: function(params){
                 this.handsonTable.updateSettings(params);
             },
             setAddingHeaderRow: function(addingHeaderElements){
@@ -213,7 +218,7 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane","dojox/widget/Standby",
                 var hInstance= this.getHandsonTable();
                 hInstance.updateSettings({
                     afterRender: function () {
-                        var theads=hInstance.rootElement.getElementsByTagName('thead');                                     //console.log("HTableSimple afterRender theads=",theads);
+                        var theads=hInstance.rootElement.getElementsByTagName('thead');                         //console.log("HTableSimple afterRender theads=",theads);
                         var div= document.createElement("div");
                         for(var theadInd=0;theadInd<theads.length;theadInd++){
                             var thead= theads[theadInd];
@@ -364,41 +369,26 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane","dojox/widget/Standby",
                 if (params.method!="post") {
                     if (duplexRequest){
                         instance.loadingGif.show();
-                        Request.getJSONData({url:params.url, condition:null, consoleLog:true}
-                            ,/*postaction*/function(success,result){
-                                if(!success) result=null;
-                                if(!success||!result||result.error) {
-                                    var errorMsg=(result&&result.error)?"Error=":"", error=(result&&result.error)?result.error:"";
-                                    console.log("HTableSimple setContentFromUrl Request.getJSONData DATA ERROR!!! "+errorMsg,error);
-                                    if(!result) result={};
-                                    if(!result.columns) result.columns=instance.htColumns;
-                                    if(!result.items) result.items=[];
+                        Request.getJSONData({url:params.url, condition:null}
+                            ,/*postaction*/function(result){
+                                if(!result) {
                                     instance.loadingGif.hide();
-                                    instance.updateContent(result, {callUpdateContent:params.callUpdateContent});
+                                    instance.updateContent({columns:instance.htColumns, items:[]}, {callUpdateContent:params.callUpdateContent});
                                     return;
                                 }
+                                if(!result.columns) result.columns=instance.htColumns;
+                                if(!result.items) result.items=[];
+                                instance.loadingGif.hide();
                                 instance.updateContent(result, {callUpdateContent:params.callUpdateContent, resetSelection:false});
                                 var sCondition= JSON.stringify(params.condition);
-                                if(sCondition.length==0||sCondition==="{}"){
-                                    instance.loadingGif.hide();
-                                    return;
-                                }  //if condition is Empty
-                                Request.getJSONData({url:params.url, condition:params.condition, consoleLog:true}
-                                    ,/*postaction*/function(success,result){
-                                        if(!success) result=null;
-                                        if(!success||!result||result.error) {
-                                            var errorMsg=(result&&result.error)?"Error=":"", error=(result&&result.error)?result.error:"";
-                                            console.log("HTableSimple setContentFromUrl Request.getJSONData DATA ERROR!!! "+errorMsg,error);
-                                            if(!result) result={};
-                                            if(!result.columns) result.columns=instance.htColumns;
-                                            if(!result.items) result.items=[];
-                                            instance.loadingGif.hide();
-                                            instance.updateContent(result, {callUpdateContent:params.callUpdateContent});
-                                            return;
-                                        }
+                                if(sCondition.length==0||sCondition==="{}"){ instance.loadingGif.hide(); return; }  //if condition is Empty
+                                Request.getJSONData({url:params.url, condition:params.condition}
+                                    ,/*postaction*/function(result){
+                                        if(!result) result={};
+                                        if(!result.columns) result.columns=instance.htColumns;
+                                        if(!result.items) result.items=[];
                                         instance.loadingGif.hide();
-                                        if (result.items&&result.items.length>0)
-                                            instance.updateContent(result, {callUpdateContent:params.callUpdateContent});
+                                        instance.updateContent(result, {callUpdateContent:params.callUpdateContent});
                                     });
                             });
                         return;
@@ -406,19 +396,11 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane","dojox/widget/Standby",
                     if(this.htData&&this.htData.length>0 && params.clearContentBeforeLoad===true)
                         instance.clearContent({callUpdateContent:params.callUpdateContent, resetSelection:false});
                     instance.loadingGif.show();
-                    Request.getJSONData({url:params.url, condition:params.condition, consoleLog:true}
-                        ,/*postaction*/function(success,result){
-                            if(!success) result=null;
-                            if(!success||!result||result.error) {
-                                var errorMsg=(result&&result.error)?"Error=":"", error=(result&&result.error)?result.error:"";
-                                console.log("HTableSimple setContentFromUrl Request.getJSONData DATA ERROR!!! "+errorMsg,error);
-                                if(!result) result={};
-                                if(!result.columns) result.columns=instance.htColumns;
-                                if(!result.items) result.items=[];
-                                instance.loadingGif.hide();
-                                instance.updateContent(result, {callUpdateContent:params.callUpdateContent});
-                                return;
-                            }
+                    Request.getJSONData({url:params.url, condition:params.condition}
+                        ,/*postaction*/function(result){
+                            if(!result) result={};
+                            if(!result.columns) result.columns=instance.htColumns;
+                            if(!result.items) result.items=[];
                             instance.loadingGif.hide();
                             instance.updateContent(result, {callUpdateContent:params.callUpdateContent});
                         });
@@ -426,12 +408,9 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane","dojox/widget/Standby",
                 }
                 if (duplexRequest){
                     instance.loadingGif.show();
-                    Request.postJSONData({url:params.url, condition:null, consoleLog:true},
-                        /*postaction*/function(success,result){
-                            if(!success) result=null;
-                            if(!success||!result||result.error) {
-                                var errorMsg=(result&&result.error)?"Error=":"", error=(result&&result.error)?result.error:"";
-                                console.log("HTableSimple setContentFromUrl Request.getJSONData DATA ERROR!!! "+errorMsg,error);
+                    Request.postJSONData({url:params.url, condition:null},
+                        /*postaction*/function(result){
+                            if(!result) {
                                 instance.loadingGif.hide();
                                 instance.updateContent(result, {callUpdateContent:params.callUpdateContent});
                                 return;
@@ -442,17 +421,14 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane","dojox/widget/Standby",
                                 instance.loadingGif.hide();
                                 return;
                             }//if condition is Empty
-                            Request.postJSONData({url:params.url, condition:params.condition, data:params.data, consoleLog:true},
-                                /*postaction*/function(success,result){
-                                    if(!success) result=null;
-                                    if(!success||!result||result.error) {
-                                        var errorMsg=(result&&result.error)?"Error=":"", error=(result&&result.error)?result.error:"";
-                                        console.log("HTableSimple setContentFromUrl Request.getJSONData DATA ERROR!!! "+errorMsg,error);
+                            Request.postJSONData({url:params.url, condition:params.condition, data:params.data},
+                                /*postaction*/function(result){
+                                    if(!result) {
                                         instance.loadingGif.hide();
                                         instance.updateContent({ columns:instance.htColumns, items:[] }, {callUpdateContent:params.callUpdateContent});
                                         return;
                                     }
-                                    if (result.items&&result.items.length>0)
+                                    if (result.items && result.items.length>0)
                                         instance.loadingGif.hide();
                                     instance.updateContent(result, {callUpdateContent:params.callUpdateContent});
                                 });
@@ -462,12 +438,9 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane","dojox/widget/Standby",
                 if(this.htData&&this.htData.length>0 && params.clearContentBeforeLoad===true)
                     instance.clearContent({callUpdateContent:params.callUpdateContent, resetSelection:false});
                 instance.loadingGif.show();
-                Request.postJSONData({url:params.url, condition:params.condition, data:params.data, consoleLog:true},
-                    /*postaction*/function(success,result){
-                        if(!success) result=null;
-                        if(!success||!result||result.error) {
-                            var errorMsg=(result&&result.error)?"Error=":"", error=(result&&result.error)?result.error:"";
-                            console.log("HTableSimple setContentFromUrl Request.getJSONData DATA ERROR!!! "+errorMsg,error);
+                Request.postJSONData({url:params.url, condition:params.condition, data:params.data},
+                    /*postaction*/function(result){
+                        if(!result) {
                             instance.updateContent({ columns:instance.htColumns, items:[] }, {callUpdateContent:params.callUpdateContent});
                             instance.loadingGif.hide();
                             return;

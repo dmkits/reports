@@ -3,5 +3,5 @@
 [
   {  "id": "sales_by_pcats",    "name": "Реализация по категориям"  },
   {  "id": "sales_by_prods",   "name": "Реализация по наименованию" },
-  {  "id": "sales_by_days", "name": "Реализация по дням" }
+  {  "id": "sales_by_days", "name": "Реализация по дням"  }
 ]

@@ -41,11 +41,10 @@ module.exports.databaseConnection=function(callback){
 };
 
 module.exports.getDBConnectError= function(){
-    setImmediate(function(){
         return dbConnectError;
-    })};
+    };
 
-module.exports.getQueryResult=function(newQuery, parameters, callback ){
+module.exports.getQueryResult=function(newQuery, parameters, callback){
     checkDBConnection(0,function(err){
         if(err){
             callback(err);

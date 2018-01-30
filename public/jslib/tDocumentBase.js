@@ -313,10 +313,9 @@ define(["dojo/_base/declare", "dijit/layout/BorderContainer", "dijit/layout/Layo
             },
             /**
              * IANAGEZ 11.10.2017
-             * @param (visibleColumns,tableData)
+             * params= { visibleColumns,tableData }
              */
             requestForExcelFile:function(params){
-
                 var tableData=params.tableData;
                 var visibleColumns=params.visibleColumns;
                 var columnsDataForExcel= [];
@@ -363,6 +362,7 @@ define(["dojo/_base/declare", "dijit/layout/BorderContainer", "dijit/layout/Layo
                 previousDayBtn.innerText= "\u25c4";
                 tableCell.insertBefore(previousDayBtn, tableCell.lastChild);
                 previousDayBtn.onclick=function(){
+                    if (dateTextBox.get("disabled")) return;
                     var newDate=moment(new Date(dateTextBox.value)).subtract(1, 'days');
                     dateTextBox.set("displayedValue",newDate.format("DD.MM.YYYY"));
                 };
@@ -378,6 +378,7 @@ define(["dojo/_base/declare", "dijit/layout/BorderContainer", "dijit/layout/Layo
                 nextDayBtn.innerText= "\u25ba";
                 tableCell.appendChild(nextDayBtn);
                 nextDayBtn.onclick=function(){
+                    if (dateTextBox.get("disabled")) return;
                     var newDate=moment(new Date(dateTextBox.value)).add(1, 'days');
                     dateTextBox.set("displayedValue",newDate.format("DD.MM.YYYY"));
                 };

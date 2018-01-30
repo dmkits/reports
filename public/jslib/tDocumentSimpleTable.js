@@ -1,19 +1,19 @@
 /**
  * Created by dmkits on 18.12.16.
  */
-define(["dojo/_base/declare", "app", "templateDocumentBase","dijit/form/Select", "hTableSimpleFiltered","request"],
+define(["dojo/_base/declare", "app", "tDocumentBase","dijit/form/Select", "hTableSimpleFiltered","request"],
     function(declare, APP, DocumentBase,Select, HTable, Request) {
         return declare("TemplateDocumentSimpleTable", [DocumentBase], {
             /**
-            * args: {titleText, dataURL, dataURLCondition={...},
+             * args: {titleText, dataURL, dataURLCondition={...},
             *       rightPane:{ width:<width> },
             *       buttonUpdate, buttonPrint, buttonExportToExcel,
             *       printFormats={ ... } }
-            * default:
-            * rightPane.width=150,
-            * buttonUpdate=true, buttonPrint=true,
-            * default printFormats={ dateFormat:"DD.MM.YY", numericFormat:"#,###,###,###,##0.#########", currencyFormat:"#,###,###,###,##0.00#######" }
-            * */
+             * default:
+             * rightPane.width=150,
+             * buttonUpdate=true, buttonPrint=true,
+             * default printFormats={ dateFormat:"DD.MM.YY", numericFormat:"#,###,###,###,##0.#########", currencyFormat:"#,###,###,###,##0.00#######" }
+             * */
             constructor: function(args,parentName){
                 this.titleText="";
                 this.dataURL=null; this.dataURLCondition=null;
@@ -66,6 +66,7 @@ define(["dojo/_base/declare", "app", "templateDocumentBase","dijit/form/Select",
             createRightContent: function(params){
                 if(this.rightContainerParams){
                     this.rightContainerParams.region='right';
+                    this.rightContainerParams.splitter=true;
                     this.rightContainer= this.setContentPane(this.rightContainerParams);
                     this.addChild(this.rightContainer);
                 }
@@ -113,11 +114,8 @@ define(["dojo/_base/declare", "app", "templateDocumentBase","dijit/form/Select",
                 return this.contentTable.getContentItemSum(tableItemName);
             },
             onUpdateTableContent: function(){
-                if(this.contentTable.getDataError()){
-                    if(this.contentTable.getDataError()["msgForUser"]){
-                        this.topTableErrorMsg.innerHTML= "<b style='color:red'>"+this.contentTable.getDataError()["msgForUser"]+"</b>";
-                    }else this.topTableErrorMsg.innerHTML= "<b style='color:red'>"+this.detailContentErrorMsg+" Reason: "+this.contentTable.getDataError()+"</b>";
-                }
+                if(this.contentTable.getDataError())
+                    this.topTableErrorMsg.innerHTML= "<b style='color:red'>"+this.detailContentErrorMsg+" Reason: "+this.contentTable.getDataError()+"</b>";
                 else
                     this.topTableErrorMsg.innerHTML="";
                 if (!this.totals) return;
@@ -125,15 +123,12 @@ define(["dojo/_base/declare", "app", "templateDocumentBase","dijit/form/Select",
                     var totalBox = this.totals[tableItemName];
                     totalBox.updateValue();
                 }
-                if (this.infoPane&&this.infoPane.updateCallback)
-                    this.infoPane.updateCallback({infoPane:this.infoPane, contentTable:this.contentTable, instance:this,
-                        contentTableSelectedRow:this.contentTable.getSelectedRow()});
+                this.callToolPanesContentTableActions();
                 this.layout();
             },
             onSelectTableContent: function(firstSelectedRowData, selection){
-                if (this.infoPane&&this.infoPane.updateCallback)
-                    this.infoPane.updateCallback({infoPane:this.infoPane, contentTable:this.contentTable, instance:this,
-                        contentTableSelectedRow:firstSelectedRowData});
+                this.callToolPanesContentTableActions(firstSelectedRowData);
+                //toolPanes contentTableAction
             },
 
             /**
@@ -200,7 +195,7 @@ define(["dojo/_base/declare", "app", "templateDocumentBase","dijit/form/Select",
                 if (!params) params={};
                 if(!params.width)params.width=275;
                 var input=this.addTableInputTo(this.topTableRow,{labelText:label, labelStyle:"margin-left:5px; ", cellWidth:params.width, cellStyle:"text-align:right" +
-                "; padding-left:10px;"});
+                    "; padding-left:10px;"});
                 var select= APP.instanceFor(input, Select,
                     {style:"width:180px;", labelDataItem:params.labelDataItem,loadDropDownURL:params.loadDropDownURL,contentTableCondition:params.contentTableCondition});
 
@@ -209,13 +204,13 @@ define(["dojo/_base/declare", "app", "templateDocumentBase","dijit/form/Select",
                 if(!this.headerData) this.headerData=[];
                 this.headerData.push({type:"SelectBox",instance:select});
                 select.loadDropDownValuesFromServer= function(callback){
-                    Request.getJSONData({url: select.loadDropDownURL, consoleLog: true},
-                        function (success,data) {
+                    Request.getJSONData({url: select.loadDropDownURL, resultItemName:"items"},
+                        function (resultItems) {
                             var options=select.get("options"),value = select.get("value");
-                            if (success&&data.items) {
-                                select.set("options", data.items);
+                            if (resultItems) {
+                                select.set("options", resultItems);
                                 select.set("value", value);
-                            } else if (success&&!data.items) console.log("templateDocumentSimpleTable.addSelectBox loadDropDown getJSONData data error:",data);
+                            }
                             if(callback) callback();
                         });
                 };
@@ -367,44 +362,42 @@ define(["dojo/_base/declare", "app", "templateDocumentBase","dijit/form/Select",
                 return this;
             },
             /**
-             * params = { title }
-             * updateInfoPaneCallback = function(params)
-             *  params = { infoPane:<this.infoPane>, contentTable:<this.ContentTable>, instance:<this>,
+             * params = { title, contentTableAction }
+             * params.contentTableAction = function(params)
+             * params.contentTableAction calls on this.contentTable select row, or updated table content
+             *  contentTableAction.params = { thisToolPane, contentTable:<this.ContentTable>, instance:<this>,
              *      contentTableSelectedRow:<this.contentTable.getSelectedRow()> }
              */
-            addInfoPane: function(params, updateInfoPaneCallback){
-                if(!params) params={};
-                if (!this.infoPane) {
-                    if (params.width===undefined) params.width=100;
-                    this.addToolPane(params.title);
-                    this.infoPane= this.toolPanes[this.toolPanes.length-1];
-                    if (updateInfoPaneCallback) this.infoPane.updateCallback = updateInfoPaneCallback;
-                }
-                return this;
-            },
-            /*
-             * contentAction= function(toolPane, this.contentTable, this)
-             * contentAction calls on this.contentTable updated or changed selected row
-             */
-            addToolPane: function(title, contentAction){
+            addToolPane: function(params){
                 if(!this.rightContainer) {
                     console.log("WARNING! Failed addToolPane! Reason: no rightContainer!");
                     return this;
                 }
+                if(!params) params={};
+                if (params.title===undefined) params.title="";
+                if (params.width===undefined) params.width=100;
+                var actionsTitlePane= this.addChildTitlePaneTo(this.rightContainer,{title:params.title});
+                if (params.contentTableAction) actionsTitlePane.contentTableAction = params.contentTableAction;
                 if (!this.toolPanes) this.toolPanes= [];
-                var actionsTitlePane= this.addChildTitlePaneTo(this.rightContainer,{title:title});
-                if(contentAction) actionsTitlePane.contentAction= contentAction;
                 this.toolPanes.push(actionsTitlePane);
                 this.addTableTo(actionsTitlePane.containerNode);
                 return this;
             },
-
+            callToolPanesContentTableActions: function(firstSelectedRowData){
+                if(!this.toolPanes) return;
+                for (var i = 0; i < this.toolPanes.length; i++) {
+                    var toolPane = this.toolPanes[i];
+                    if(!toolPane.contentTableAction) continue;
+                    if(!firstSelectedRowData) firstSelectedRowData=this.contentTable.getSelectedRow();
+                    toolPane.contentTableAction({thisToolPane:toolPane, contentTable:this.contentTable, instance:this,
+                        contentTableSelectedRow:firstSelectedRowData});
+                }
+            },
             addToolPaneBR: function(){
                 var row= this.addRowToTable(this.toolPanes[this.toolPanes.length-1].containerNode.lastChild);
                 this.addLeftCellToTableRow(row).innerHTML="<br>";
                 return this;
             },
-
             /**
              * tableRowAction = function(contentTableRowData, actionParams, contentTableUpdatedRowData, startNextAction, finishedAction)
              *      startNextAction = function(true/false), if false- restart current action
@@ -436,8 +429,8 @@ define(["dojo/_base/declare", "app", "templateDocumentBase","dijit/form/Select",
 
             /**
              * actionParams = { btnStyle, btnParams, actionFunction, contentTableActionName, beforeContentTableRowsAction }
-             *      actionFunction = function(contentTableRowsData, actionParams)
-             *          actionParams = { contentTableInstance, toolPanes, thisInstance }
+             *      actionFunction = function(actionParams)
+             *          actionParams = { contentTableRowsData, contentTableInstance, toolPanes, thisInstance }
              *      beforeContentTableRowsAction = function(contentTableRowsData, actionParams, startContentTableRowsAction)
              *          actionParams = { contentTableInstance, toolPanes, thisInstance }
              *          startContentTableRowsAction= function(contentTableRowsDataForAction)
@@ -453,16 +446,15 @@ define(["dojo/_base/declare", "app", "templateDocumentBase","dijit/form/Select",
                 var actionButton= this.addTableCellButtonTo(actionsTableRow, {labelText:label, cellWidth:0,
                     btnStyle:actionParams.btnStyle, btnParameters:actionParams.btnParams});
                 if (!this.toolPanesActionButtons) this.toolPanesActionButtons={};
-                actionParams.contentTableInstance=this.contentTable;
-                actionParams.toolPanes=this.toolPanes;
-                actionParams.thisInstance=this;
-                var thisInstance=this;
+                var actionFunctionParams={contentTableInstance:this.contentTable, toolPanes:this.toolPanes, thisInstance:this,
+                    contentTableRowsData:this.getTableContent()};
                 if(actionParams.actionFunction) {
                     actionButton.onClick=function(){
-                        actionParams.actionFunction(thisInstance.getTableContent(),actionParams);
+                        actionParams.actionFunction(actionFunctionParams);
                     };
                     return this;
                 }
+                var thisInstance=this;
                 var contentTableRowAction, contentTableRowsActionFunction;
                 if (actionParams.contentTableActionName)
                     contentTableRowAction= this.contentTableActions[actionParams.contentTableActionName];
@@ -589,12 +581,12 @@ define(["dojo/_base/declare", "app", "templateDocumentBase","dijit/form/Select",
                         var printParams={};
                         if(headerItemData.type=="DateBox"){
                             printParams = headerItemData.instance.printParams;
-                                this.addPrintDataSubItemTo(printData, "header",
-                                    {label:printParams.labelText, width:printParams.cellWidth, align:"left",style:headerTextStyle, contentStyle:headerDateContentStyle, value:headerItemData.instance.get("value"),type:"date"});
+                            this.addPrintDataSubItemTo(printData, "header",
+                                {label:printParams.labelText, width:printParams.cellWidth, align:"left",style:headerTextStyle, contentStyle:headerDateContentStyle, value:headerItemData.instance.get("value"),type:"date"});
                         }else if(headerItemData.type=="SelectBox"){
                             printParams = headerItemData.instance.printParams;
                             this.addPrintDataSubItemTo(printData, "header",
-                                        {label:printParams.labelText, width:printParams.cellWidth, align:"left",style:headerTextStyle, contentStyle:headerDateContentStyle, value:headerItemData.instance.get("value")});
+                                {label:printParams.labelText, width:printParams.cellWidth, align:"left",style:headerTextStyle, contentStyle:headerDateContentStyle, value:headerItemData.instance.get("value")});
                         }else if(headerItemData.type=="CheckButton"){
                             if(headerItemData.instance.checked==true) {
                                 printParams = headerItemData.instance.printParams;

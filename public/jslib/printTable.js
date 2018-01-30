@@ -26,7 +26,7 @@ var calcTableWidth = function (printSectionData) {
 /*
  * tableColumns: [
  *  {"data":"date", "name":"DATE","width":80, "type":"date", format:"DD.MM.YYYY" },
- *  {"data":"date2", "name":"DATE2","width":80, "type":"text", dateFormat:"DD.MM.YYYY" },
+ *  {"data":"date2", "name":"DATE2","width":80, "type":"text", datetimeFormat:"DD.MM.YYYY" },
  *  {"data":"trailer", "name":"TRAILER", "width":80, "align":"center"},
  *  {"data":"sum","name":"SUM", "width":85, "type":"currency", format:"#,###,###,##0.00#######",  printFormat:"#,###,###,##0.00#######" },
  *  {"data":"distance", "name":"DISTANCE", "width":85, "type":"numeric", format:"#,###,###,##0.#########",  printFormat:"#,###,###,##0.#########" }
@@ -72,8 +72,8 @@ var createPrintDetailTable = function (tableColumns, tableData, table_width) {  
             var data_type = tableCol.type;
             var cellValue=null, printFormat=tableCol.printFormat;
             if(!printFormat&&tableCol.format) printFormat=tableCol.format;
-            if (data_type==="text"&&tableCol.dateFormat){
-                data_type="date"; printFormat=tableCol.dateFormat;
+            if (data_type==="text"&&tableCol.datetimeFormat){
+                data_type="date"; printFormat=tableCol.datetimeFormat;
             }
             if (dataItemName) {
                 cellValue = getPrintValue(dataItem[dataItemName], data_type, printFormat);
@@ -81,7 +81,7 @@ var createPrintDetailTable = function (tableColumns, tableData, table_width) {  
             if (cellValue !== undefined && cellValue !== null) {
                 tableCell.innerText = cellValue;
             }
-            tableCell.setAttribute("style", "margin:0;padding:2px;padding-left:5px;padding-right:5px;"+getStyleForTableValue(tableCol));
+            tableCell.setAttribute("style", "margin:0;padding:2px;padding-left:5px;padding-right:5px;"+getBaseStyleForValue(tableCol));
         }
     }
     return detailContent;
@@ -92,7 +92,7 @@ var createPrintDetailTable = function (tableColumns, tableData, table_width) {  
  *      newTable: true/false,
  *      style:"...",
  *      items:[
- *          {"width":0, "style":"width:100%;font-size:14px;font-weight:bold;text-align:center;", "contentStyle":"margin-top:5px;margin-bottom:3px;",
+ *          {"width":0, "style":"width:100%;font-size:14px;font-weight:bold;text-align:center;", align:"center, "contentStyle":"margin-top:5px;margin-bottom:3px;"",
  *              "label":"НАКЛАДНАЯ" },
  *          {"width":150, "style":"border:solid 1 px;color:red;", "contentStyle":"padding-top:5px;padding-bottom:5px;",
  *              "label":"Номер склада:", "labelStyle":"text-align:center", "id":"store", "type":"numeric", "value":6, "valueStyle":"width:80px" },
@@ -104,9 +104,9 @@ var createPrintDetailTable = function (tableColumns, tableData, table_width) {  
  *      style:"...",
  *      items:[
  *          {"width":100},
- *          {"width":200, "style":"border:solid 1 px;color:red;", "contentStyle":"padding-top:5px;padding-bottom:5px;",
+ *          {"width":200, "style":"border:solid 1 px;color:red;", align:"right", "contentStyle":"padding-top:5px;padding-bottom:5px;",
  *              "label":"Нач.дата:", "labelStyle":"text-align:right", "id":"bdate", "type":"date", "value":"2016-10-30", "valueStyle":"width:100px" },
- *          {"width":200, "style":"border:solid 1 px;color:green;", "contentStyle":"padding-top:5px;padding-bottom:5px;",
+ *          {"width":200, "style":"border:solid 1 px;color:green;", align:"right", "contentStyle":"padding-top:5px;padding-bottom:5px;",
  *              "label":"Конечн.дата:", "labelStyle":"text-align:right", "id":"edate","type":"date", "value":"2016-11-06", "valueStyle":"width:100px" }
  *      ]
  *  }
@@ -116,8 +116,8 @@ var createDescriptiveTable = function (descriptiveData, table_width) {          
     var descriptBaseStyle="margin:0;padding:0;border:none;",
         descriptContent = document.createElement('div');
     descriptContent.setAttribute("style", descriptBaseStyle);
-    var descript_table,
-        tdBaseStyle="text-align:right;vertical-align:bottom;";
+    var descript_table, tdBaseStyle="vertical-align:bottom;";//text-align:right;
+
     for (var rowIndex = 0; rowIndex < descriptiveData.length; rowIndex++) {
         var descriptiveRow=descriptiveData[rowIndex];
         var descriptiveRowData= descriptiveRow.items;
@@ -135,7 +135,10 @@ var createDescriptiveTable = function (descriptiveData, table_width) {          
             var td = document.createElement("td");
             var tdStyle= (descriptItemData.style)?descriptItemData.style+";":"";
             if (descriptItemData.width) tdStyle+= "width:" + descriptItemData.width+"px;";
-            td.setAttribute("style",descriptBaseStyle+tdBaseStyle+tdStyle);
+            var tdAligntStyle="text-align:left;";
+            if(descriptItemData.align==="right") tdAligntStyle= "text-align:right;";
+            else if(descriptItemData.align==="center") tdAligntStyle= "text-align:center;";
+            td.setAttribute("style",descriptBaseStyle+tdBaseStyle+tdAligntStyle+tdStyle);
             tr.appendChild(td);
             if (descriptItemData.label===undefined&&descriptItemData.value===undefined) continue;
             var contentStyle= (descriptItemData.contentStyle)?descriptItemData.contentStyle+";":"";
@@ -143,8 +146,11 @@ var createDescriptiveTable = function (descriptiveData, table_width) {          
             var label=undefined,labelText=undefined;
             if (descriptItemData.label !== undefined) {
                 label = document.createElement("div");
-                var labelStyle=(descriptItemData.labelStyle)?descriptItemData.labelStyle:"";
-                label.setAttribute("style", "margin:0;padding:0;border:solid 1px transparent;display:inline-block;margin-right:2px;vertical-align:text-bottom;"+contentStyle+labelStyle);
+                var labelStyle=(descriptItemData.labelStyle)?descriptItemData.labelStyle:"",labelAligntStyle= "float:left;text-align:left;";
+                if(descriptItemData.align==="right") labelAligntStyle= "display:inline-block;text-align:right;";
+                else if(descriptItemData.align==="center") labelAligntStyle="display:inline-block;";
+                label.setAttribute("style", "margin:0;padding:0;border:solid 1px transparent;margin-right:2px;vertical-align:text-bottom;"
+                    +contentStyle+labelAligntStyle+labelStyle);
                 td.appendChild(label);
                 labelText = document.createElement("div");
                 labelText.innerText = descriptItemData.label;
@@ -153,11 +159,12 @@ var createDescriptiveTable = function (descriptiveData, table_width) {          
             }
             if (descriptItemData.value !== undefined) {
                 var value = document.createElement("div");
-                var valueStyle= (descriptItemData.valueStyle)?descriptItemData.valueStyle+";":"";
-                value.setAttribute("style", "margin:0;padding:0;border:solid 1px;float:right;"+contentStyle+valueStyle);
+                var valueStyle= (descriptItemData.valueStyle)?descriptItemData.valueStyle+";":"", valueAlignStyle="float:left;";
+                if(descriptItemData.align==="right") valueAlignStyle="float:right;"; else if(descriptItemData.align==="center") valueAlignStyle="display:inline-block;";
+                value.setAttribute("style", "margin:0;padding:0;border:solid 1px;"+valueAlignStyle+getBaseStyleForValue(descriptItemData)+contentStyle+valueStyle);
                 td.appendChild(value);
                 var valueText = document.createElement("div");
-                valueText.setAttribute("style", tdContentTextStyle+"padding-left:5px;padding-right:5px;" + getStyleForTableValue(descriptItemData));
+                valueText.setAttribute("style", tdContentTextStyle+"padding-left:5px;padding-right:5px;");
                 var dataType= descriptItemData.type, printFormat= descriptItemData.printFormat;
                 if (dataType==="text" && descriptItemData.dateFormat) {
                     dataType= "date"; printFormat= descriptItemData.dateFormat;
@@ -169,16 +176,16 @@ var createDescriptiveTable = function (descriptiveData, table_width) {          
     }
     return descriptContent;
 };
-var getStyleForTableValue = function (ItemData) {
-    var valueStyle = "";
-    if (ItemData.type == "date" ||(ItemData.type == "text"&&ItemData.dateFormat) ) valueStyle += "text-align:center;";
-    else if (ItemData.type == "numeric") valueStyle += "text-align:right;";
-    else if (ItemData.type == "currency") valueStyle += "text-align:right;";
-    return valueStyle;
+var getBaseStyleForValue = function (ItemData) {
+    if (ItemData.type == "date" ||(ItemData.type == "text"&&ItemData.datetimeFormat) ) return "text-align:center;";
+    else if (ItemData.type == "numeric") return "text-align:right;";
+    else if (ItemData.type == "currency") return "text-align:right;";
+    else if (ItemData.align) return "text-align:"+ItemData.align+";";
+    return "text-align:left;";
 };
 var getPrintValue = function (value, valueType, printFormat) {
     numeral.language('ru-UA');
-    if (!valueType) return value;
+    if (value===undefined||value===null||!valueType) return value;
     if (valueType === "date") {
         if (!printFormat) return moment(value).format("DD.MM.YYYY");
         else return moment(value).format(printFormat);
