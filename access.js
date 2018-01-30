@@ -76,6 +76,10 @@ module.exports= function(app){
                     res.render(path.join(__dirname,"views/dbFailed.ejs"),{title:title, bigImg:img,icon:icon32x32, errorReason:"Не удалось подключиться к базе данных!"} );
                     return;
                 }
+                if(reqIsAJAX(req.headers)){
+                    res.send("<b style='color:red'>Не удалось авторизировать пользователя.</b>");
+                    return;
+                }
               res.send({error:"Failed to connect to database!",userErrorMsg:"Не удалось подключиться к базе данных."});
             }
             return;
@@ -162,7 +166,11 @@ module.exports= function(app){
                 res.sendFile(path.join(__dirname,"views/login.html"));
                 return;
             }
-            res.send({error:"Не удалось авторизировать пользователя."}); console.log("163 error");
+            if(reqIsAJAX(req.headers)){
+                res.send("<b style='color:red'>Не удалось авторизировать пользователя.</b>");
+                return;
+            }
+            res.send({error:"Не удалось авторизировать пользователя."});
             return;
         }
         next();
