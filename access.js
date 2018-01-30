@@ -9,10 +9,13 @@ module.exports= function(app){
     var reqIsJSON= function(headers){
         return(headers&&headers["x-requested-with"]&& headers["x-requested-with"]=="application/json; charset=utf-8")
     };
+    var reqIsAJAX= function(headers){
+        return (headers&&headers["content-type"]=="application/x-www-form-urlencoded"&&headers["x-requested-with"]=="XMLHttpRequest");
+    };
 
-    app.use(function (req, res, next) {                                                                      console.log("ACCESS CONTROLLER  req.path=",req.path);
+    app.use(function (req, res, next) {                              console.log("ACCESS CONTROLLER  req.path=",req.path);
         var dbConnectionError=getDBConnectError();
-        if(dbConnectionError){
+        if(dbConnectionError){                                              console.log("15 dbConnectionError=");
             var sysAdminAccess=false;
             if(req.cookies.noDbConnSysAdminAccess){
                 sysAdminAccess=true;
@@ -29,38 +32,44 @@ module.exports= function(app){
                  next();
                 return;
             }
-            if(req.originalUrl=="/login" && req.method=="POST"){
+            if(req.originalUrl=="/login" && req.method=="POST"){                                  console.log("32 req.originalUrl==\"/login\" && req.method==\"POST\"");
                 var userName=req.body.user, userPswrd=req.body.pswrd;
                 if(!userName ||! userPswrd ){
-                    res.sendFile(path.join(__dirname,"views/login.html"));
+                    res.cookie("loginAsAdmin", '');
+                    res.send({error:"Failed to connect to database!",userErrorMsg:"Не удалось подключиться к базе данных."});
                     return;
                 }
                 var sysAdminLoginDataArr=getSysAdminLoginDataArr();
                 for(var i in sysAdminLoginDataArr){
                     if(sysAdminLoginDataArr[i].login==userName && sysAdminLoginDataArr[i].pswrd==userPswrd){
                         res.cookie("noDbConnSysAdminAccess", true);
-                        res.redirect('/sysadmin');
+                        res.send({result:"success"});
                         return;
                     }
                 }
                 res.cookie("loginAsAdmin", '');
-                var img= "imgs/girls_big.jpg";
-                var title= "REPORTS";
-                var icon32x32= "icons/profits32x32.jpg";
-                res.render(path.join(__dirname,"views/dbFailed.ejs"),{title:title, bigImg:img,icon:icon32x32, errorReason:"Не удалось подключиться к базе данных!"} );
+                res.send({error:"Failed to connect to database!",userErrorMsg:"Не удалось подключиться к базе данных."});
                 return;
             }
-            if(req.cookies.loginAsAdmin && req.originalUrl.indexOf("/login")<0){
+            if(req.cookies.loginAsAdmin && req.originalUrl.indexOf("/login")<0){  console.log("53 req.cookies.loginAsAdmin && req.originalUrl.indexOf(\"/login\")<0");
                 res.cookie("loginAsAdmin", '');
-                res.sendFile(path.join(__dirname,"views/login.html"));
+                if(!reqIsJSON(req.headers)/*&& !reqIsAJAX(req.headers)*/){
+                    res.sendFile(path.join(__dirname,"views/login.html"));
+                    return;
+                }
+                res.send({error:"Не удалось авторизировать пользователя."});
                 return;
             }
-            if(req.originalUrl.indexOf("/sysadmin")<0 && sysAdminAccess){
-                res.redirect('/sysadmin');
+            if(req.originalUrl.indexOf("/sysadmin")<0 && sysAdminAccess){     console.log("58 req.originalUrl.indexOf(\"/sysadmin\")<0 && sysAdminAccess");
+                if(!reqIsJSON(req.headers)/*&& !reqIsAJAX(req.headers)*/){
+                    res.redirect('/sysadmin');
+                    return;
+                }
+                res.send({error:"Не удалось авторизировать пользователя."});
                 return;
             }
-            if(!req.cookies.loginAsAdmin && req.originalUrl.indexOf("/login")<0){
-                if(!reqIsJSON(req.headers)){
+            if(!req.cookies.loginAsAdmin && req.originalUrl.indexOf("/login")<0){  console.log("62 !req.cookies.loginAsAdmin && req.originalUrl.indexOf(\"/login\")<0");
+                if(!reqIsJSON(req.headers)/*&& !reqIsAJAX(req.headers)*/){
                     var img= "imgs/girls_big.jpg";
                     var title= "REPORTS";
                     var icon32x32= "icons/profits32x32.jpg";
@@ -71,15 +80,16 @@ module.exports= function(app){
             }
             return;
         }
-        if(req.cookies.noDbConnSysAdminAccess && !reqIsJSON(req.headers)){
+        if(req.cookies.noDbConnSysAdminAccess && !reqIsJSON(req.headers)/*&& !reqIsAJAX(req.headers)*/){          console.log(" 74 req.cookies.noDbConnSysAdminAccess && !reqIsJSON(req.headers)");
             res.clearCookie("noDbConnSysAdminAccess");
             res.redirect(req.originalUrl);
             return;
         }
-        if(req.originalUrl=="/login" && req.method=="POST"){
+        if(req.originalUrl=="/login" && req.method=="POST"){                  console.log('req.originalUrl=="/login" && req.method=="POST"');
             var userName=req.body.user, userPswrd=req.body.pswrd;
             if(!userName ||! userPswrd ){
-               res.sendFile(path.join(__dirname,"views/login.html"));
+                res.cookie("loginAsAdmin", '');
+                res.send({error:"Failed to connect to database!",userErrorMsg:"Не удалось подключиться к базе данных."});
                 return;
             }
             database.getPswdByLogin(userName,function(err,result){
@@ -106,12 +116,12 @@ module.exports= function(app){
                         res.send({result:"success"});
                     })
                 }else{
-                    res.sendFile(path.join(__dirname,"views/login.html"));
+                    res.send({error:"Failed to connect to database!",userErrorMsg:"Не удалось подключиться к базе данных."});
                 }
             });
             return;
         }
-        if(req.cookies.lpid){
+        if(req.cookies.lpid){                                       console.log("req.cookies.lpid");
             var userLpid=req.cookies.lpid;
             database.getLPID(userLpid, function(err, lpid){
                 if(err){
@@ -129,18 +139,30 @@ module.exports= function(app){
                         }
                     }
                     if (req.originalUrl.indexOf("/sysadmin") > -1) {
-                        res.redirect('/');
+                        if(!reqIsJSON(req.headers)/*&& !reqIsAJAX(req.headers)*/){
+                            res.redirect('/');
+                            return;
+                        }
+                        res.send({error:"Не удалось авторизировать пользователя."});
                         return;
                     }
                     next();
                     return;
                 }
-                res.sendFile(path.join(__dirname, "views/login.html"));
+                if(!reqIsJSON(req.headers)/*&& !reqIsAJAX(req.headers)*/){
+                    res.sendFile(path.join(__dirname,"views/login.html"));
+                    return;
+                }
+                res.send({error:"Не удалось авторизировать пользователя."});
             });
             return;
         }
-        if(!req.cookies.lpid && !req.cookies.noDbConnSysAdminAccess && req.originalUrl.indexOf("/login")<0){
-            res.sendFile(path.join(__dirname,"views/login.html"));
+        if(!req.cookies.lpid && !req.cookies.noDbConnSysAdminAccess && req.originalUrl.indexOf("/login")<0){  console.log("!req.cookies.lpid && !req.cookies.noDbConnSysAdminAccess && req.originalUrl.indexOf(\"/login\")<0");
+            if(!reqIsJSON(req.headers) && !reqIsAJAX(req.headers)){  console.log("159 !reqIsJSON(req.headers)");
+                res.sendFile(path.join(__dirname,"views/login.html"));
+                return;
+            }
+            res.send({error:"Не удалось авторизировать пользователя."}); console.log("163 error");
             return;
         }
         next();

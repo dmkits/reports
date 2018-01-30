@@ -320,6 +320,14 @@ app.get("/sysadmin/sql_queries/get_reports_list", function (req, res) {         
     res.send(outData);
 });
 
+app.get("/reports/sql_queries/get_reports_list", function (req, res) {                                             log.info("app.get /reports/sql_queries/get_reports_list");
+    var outData={};
+    var configDirectoryName=getConfigDirectoryName();
+    outData.jsonText =fs.readFileSync('./'+configDirectoryName+'/reports_list.json').toString();
+    outData.jsonFormattedText = getJSONWithoutComments(outData.jsonText);
+    res.send(outData);
+});
+
 app.get("/print/printSimpleDocument", function(req, res){                                                           log.info("app.get /print/printSimpleDocument");
     res.sendFile(path.join(__dirname, '/views/print', 'printSimpleDocument.html'));
 });
