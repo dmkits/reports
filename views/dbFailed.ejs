@@ -37,8 +37,7 @@
                 authAsAdminBtn.startup();
 
                 authAsAdminBtn.onClick = function () { console.log("btn clicked");
-                    document.cookie = "loginAsAdmin=true";
-                    location.reload()
+                    window.location.replace("/login");
                 };
             });
 

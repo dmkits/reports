@@ -38,7 +38,10 @@
                     var user=document.getElementById("user_name").value.trim(), pswrd=document.getElementById("user_password").value.trim();
                     Request.postJSONData({url:  "/login", data: {user:user, pswrd:pswrd}, consoleLog: true},
                             function (result) {
-                                if(result) window.location.replace(window.location.href);
+                                if(result) {  console.log('window.location.href=="/login"',window.location.href);
+                                    if(window.location.href.lastIndexOf("/login")) window.location.replace("/");
+                                    else window.location.replace(window.location.href);
+                                }
                             });
                 };
                 loginDialog.on("keypress", function (event) {

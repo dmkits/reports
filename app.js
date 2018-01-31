@@ -91,6 +91,52 @@ try {
     tempExcelRepDir=null;
 }
 
+app.get("/login", function (req, res) {                        log.info("app.get /login");
+    res.sendFile(path.join(__dirname, '/views', 'login.html'));
+});
+app.post("/login", function (req, res) {                        log.info("app.post /login",req.body.user, userPswrd=req.body.pswrd);
+    var userName=req.body.user, userPswrd=req.body.pswrd;
+    if(!userName ||! userPswrd ){
+        res.send({error:"Authorisation failed! No login or password!", userErrorMsg:"Пожалуйста введите имя и пароль."});
+        return;
+    }
+    var sysAdminLoginDataArr=getSysAdminLoginDataArr();
+    for(var i in sysAdminLoginDataArr){                                                            console.log("for sysAdminLoginDataArr");
+        if(sysAdminLoginDataArr[i].login==userName){
+            if(sysAdminLoginDataArr[i].pswrd==userPswrd){                                          console.log("sysAdminLoginDataArr[i].pswrd==userPswrd");
+                var newPLID=getUIDNumber();
+                var sysAdminLPIDObj=getSysAdminLPIDObj();
+                sysAdminLPIDObj[sysAdminLoginDataArr[i].login]=newPLID;
+                writeSysAdminLPIDObj(sysAdminLPIDObj);
+                res.cookie("lpid", newPLID);
+                res.send({result:"success"});
+                return;
+            }
+        }
+    }
+    database.getPswdByLogin(userName, function(err,result){
+        if(err){
+            log.error(err);
+            res.send({error:err});
+            return;
+        }
+        if(result&&result.LPAss && result.LPAss==userPswrd){
+            database.setPLIDForUserSession(result.EmpID, function(err,LPID){
+                if(err){
+                    log.error(err);
+                    res.send({error:err});
+                    return;
+                }
+                res.cookie("lpid", LPID);
+                res.send({result:"success"});
+            });
+            return;
+        }
+        log.info("Wrong login or password.");
+        res.send({error:"Неправильный логин или пароль"});
+    });
+});
+
 app.get("/sysadmin", function(req, res){                                               log.info("app.get /sysadmin");
     res.sendFile(path.join(__dirname, '/views', 'sysadmin.html'));
 });
@@ -303,7 +349,7 @@ app.get("/reports/retail_sales/get_sales_by/*", function(req, res){             
     database.getSalesBy(filename+".sql",bdate,edate,
         function (error,recordset) {
             if (error){                                                                                              log.error("database.getSalesBy " +filename +" error=",error);
-                outData.error=error;
+                outData.error=error.message;
                 res.send(outData);
                 return;
             }
@@ -469,7 +515,39 @@ app.listen(port, function (err) {
     log.info("app runs on port " + port);
 });
 
-
+function getSysAdminLPIDObj(){
+    try{
+        var sysAdminsLPID=JSON.parse(fs.readFileSync(path.join(__dirname,"sysAdmins.json")));
+    }catch(e){
+        console.log("FAILED to get sysadmin LPID. Reason: ",e);
+        return;
+    }
+    return sysAdminsLPID;
+}
+function getSysAdminLoginDataArr(){
+    try{
+        var sysAdminsPswrd=JSON.parse(fs.readFileSync(path.join(__dirname,"config.json")));
+    }catch(e){
+        console.log("FAILED to get sysadmin LPID. Reason: ",e);
+        return;
+    }
+    return sysAdminsPswrd["sysAdmins"];
+}
+function writeSysAdminLPIDObj(sysAdminLPIDObj){
+    fs.writeFile(path.join(__dirname,"sysAdmins.json"), JSON.stringify(sysAdminLPIDObj), function(err){
+        if(err){
+            console.log("err=",err);
+        }
+    })
+}
+function getUIDNumber() {
+    var str= uid.time();
+    var len = str.length;
+    var num = BigNumber(0);
+    for (var i = (len - 1); i >= 0; i--)
+        num.plus(BigNumber(256).pow(i).mult(str.charCodeAt(i)));
+    return num.toString();
+};
 
 
 

@@ -160,7 +160,18 @@ module.exports.setPLIDForUserSession=function(EmpID, callback){
     });
 };
 
-
+module.exports.getUserNameAndStateCodeByLpid=function(LPID, callback){
+    var reqSql = new sql.Request(conn);
+    reqSql.input('LPID', LPID);
+    reqSql.query("select EmpName, ShiftPostID  from r_Emps where LPID=@LPID",
+        function (err, result) {
+            if (err) {
+                callback(err);
+            } else {
+                callback(null,result[0]);
+            }
+        });
+};
 module.exports.getLPID=function(LPID, callback){
     checkDBConnection(0,function(err){
         if(err){
