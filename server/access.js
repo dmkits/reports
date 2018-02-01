@@ -32,6 +32,7 @@ module.exports= function(app) {
                 }
             }
             if (sysAdminAccess) {
+                req.isSysadmin= true;
                 next();
                 return;
             }

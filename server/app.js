@@ -56,7 +56,7 @@ app.use('/',express.static('public'));
 var database = require('./dataBase');               console.log("module ./dataBase",new Date().getTime() - startTime);
 var ConfigurationError, DBConnectError="No connection";
 
- var access = require('./access')(app);
+require('./access')(app);
 
 process.on('uncaughtException', function(err) {
     log.error('Server process failed! Reason:', err);
@@ -136,6 +136,8 @@ app.post("/login", function (req, res) {                        log.info("app.po
     });
 });
 
+require('./sysadmin')(app);
+
 app.get("/sysadmin", function(req, res){                                               log.info("app.get /sysadmin");
     res.sendFile(path.join(__dirname, '../pages', 'sysadmin.html'));
 });
@@ -192,9 +194,19 @@ app.post("/sysadmin/startup_parameters/store_app_config_and_reconnect", function
         }
     );
 });
+
 app.get("/sysadmin/reports_config", function (req, res) {                                    log.info("app.get /sysadmin/reports_config");
     res.sendFile(path.join(__dirname, '../pages/sysadmin', 'sql_queries.html'));
 });
+
+app.get("/sysadmin/sql_queries/get_reports_list", function (req, res) {                                             log.info("app.get /sysadmin/sql_queries/get_reports_list");
+    var outData={};
+    var configDirectoryName=getConfigDirectoryName();
+    outData.jsonText =fs.readFileSync('./'+configDirectoryName+'/reports_list.json').toString();
+    outData.jsonFormattedText = getJSONWithoutComments(outData.jsonText);
+    res.send(outData);
+});
+
 app.get("/sysadmin/sql_queries/get_script", function (req, res) {                            log.info("app.get /sysadmin/sql_queries/get_script "+req.query.filename);
     var configDirectoryName=getConfigDirectoryName();
     var outData={};
@@ -320,7 +332,14 @@ app.get("/get_main_data", function(req, res){                                   
     if (ConfigurationError) {
         outData.error= ConfigurationError;                                                         log.error("req.ConfigurationError=",ConfigurationError);
     }
-    menuBar.push({itemname:"menuBarItemRetailSales",itemtitle:"Отчеты retail", action:"open",content:"/reports/retail_sales", id:"ReportRetailSales",title:"Отчеты retail", closable:false});
+    if(req.isSysadmin||req.isAdminUser){
+        menuBar.push({itemname:"menuBarItemRetailSales",itemtitle:"Отчеты retail",
+            action:"open",content:"/reports/retail_sales", id:"ReportRetailSales",title:"Отчеты retail", closable:false});
+    }
+    if(req.isSysadmin||!req.isAdminUser) {
+        menuBar.push({itemname:"menuBarItemRetailCashier",itemtitle:"Отчеты кассира",
+            action:"open",content:"/reports/retail_cashier", id:"ReportRetailCashier",title:"Отчеты кассира", closable:false});
+    }
     menuBar.push({itemname:"menuBarClose",itemtitle:"Выход",action:"close"});
     menuBar.push({itemname:"menuBarAbout",itemtitle:"О программе",action:"help_about"});
     outData.menuBar= menuBar;
@@ -331,6 +350,15 @@ app.get("/get_main_data", function(req, res){                                   
 
 app.get("/reports/retail_sales", function(req, res){                                                             log.info("app.get /reports/retail_sales");
     res.sendFile(path.join(__dirname, '../pages/reports', 'retail_sales.html'));
+});
+
+
+app.get("/reports/sql_queries/get_reports_list", function (req, res) {                                             log.info("app.get /reports/sql_queries/get_reports_list");
+    var outData={};
+    var configDirectoryName=getConfigDirectoryName();
+    outData.jsonText =fs.readFileSync('./'+configDirectoryName+'/reports_list.json').toString();
+    outData.jsonFormattedText = getJSONWithoutComments(outData.jsonText);
+    res.send(outData);
 });
 
 app.get("/reports/retail_sales/get_sales_by/*", function(req, res){                                              log.info("app.get /reports/retail_sales/get_sales_by ",req.url,req.query,req.params, new Date());
@@ -357,21 +385,6 @@ app.get("/reports/retail_sales/get_sales_by/*", function(req, res){             
         });
 });
 
-app.get("/sysadmin/sql_queries/get_reports_list", function (req, res) {                                             log.info("app.get /sysadmin/sql_queries/get_reports_list");
-    var outData={};
-    var configDirectoryName=getConfigDirectoryName();
-    outData.jsonText =fs.readFileSync('./'+configDirectoryName+'/reports_list.json').toString();
-    outData.jsonFormattedText = getJSONWithoutComments(outData.jsonText);
-    res.send(outData);
-});
-
-app.get("/reports/sql_queries/get_reports_list", function (req, res) {                                             log.info("app.get /reports/sql_queries/get_reports_list");
-    var outData={};
-    var configDirectoryName=getConfigDirectoryName();
-    outData.jsonText =fs.readFileSync('./'+configDirectoryName+'/reports_list.json').toString();
-    outData.jsonFormattedText = getJSONWithoutComments(outData.jsonText);
-    res.send(outData);
-});
 
 app.get("/print/printSimpleDocument", function(req, res){                                                           log.info("app.get /print/printSimpleDocument");
     res.sendFile(path.join(__dirname, '../pages/print', 'printSimpleDocument.html'));
