@@ -56,7 +56,7 @@ app.use('/',express.static('public'));
 var database = require('./dataBase');               console.log("module ./dataBase",new Date().getTime() - startTime);
 var ConfigurationError, DBConnectError="No connection";
 
-var access = require('./access')(app);
+ var access = require('./access')(app);
 
 process.on('uncaughtException', function(err) {
     log.error('Server process failed! Reason:', err);
@@ -82,7 +82,7 @@ function tryDBConnect(postaction) {                                        conso
         if (postaction)postaction(err);
     });
 }
-var tempExcelRepDir=path.join(__dirname, './temp/');
+var tempExcelRepDir=path.join(__dirname, '../temp/');
 try {
     if (!fs.existsSync(tempExcelRepDir)) {
         fs.mkdirSync(tempExcelRepDir);
@@ -90,9 +90,8 @@ try {
 }catch (e){                                                                                         log.warn('Failed create XLSX_temp directory! Reason:'+e);
     tempExcelRepDir=null;
 }
-
 app.get("/login", function (req, res) {                        log.info("app.get /login");
-    res.sendFile(path.join(__dirname, '/views', 'login.html'));
+    res.sendFile(path.join(__dirname, '../pages', 'login.html'));
 });
 app.post("/login", function (req, res) {                        log.info("app.post /login",req.body.user, userPswrd=req.body.pswrd);
     var userName=req.body.user, userPswrd=req.body.pswrd;
@@ -138,7 +137,7 @@ app.post("/login", function (req, res) {                        log.info("app.po
 });
 
 app.get("/sysadmin", function(req, res){                                               log.info("app.get /sysadmin");
-    res.sendFile(path.join(__dirname, '/views', 'sysadmin.html'));
+    res.sendFile(path.join(__dirname, '../pages', 'sysadmin.html'));
 });
 app.get("/sysadmin/app_state", function(req, res){                                     log.info("app.get /sysadmin/app_state");
     var outData= {};
@@ -158,7 +157,7 @@ app.get("/sysadmin/app_state", function(req, res){                              
     res.send(outData);
 });
 app.get("/sysadmin/startup_parameters", function (req, res) {                            log.info("app.get /sysadmin/startup_parameters");
-    res.sendFile(path.join(__dirname, '/views/sysadmin', 'startup_parameters.html'));
+    res.sendFile(path.join(__dirname, '../pages/sysadmin', 'startup_parameters.html'));
 });
 app.get("/sysadmin/startup_parameters/get_app_config", function (req, res) {             log.info("app.get /sysadmin/startup_parameters/get_app_config");
     if (ConfigurationError) {
@@ -194,7 +193,7 @@ app.post("/sysadmin/startup_parameters/store_app_config_and_reconnect", function
     );
 });
 app.get("/sysadmin/reports_config", function (req, res) {                                    log.info("app.get /sysadmin/reports_config");
-    res.sendFile(path.join(__dirname, '/views/sysadmin', 'sql_queries.html'));
+    res.sendFile(path.join(__dirname, '../pages/sysadmin', 'sql_queries.html'));
 });
 app.get("/sysadmin/sql_queries/get_script", function (req, res) {                            log.info("app.get /sysadmin/sql_queries/get_script "+req.query.filename);
     var configDirectoryName=getConfigDirectoryName();
@@ -294,7 +293,7 @@ app.post("/sysadmin/sql_queries/save_sql_file", function (req, res) {           
     });
 
 app.get("/", function(req, res){                                                                     log.info("app.get /");
-    res.sendFile(path.join(__dirname, '/views', 'main.html'));
+    res.sendFile(path.join(__dirname, '../pages', 'main.html'));
 });
 app.post("/", function(req, res){                                                                   log.info("app.post /  req.body=",req.body);
     var outData={};
@@ -331,7 +330,7 @@ app.get("/get_main_data", function(req, res){                                   
 });
 
 app.get("/reports/retail_sales", function(req, res){                                                             log.info("app.get /reports/retail_sales");
-    res.sendFile(path.join(__dirname, '/views/reports', 'retail_sales.html'));
+    res.sendFile(path.join(__dirname, '../pages/reports', 'retail_sales.html'));
 });
 
 app.get("/reports/retail_sales/get_sales_by/*", function(req, res){                                              log.info("app.get /reports/retail_sales/get_sales_by ",req.url,req.query,req.params, new Date());
@@ -375,7 +374,7 @@ app.get("/reports/sql_queries/get_reports_list", function (req, res) {          
 });
 
 app.get("/print/printSimpleDocument", function(req, res){                                                           log.info("app.get /print/printSimpleDocument");
-    res.sendFile(path.join(__dirname, '/views/print', 'printSimpleDocument.html'));
+    res.sendFile(path.join(__dirname, '../pages/print', 'printSimpleDocument.html'));
 });
 app.post("/sys/getExcelFile", function(req, res){
     try {
@@ -517,7 +516,7 @@ app.listen(port, function (err) {
 
 function getSysAdminLPIDObj(){
     try{
-        var sysAdminsLPID=JSON.parse(fs.readFileSync(path.join(__dirname,"sysAdmins.json")));
+        var sysAdminsLPID=JSON.parse(fs.readFileSync(path.join(__dirname,"../sysAdmins.json")));
     }catch(e){
         console.log("FAILED to get sysadmin LPID. Reason: ",e);
         return;
@@ -526,7 +525,7 @@ function getSysAdminLPIDObj(){
 }
 function getSysAdminLoginDataArr(){
     try{
-        var sysAdminsPswrd=JSON.parse(fs.readFileSync(path.join(__dirname,"config.json")));
+        var sysAdminsPswrd=JSON.parse(fs.readFileSync(path.join(__dirname,"../config.json")));
     }catch(e){
         console.log("FAILED to get sysadmin LPID. Reason: ",e);
         return;
@@ -534,7 +533,7 @@ function getSysAdminLoginDataArr(){
     return sysAdminsPswrd["sysAdmins"];
 }
 function writeSysAdminLPIDObj(sysAdminLPIDObj){
-    fs.writeFile(path.join(__dirname,"sysAdmins.json"), JSON.stringify(sysAdminLPIDObj), function(err){
+    fs.writeFile(path.join(__dirname,"../sysAdmins.json"), JSON.stringify(sysAdminLPIDObj), function(err){
         if(err){
             console.log("err=",err);
         }

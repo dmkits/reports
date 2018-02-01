@@ -57,7 +57,7 @@ module.exports= function(app) {
                 var img = "imgs/girls_big.jpg";
                 var title = "REPORTS";
                 var icon32x32 = "icons/profits32x32.jpg";
-                res.render(path.join(__dirname, "views/dbFailed.ejs"), {
+                res.render(path.join(__dirname, "../pages/dbFailed.ejs"), {
                     title: title,
                     bigImg: img,
                     icon: icon32x32,
@@ -77,7 +77,7 @@ module.exports= function(app) {
                         res.send({error: "Failed to get data! Reason: unknown user!", userErrorMsg: "Неизвестный пользователь."});
                         return;
                     }
-                    res.sendFile(path.join(__dirname, '/views', 'login.html'));
+                    res.sendFile(path.join(__dirname, '../pages', 'login.html'));
                     return;
                 }
                 if(result.ShiftPostID==1) req.isAdminUser= true;
@@ -97,7 +97,7 @@ module.exports= function(app) {
             var img = "imgs/girls_big.jpg";
             var title = "REPORTS";
             var icon32x32 = "icons/profits32x32.jpg";
-            res.render(path.join(__dirname, "views/dbFailed.ejs"), {
+            res.render(path.join(__dirname, "../pages/dbFailed.ejs"), {
                 title: title,
                 bigImg: img,
                 icon: icon32x32,
@@ -112,14 +112,14 @@ module.exports= function(app) {
             });
             return;
         }
-        res.sendFile(path.join(__dirname, '/views', 'login.html'));
+        res.sendFile(path.join(__dirname, '../pages', 'login.html'));
     });
-}
+};
 
 
 function getSysAdminLPIDObj(){
     try{
-        var sysAdminsLPID=JSON.parse(fs.readFileSync(path.join(__dirname,"sysAdmins.json")));
+        var sysAdminsLPID=JSON.parse(fs.readFileSync(path.join(__dirname,"../sysAdmins.json")));
     }catch(e){
         console.log("FAILED to get sysadmin LPID. Reason: ",e);
         return;
@@ -128,7 +128,7 @@ function getSysAdminLPIDObj(){
 }
 function getSysAdminLoginDataArr(){
     try{
-        var sysAdminsPswrd=JSON.parse(fs.readFileSync(path.join(__dirname,"config.json")));
+        var sysAdminsPswrd=JSON.parse(fs.readFileSync(path.join(__dirname,"../config.json")));
     }catch(e){
         console.log("FAILED to get sysadmin LPID. Reason: ",e);
         return;
@@ -136,7 +136,7 @@ function getSysAdminLoginDataArr(){
     return sysAdminsPswrd["sysAdmins"];
 }
 function writeSysAdminLPIDObj(sysAdminLPIDObj) {
-    fs.writeFile(path.join(__dirname, "sysAdmins.json"), JSON.stringify(sysAdminLPIDObj), function (err) {
+    fs.writeFile(path.join(__dirname, "../sysAdmins.json"), JSON.stringify(sysAdminLPIDObj), function (err) {
         if (err) {
             console.log("err=", err);
         }
