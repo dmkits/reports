@@ -9,7 +9,6 @@ module.exports= function(app) {
         var outData={};
         var configDirectoryName=common.getConfigDirectoryName();
         outData.jsonText =fs.readFileSync('./'+configDirectoryName+'/reports_list.json').toString();
-        console.log("outData.jsonText=",outData.jsonText);
         outData.jsonFormattedText = common.getJSONWithoutComments(outData.jsonText);
         res.send(outData);
     });
@@ -21,12 +20,12 @@ module.exports= function(app) {
         var fileContentString=fs.readFileSync('./'+configDirectoryName+'/'+filename+'.json', 'utf8');
         var pureJSONTxt=JSON.parse(common.getJSONWithoutComments(fileContentString));
         outData.columns=pureJSONTxt.columns;
-        var bdate = req.query.BDATE, edate = req.query.EDATE;
+        var bdate = req.query.BDATE, edate = req.query.EDATE, stockId=req.query.StockID;
         if (!bdate&&!edate) {
             res.send(outData);
             return;
         }
-        database.getSalesBy(filename+".sql",bdate,edate,
+        database.getSalesBy(filename+".sql",bdate,edate,stockId,
             function (error,recordset) {
                 if (error){
                     outData.error=error.message;
@@ -40,4 +39,29 @@ module.exports= function(app) {
     app.get("/reports/retail_sales", function(req, res){
         res.sendFile(path.join(__dirname, '../pages/reports', 'retail_sales.html'));
     });
+
+    app.get("/reports/get_stocks_names", function(req, res){
+        var outData={};
+        database.selectStockNames(function(err, result){
+            if (err){
+                outData.error=err.message;
+                res.send(outData);
+                return;
+            }
+            outData.items=getResultItemsForSelect(result,{valueField:""});
+            res.send(outData)
+        })
+    });
 };
+
+function getResultItemsForSelect(result){
+        var resultItems=result;
+        var items=[];
+        for(var i in resultItems){
+            var resultItem=resultItems[i];
+            var selectItem={value:resultItem.StockID};
+            selectItem.label=resultItem.StockName;
+            items.push(selectItem);
+        }
+        return items;
+}

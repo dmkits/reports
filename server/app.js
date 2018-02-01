@@ -41,8 +41,7 @@ var port=app.port;
 var path=require ('path');                          console.log("module  path",new Date().getTime() - startTime);
 var bodyParser = require('body-parser');            console.log("module body-parser",new Date().getTime() - startTime);
 var XLSX = require('xlsx');                         console.log("xlsx",new Date().getTime() - startTime);
-var uid = require('uniqid');                        console.log("uniqid",new Date().getTime() - startTime);
-var BigNumber = require('big-number');              console.log("big-number",new Date().getTime() - startTime);
+
 
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -80,14 +79,14 @@ app.post("/login", function (req, res) {                        log.info("app.po
         res.send({error:"Authorisation failed! No login or password!", userErrorMsg:"Пожалуйста введите имя и пароль."});
         return;
     }
-    var sysAdminLoginDataArr=getSysAdminLoginDataArr();
+    var sysAdminLoginDataArr=common.getSysAdminLoginDataArr();
     for(var i in sysAdminLoginDataArr){                                                            console.log("for sysAdminLoginDataArr");
         if(sysAdminLoginDataArr[i].login==userName){
             if(sysAdminLoginDataArr[i].pswrd==userPswrd){                                          console.log("sysAdminLoginDataArr[i].pswrd==userPswrd");
-                var newPLID=getUIDNumber();
-                var sysAdminLPIDObj=getSysAdminLPIDObj();
+                var newPLID=common.getUIDNumber();
+                var sysAdminLPIDObj=common.getSysAdminLPIDObj();
                 sysAdminLPIDObj[sysAdminLoginDataArr[i].login]=newPLID;
-                writeSysAdminLPIDObj(sysAdminLPIDObj);
+                common.writeSysAdminLPIDObj(sysAdminLPIDObj);
                 res.cookie("lpid", newPLID);
                 res.send({result:"success"});
                 return;
@@ -164,7 +163,6 @@ app.get("/get_main_data", function(req, res){                                   
     res.send(outData);
 });
 
-
 app.get("/print/printSimpleDocument", function(req, res){                                                           log.info("app.get /print/printSimpleDocument");
     res.sendFile(path.join(__dirname, '../pages/print', 'printSimpleDocument.html'));
 });
@@ -183,7 +181,7 @@ app.post("/sys/getExcelFile", function(req, res){
         res.sendStatus(500);                                                    log.error("Error: No table data to create excel file.");
         return;
     }
-    var uniqueFileName = getUIDNumber();
+    var uniqueFileName = common.getUIDNumber();
     var fname = path.join(tempExcelRepDir, uniqueFileName + '.xlsx');
     try {fs.writeFileSync(fname);
     } catch (e) {                                                               log.error("Impossible to write file! Reason:",e);
@@ -215,21 +213,6 @@ app.post("/sys/getExcelFile", function(req, res){
         })
     });
 });
-
-
-
-
-
-function getUIDNumber(){
-    var str= uid.time();
-    var len = str.length;
-    var num = BigNumber(0);
-    for (var i = (len - 1); i >= 0; i--)
-        num.plus(BigNumber(256).pow(i).mult(str.charCodeAt(i)));
-    return num.toString();
-};
-
-
 function fillTable(wb,columns,rows){
     fillHeaders(wb,columns);
     var lineNum=1;
@@ -292,32 +275,6 @@ app.listen(app.port, function (err) {
     console.log("app runs on port " + port, new Date().getTime() - startTime);
     log.info("app runs on port " + port);
 });
-
-function getSysAdminLPIDObj(){
-    try{
-        var sysAdminsLPID=JSON.parse(fs.readFileSync(path.join(__dirname,"../sysAdmins.json")));
-    }catch(e){
-        console.log("FAILED to get sysadmin LPID. Reason: ",e);
-        return;
-    }
-    return sysAdminsLPID;
-}
-function getSysAdminLoginDataArr(){
-    try{
-        var sysAdminsPswrd=JSON.parse(fs.readFileSync(path.join(__dirname,"../config.json")));
-    }catch(e){
-        console.log("FAILED to get sysadmin LPID. Reason: ",e);
-        return;
-    }
-    return sysAdminsPswrd["sysAdmins"];
-}
-function writeSysAdminLPIDObj(sysAdminLPIDObj){
-    fs.writeFile(path.join(__dirname,"../sysAdmins.json"), JSON.stringify(sysAdminLPIDObj), function(err){
-        if(err){
-            console.log("err=",err);
-        }
-    })
-}
 
 
 

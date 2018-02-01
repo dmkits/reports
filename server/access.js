@@ -1,8 +1,8 @@
 
 var getDBConnectError= require("./dataBase").getDBConnectError;
 var database=require("./dataBase");
+var common=require("./common");
 var path=require('path');
-var fs=require('fs');
 
 module.exports= function(app) {
 
@@ -22,7 +22,7 @@ module.exports= function(app) {
         }
         if (req.cookies.lpid) {
             var sysAdminAccess = false;
-            var sysAdminLPIDObj = getSysAdminLPIDObj();
+            var sysAdminLPIDObj = common.getSysAdminLPIDObj();
             var properties = Object.keys(sysAdminLPIDObj);
             for (var i in properties) {
                 if (sysAdminLPIDObj[properties[i]] == req.cookies.lpid) {
@@ -64,7 +64,6 @@ module.exports= function(app) {
                 });
                 return;
             }
-
             database.getUserNameAndStateCodeByLpid(req.cookies.lpid, function (err, result) {
                 if (err) {
                     res.send({error: err});
@@ -114,29 +113,3 @@ module.exports= function(app) {
         res.sendFile(path.join(__dirname, '../pages', 'login.html'));
     });
 };
-
-function getSysAdminLPIDObj(){
-    try{
-        var sysAdminsLPID=JSON.parse(fs.readFileSync(path.join(__dirname,"../sysAdmins.json")));
-    }catch(e){
-        console.log("FAILED to get sysadmin LPID. Reason: ",e);
-        return;
-    }
-    return sysAdminsLPID;
-}
-function getSysAdminLoginDataArr(){
-    try{
-        var sysAdminsPswrd=JSON.parse(fs.readFileSync(path.join(__dirname,"../config.json")));
-    }catch(e){
-        console.log("FAILED to get sysadmin LPID. Reason: ",e);
-        return;
-    }
-    return sysAdminsPswrd["sysAdmins"];
-}
-function writeSysAdminLPIDObj(sysAdminLPIDObj) {
-    fs.writeFile(path.join(__dirname, "../sysAdmins.json"), JSON.stringify(sysAdminLPIDObj), function (err) {
-        if (err) {
-            console.log("err=", err);
-        }
-    })
-}

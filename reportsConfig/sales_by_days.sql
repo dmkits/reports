@@ -4,12 +4,14 @@ from (
    from t_sale s
    INNER JOIN t_SaleD d on d.CHID=s.CHID
    WHERE s.DocDate BETWEEN @BDATE AND @EDATE
+        AND  s.StockID=@StockID
    GROUP BY s.DocDate ,d.ProdID, d.RealPrice
    UNION
    select d.ProdID,r.DocDate,DocName='Возврат товара по чеку',  SUM(d.Qty) AS TotalQty, d.RealPrice as PriceCC_wt, -SUM(d.RealSum) AS TotalSum
    from t_CRRet r
    INNER JOIN t_CRRetD d on d.CHID=r.CHID
    WHERE r.DocDate BETWEEN @BDATE AND @EDATE
+      AND  r.StockID=@StockID
    GROUP BY r.DocDate, d.ProdID, d.RealPrice
 ) m
 INNER JOIN r_Prods p on p.ProdID= m.ProdID

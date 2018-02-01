@@ -1,6 +1,10 @@
 var database= require("./dataBase");
+var path=require('path');
+var fs=require('fs');
+var uid = require('uniqid');
+var BigNumber = require('big-number');
 
-module.exports.tryLoadConfiguration=function (app){      //console.log('tryLoadConfiguration...', new Date().getTime() - startTime);
+module.exports.tryLoadConfiguration=function (app){                                         //console.log('tryLoadConfiguration...', new Date().getTime() - startTime);
     try {
         database.loadConfig();
         app.ConfigurationError=null;
@@ -36,6 +40,41 @@ module.exports.tryDBConnect=function (app,postaction) {                         
     });
 };
 
+
+module.exports.getSysAdminLPIDObj=function (){
+    try{
+        var sysAdminsLPID=JSON.parse(fs.readFileSync(path.join(__dirname,"../sysAdmins.json")));
+    }catch(e){
+        console.log("FAILED to get sysadmin LPID. Reason: ",e);
+        return;
+    }
+    return sysAdminsLPID;
+};
+module.exports.getSysAdminLoginDataArr=function (){
+    try{
+        var sysAdminsPswrd=JSON.parse(fs.readFileSync(path.join(__dirname,"../config.json")));
+    }catch(e){
+        console.log("FAILED to get sysadmin LPID. Reason: ",e);
+        return;
+    }
+    return sysAdminsPswrd["sysAdmins"];
+};
+module.exports.writeSysAdminLPIDObj=function (sysAdminLPIDObj){
+    fs.writeFile(path.join(__dirname,"../sysAdmins.json"), JSON.stringify(sysAdminLPIDObj), function(err){
+        if(err){
+            console.log("err=",err);
+        }
+    })
+};
+
+module.exports.getUIDNumber=function (){
+    var str= uid.time();
+    var len = str.length;
+    var num = BigNumber(0);
+    for (var i = (len - 1); i >= 0; i--)
+        num.plus(BigNumber(256).pow(i).mult(str.charCodeAt(i)));
+    return num.toString();
+};
 
 
 

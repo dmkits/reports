@@ -5,6 +5,7 @@ FROM (
     INNER JOIN t_SaleD d on d.CHID=s.CHID
     INNER JOIN r_Prods p on p.ProdID= d.ProdID
     WHERE s.DocDate  BETWEEN @BDATE AND @EDATE
+    AND  s.StockID=@StockID
     GROUP BY s.StockID, p.PCatID
     UNION
     select r.StockID, p.PCatID, DocName='Возврат товара по чеку', SUM(d.Qty) AS TotalQty, -SUM(d.RealSum) AS TotalSum
@@ -12,6 +13,7 @@ FROM (
     INNER JOIN t_CRRetD d on d.CHID=r.CHID
     INNER JOIN r_Prods p on p.ProdID= d.ProdID
     WHERE r.DocDate  BETWEEN @BDATE AND @EDATE
+    AND  r.StockID=@StockID
     GROUP BY r.StockID, p.PCatID
 ) m
 INNER JOIN r_ProdC c on c.PCatID=m.PCatID

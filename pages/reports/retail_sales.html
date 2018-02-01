@@ -53,7 +53,8 @@
                             button.document =
                                     APP.childFor(reports_retail_ContentPaneDetailContainer, "reports_retail_TableSales"+instance.id,
                                             TDocumentSimpleTable, {titleText:instance.label, dataURL:'/reports/retail_sales/get_sales_by/'+instance.id})
-                                        // .addSelectBox()//StockName order by StockName
+                                        .addSelectBox("Склад: ",{valueItemName:"StockID", labelItemName:"StockName", loadDropDownURL:"reports/get_stocks_names",
+                                            contentTableCondition:"StockID"})//StockName order by StockName
                                         .addHeaderDateBox("c",{contentTableCondition:"BDATE",initValueDate:"curMonthBDate"})
                                         .addHeaderDateBox("по",{contentTableCondition:"EDATE"})
                                         .addTotalCountNumberBox("ИТОГО строк:", 140, {style:"font-weight:bold;",inputStyle:"width:40px;"})
@@ -69,7 +70,6 @@
                     reports_button_list.appendChild(button.domNode);
                     if(!firstButton)firstButton=button;
                 };
-
                 reports_retail_PageContainer.createReportButtons();
                 reports_retail_PageContainer.layout();
         });

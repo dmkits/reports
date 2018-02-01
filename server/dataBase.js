@@ -4,6 +4,7 @@ var sql = require('mssql');   console.log('module for dataBase.js mssql');
 var app = require('./app');   console.log('module for dataBase.js ./app');
 var uid = require('uniqid');
 var BigNumber = require('big-number');
+var common=require('./common');
 
 var dbConfig;
 var dbConfigFilePath;
@@ -66,7 +67,7 @@ module.exports.getQueryResult=function(newQuery, parameters, callback){
     });
 };
 
-module.exports.getSalesBy=function(filename, bdate,edate, callback ){
+module.exports.getSalesBy=function(filename,bdate,edate,stockId, callback ){
     checkDBConnection(0,function(err){
         if(err){
             callback(err);
@@ -82,6 +83,7 @@ module.exports.getSalesBy=function(filename, bdate,edate, callback ){
         }
         reqSql.input('BDATE',sql.Date, bdate);
         reqSql.input('EDATE',sql.Date, edate);
+        reqSql.input('StockID',  stockId);
         reqSql.query(query_str,
             function (err, result) {
                 if (err) {
@@ -145,7 +147,7 @@ module.exports.setPLIDForUserSession=function(EmpID, callback){
             callback(err);
             return;
         }
-        var LPID=getUIDNumber();
+        var LPID=common.getUIDNumber();
         var reqSql = new sql.Request(conn);
         reqSql.input('EmpID',EmpID);
         reqSql.input('LPID',LPID);
@@ -195,11 +197,15 @@ module.exports.getLPID=function(LPID, callback){
     });
 };
 
-function getUIDNumber() {
-    var str= uid.time();
-    var len = str.length;
-    var num = BigNumber(0);
-    for (var i = (len - 1); i >= 0; i--)
-        num.plus(BigNumber(256).pow(i).mult(str.charCodeAt(i)));
-    return num.toString();
+module.exports.selectStockNames=function(callback){
+        var reqSql = new sql.Request(conn);
+        reqSql.query("SELECT StockID, StockName from r_Stocks where StockID BETWEEN 1 AND 99;",
+            function (err, recordset) {
+                if (err) {
+                    callback(err);
+                    return;
+                }
+                callback(null,recordset);
+            });
 };
+
