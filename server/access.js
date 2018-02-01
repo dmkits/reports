@@ -21,13 +21,11 @@ module.exports= function(app) {
             return;
         }
         if (req.cookies.lpid) {
-            console.log("req.cookies.lpid");
             var sysAdminAccess = false;
             var sysAdminLPIDObj = getSysAdminLPIDObj();
             var properties = Object.keys(sysAdminLPIDObj);
             for (var i in properties) {
                 if (sysAdminLPIDObj[properties[i]] == req.cookies.lpid) {
-                    console.log("sysAdminAccess");
                     sysAdminAccess = true;
                 }
             }
@@ -116,7 +114,6 @@ module.exports= function(app) {
         res.sendFile(path.join(__dirname, '../pages', 'login.html'));
     });
 };
-
 
 function getSysAdminLPIDObj(){
     try{
