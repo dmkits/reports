@@ -21,8 +21,16 @@ module.exports= function(app) {
         var fileContentString=fs.readFileSync('./'+configDirectoryName+'/'+filename+'.json', 'utf8');
         var pureJSONTxt=JSON.parse(common.getJSONWithoutComments(fileContentString));
         outData.columns=pureJSONTxt.columns;
-        var bdate = req.query.BDATE, edate = req.query.EDATE, stockId=req.query.StockID;
-        database.getReportTableDataBy({filename:filename+".sql",bdate:bdate,edate:edate,stockId:stockId},
+        var conditions;
+        for (var paramName in req.query) {
+            if(!conditions)conditions={};
+            conditions[paramName]= req.query[paramName];
+        }
+        if(!conditions){
+            res.send(outData);
+            return;
+        }
+        database.getReportTableDataBy(filename+".sql", conditions,
             function (error,recordset) {
                 if (error){
                     outData.error=error.message;

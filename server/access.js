@@ -15,7 +15,6 @@ module.exports= function(app) {
 
     app.use(function (req, res, next) {
         console.log("ACCESS CONTROLLER  req.path=", req.path);
-        var noDbConn = getDBConnectError();
         if (req.originalUrl.indexOf("/login") >= 0) {
             next();
             return;
@@ -45,7 +44,7 @@ module.exports= function(app) {
                 res.redirect('/');
                 return;
             }
-            if (noDbConn) {
+            if (getDBConnectError()) {
                 if (reqIsJSON(req.headers) || reqIsAJAX(req.headers)) {
                     res.send({
                         error: "Failed to connect to database!",
@@ -84,7 +83,7 @@ module.exports= function(app) {
             });
             return;
         }
-        if (noDbConn) {
+        if (getDBConnectError()) {
             if (reqIsJSON(req.headers) || reqIsAJAX(req.headers)) {
                 res.send({
                     error: "Failed to connect to database!",

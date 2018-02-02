@@ -208,8 +208,8 @@ define(["dojo/_base/declare", "app", "tDocumentBase","dijit/form/Select", "hTabl
                         function (resultItems) {
                             var options=select.get("options"),value = select.get("value");
                             if (resultItems) {
-                                select.set("options", resultItems);
-                                select.set("value", value);
+                                select.set("options", resultItems, false);
+                                select.set("value", value, false);
                             }
                             if(callback) callback();
                         });
@@ -550,13 +550,18 @@ define(["dojo/_base/declare", "app", "tDocumentBase","dijit/form/Select", "hTabl
                 if (this.buttonUpdate!=false&&!this.btnUpdate) this.addBtnUpdate();
                 if (this.buttonPrint!=false&&!this.btnPrint) this.addBtnPrint();
                 if (this.buttonExportToExcel!=false&&!this.btnExportToExcel) this.addBtnExportToExcel();
+                var thisInstance=this, tableContentLoaded= false;
                 if(this.headerData)
                     for(var i=0;i<this.headerData.length;i++){
                         var headerDataItem=this.headerData[i], headerInstanceType=headerDataItem.type, headerInstance=headerDataItem.instance;
-                        if(headerInstanceType=="SelectBox"&&headerInstance.loadDropDownValuesFromServer) headerInstance.loadDropDownValuesFromServer();
-                    }
-
-                this.loadTableContent();
+                        if(headerInstanceType=="SelectBox"&&headerInstance.loadDropDownValuesFromServer){
+                            tableContentLoaded= true;
+                            headerInstance.loadDropDownValuesFromServer(function(){
+                                thisInstance.loadTableContent();
+                            });
+                        }
+                   }
+                if(!tableContentLoaded) this.loadTableContent();
                 this.layout();
                 return this;
             },
