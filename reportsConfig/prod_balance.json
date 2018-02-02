@@ -1,0 +1,12 @@
+{"headers":[
+],
+  "columns":[
+    { "data":"StockName", "name":"Склад", "width":150, "type":"text" },
+    { "data":"ProdName", "name":"Наименованике товара", "width":300, "type":"text"},
+    { "data":"Article1", "name":"Артикул", "width":80, "type":"text"},
+    { "data":"UM", "name":"Ед. изм", "width":80, "type":"text"},
+    { "data":"Qty", "name":"Кол-во", "width":80, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.[#########]" }
+  ],
+  "totals":[
+  ]
+}
