@@ -149,7 +149,7 @@ app.get("/get_main_data", function(req, res){                                   
     }
     if(req.isSysadmin||req.isAdminUser){
         menuBar.push({itemname:"menuBarItemRetailSales",itemtitle:"Отчеты retail",
-            action:"open",content:"/reports/retail_sales", id:"ReportRetailSales",title:"Отчеты retail", closable:false});
+            action:"open",content:"/reports/reportPage", id:"ReportRetailSales",title:"Отчеты retail", closable:false});
     }
     if(req.isSysadmin||!req.isAdminUser) {
         menuBar.push({itemname:"menuBarItemRetailCashier",itemtitle:"Отчеты кассира",

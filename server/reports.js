@@ -4,16 +4,17 @@ var path=require('path');
 var fs=require('fs');
 
 module.exports= function(app) {
-
-    app.get("/reports/sql_queries/get_reports_list", function (req, res) {
+    app.get("/reports/reportPage", function(req, res){
+        res.sendFile(path.join(__dirname, '../pages/reports', 'retail_sales.html'));
+    });
+    app.get("/reports/getReportsList", function (req, res) {
         var outData={};
         var configDirectoryName=common.getConfigDirectoryName();
         outData.jsonText =fs.readFileSync('./'+configDirectoryName+'/reports_list.json').toString();
         outData.jsonFormattedText = common.getJSONWithoutComments(outData.jsonText);
         res.send(outData);
     });
-
-    app.get("/reports/retail_sales/get_sales_by/*", function(req, res){
+    app.get("/reports/getReportDataByReportName/*", function(req, res){
         var configDirectoryName=common.getConfigDirectoryName();
         var filename = req.params[0];
         var outData={};
@@ -21,7 +22,7 @@ module.exports= function(app) {
         var pureJSONTxt=JSON.parse(common.getJSONWithoutComments(fileContentString));
         outData.columns=pureJSONTxt.columns;
         var bdate = req.query.BDATE, edate = req.query.EDATE, stockId=req.query.StockID;
-        database.getSalesBy(filename+".sql",bdate,edate,stockId,
+        database.getReportTableDataBy({filename:filename+".sql",bdate:bdate,edate:edate,stockId:stockId},
             function (error,recordset) {
                 if (error){
                     outData.error=error.message;
@@ -32,11 +33,7 @@ module.exports= function(app) {
                 res.send(outData);
             });
     });
-    app.get("/reports/retail_sales", function(req, res){
-        res.sendFile(path.join(__dirname, '../pages/reports', 'retail_sales.html'));
-    });
-
-    app.get("/reports/get_stocks_names", function(req, res){
+    app.get("/reports/getStocks", function(req, res){
         var outData={};
         database.selectStockNames(function(err, result){
             if (err){

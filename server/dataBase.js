@@ -66,8 +66,9 @@ module.exports.getQueryResult=function(newQuery, parameters, callback){
             })
     });
 };
-
-module.exports.getSalesBy=function(filename,bdate,edate,stockId, callback ){
+/**getReportTableDataBy(params, callback) params= {filename,bdate,edate,stockId}
+ */
+module.exports.getReportTableDataBy=function(params, callback ){
     checkDBConnection(0,function(err){
         if(err){
             callback(err);
@@ -76,14 +77,17 @@ module.exports.getSalesBy=function(filename,bdate,edate,stockId, callback ){
         var configDirectoryName=dbConfig["reports.config"]?'reportsConfig'+dbConfig["reports.config"]:"reportsConfig";
         var reqSql = new sql.Request(conn);
         try {
-            var query_str = fs.readFileSync('./' + configDirectoryName + '/' + filename, 'utf8');
+            var query_str = fs.readFileSync('./' + configDirectoryName + '/' + params.filename, 'utf8');
         }catch(e){
             callback(e);
             return;
         }
-        reqSql.input('BDATE',sql.Date, bdate);
-        reqSql.input('EDATE',sql.Date, edate);
-        reqSql.input('StockID',  stockId);
+        // if(params.bdate)reqSql.input('BDATE',sql.Date, params.bdate);
+        // if(params.edate)reqSql.input('EDATE',sql.Date, params.edate);
+        // if(params.stockId)reqSql.input('StockID',  params.stockId);
+        reqSql.input('BDATE',sql.Date, params.bdate);
+        reqSql.input('EDATE',sql.Date, params.edate);
+        reqSql.input('StockID',  params.stockId);
         reqSql.query(query_str,
             function (err, result) {
                 if (err) {

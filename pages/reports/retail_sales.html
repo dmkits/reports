@@ -31,7 +31,7 @@
                 var firstButton;
 
                 reports_retail_PageContainer.createReportButtons=function(){
-                    Request.getJSONData({url: "/reports/sql_queries/get_reports_list",consoleLog: true},
+                    Request.getJSONData({url: "/reports/getReportsList",consoleLog: true},
                             function (data) {
                                 if (data===undefined) {
                                     reports_retail_ContentPaneDetailContainer.innerHTML = "<div><b style='color:red'>No connection!</b></div>";
@@ -53,8 +53,8 @@
                             if(!noDateBox){
                                 button.document =
                                     APP.childFor(reports_retail_ContentPaneDetailContainer, "reports_retail_TableSales"+instance.id,
-                                        TDocumentSimpleTable, {titleText:instance.label, dataURL:'/reports/retail_sales/get_sales_by/'+instance.id})
-                                        .addSelectBox("Склад: ",{valueItemName:"StockID", labelItemName:"StockName", loadDropDownURL:"reports/get_stocks_names",
+                                        TDocumentSimpleTable, {titleText:instance.label, dataURL:'/reports/getReportDataByReportName/'+instance.id})
+                                        .addSelectBox("Склад: ",{valueItemName:"StockID", labelItemName:"StockName", loadDropDownURL:"/reports/getStocks",
                                             contentTableCondition:"StockID"})//StockName order by StockName
                                         .addHeaderDateBox("c",{contentTableCondition:"BDATE",initValueDate:"curMonthBDate"})
                                         .addHeaderDateBox("по",{contentTableCondition:"EDATE"})
@@ -66,8 +66,8 @@
                             }else{
                                 button.document =
                                     APP.childFor(reports_retail_ContentPaneDetailContainer, "reports_retail_TableSales"+instance.id,
-                                        TDocumentSimpleTable, {titleText:instance.label, dataURL:'/reports/retail_sales/get_sales_by/'+instance.id})
-                                        .addSelectBox("Склад: ",{valueItemName:"StockID", labelItemName:"StockName", loadDropDownURL:"reports/get_stocks_names",
+                                        TDocumentSimpleTable, {titleText:instance.label, dataURL:'/reports/getReportDataByReportName/'+instance.id})
+                                        .addSelectBox("Склад: ",{valueItemName:"StockID", labelItemName:"StockName", loadDropDownURL:"/reports/getStocks",
                                             contentTableCondition:"StockID"})
                                         .addTotalCountNumberBox("ИТОГО строк:", 140, {style:"font-weight:bold;",inputStyle:"width:40px;"})
                                         .addTotalSumNumberTextBox("ИТОГО кол-во:",260, "TotalQty", {style:"font-weight:bold;",inputStyle:"width:60px;"})
