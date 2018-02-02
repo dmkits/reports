@@ -5,7 +5,7 @@ var fs=require('fs');
 
 module.exports= function(app) {
     app.get("/reports/reportPage", function(req, res){
-        res.sendFile(path.join(__dirname, '../pages/reports', 'retail_sales.html'));
+        res.sendFile(path.join(__dirname, '../pages/reports', 'simpleReport.html'));
     });
     app.get("/reports/getReportsList", function (req, res) {
         var outData={};
@@ -21,6 +21,7 @@ module.exports= function(app) {
         var fileContentString=fs.readFileSync('./'+configDirectoryName+'/'+filename+'.json', 'utf8');
         var pureJSONTxt=JSON.parse(common.getJSONWithoutComments(fileContentString));
         outData.columns=pureJSONTxt.columns;
+        outData.headers=pureJSONTxt.headers;
         var conditions;
         for (var paramName in req.query) {
             if(!conditions)conditions={};

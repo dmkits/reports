@@ -147,14 +147,16 @@ app.get("/get_main_data", function(req, res){                                   
     if (app.ConfigurationError) {
         outData.error=app.ConfigurationError;                                                         log.error("req.ConfigurationError=",app.ConfigurationError);
     }
-    if(req.isSysadmin||req.isAdminUser){
-        menuBar.push({itemname:"menuBarItemRetailSales",itemtitle:"Отчеты retail",
-            action:"open",content:"/reports/reportPage", id:"ReportRetailSales",title:"Отчеты retail", closable:false});
-    }
-    if(req.isSysadmin||!req.isAdminUser) {
-        menuBar.push({itemname:"menuBarItemRetailCashier",itemtitle:"Отчеты кассира",
-            action:"open",content:"/reports/retail_cashier", id:"ReportRetailCashier",title:"Отчеты кассира", closable:false});
-    }
+    // if(req.isSysadmin||req.isAdminUser){
+    //     menuBar.push({itemname:"menuBarItemRetailSales",itemtitle:"Отчеты retail",
+    //         action:"open",content:"/reports/reportPage", id:"ReportRetailSales",title:"Отчеты retail", closable:false});
+    // }
+    // if(req.isSysadmin||!req.isAdminUser) {
+    //     menuBar.push({itemname:"menuBarItemRetailCashier",itemtitle:"Отчеты кассира",
+    //         action:"open",content:"/reports/retail_cashier", id:"ReportRetailCashier",title:"Отчеты кассира", closable:false});
+    // }
+    menuBar.push({itemname:"menuBarItemRetailSales",itemtitle:"Отчеты retail",
+        action:"open",content:"/reports/reportPage", id:"ReportRetail",title:"Отчеты retail", closable:false});
     menuBar.push({itemname:"menuBarClose",itemtitle:"Выход",action:"close"});
     menuBar.push({itemname:"menuBarAbout",itemtitle:"О программе",action:"help_about"});
     outData.menuBar= menuBar;

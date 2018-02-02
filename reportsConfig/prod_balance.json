@@ -1,4 +1,5 @@
 {"headers":[
+    {"type":"selectBox", "conditionName":"StockID", "label":"Склад:", "valueItemName":"StockID", "labelItemName":"StockName", "loadDropDownURL":"/reports/getStocks"}
 ],
   "columns":[
     { "data":"StockName", "name":"Склад", "width":150, "type":"text" },
