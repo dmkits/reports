@@ -21,10 +21,6 @@ module.exports= function(app) {
         var pureJSONTxt=JSON.parse(common.getJSONWithoutComments(fileContentString));
         outData.columns=pureJSONTxt.columns;
         var bdate = req.query.BDATE, edate = req.query.EDATE, stockId=req.query.StockID;
-        if (!bdate&&!edate) {
-            res.send(outData);
-            return;
-        }
         database.getSalesBy(filename+".sql",bdate,edate,stockId,
             function (error,recordset) {
                 if (error){
