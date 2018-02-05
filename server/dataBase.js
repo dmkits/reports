@@ -203,7 +203,9 @@ module.exports.getLPID=function(LPID, callback){
 
 module.exports.selectStockNames=function(callback){
         var reqSql = new sql.Request(conn);
-        reqSql.query("SELECT StockID, StockName from r_Stocks where StockID BETWEEN 1 AND 99;",
+        reqSql.query("SELECT distinct s.StockName, r.StockID \n" +
+            "from   t_Rem r\n" +
+            "inner join r_Stocks s on s.StockID=r.StockID;",
             function (err, recordset) {
                 if (err) {
                     callback(err);
@@ -226,7 +228,19 @@ module.exports.selectStockNameByUserID=function(EmpID, callback){
         "\tinner join r_Stocks st on st.StockID=cr.StockID\n" +
         "\twhere e.EmpID=@EmpID\n" +
         "\torder by st.StockName",
-        function (err, recordset) {   console.log("err=",err);  console.log("recordset=",recordset);
+        function (err, recordset) {
+            if (err) {
+                callback(err);
+                return;
+            }
+            callback(null,recordset);
+        });
+};
+
+module.exports.executeQuery=function(queryText, callback){
+    var reqSql = new sql.Request(conn);
+    reqSql.query(queryText,
+        function (err, recordset) {
             if (err) {
                 callback(err);
                 return;
