@@ -14,11 +14,32 @@ module.exports= function(app) {
         outData.jsonFormattedText = common.getJSONWithoutComments(outData.jsonText);
         res.send(outData);
     });
+    app.get("/reports/getReportConfigByReportName/*", function(req, res){
+        var configDirectoryName=common.getConfigDirectoryName();
+        var filename = req.params[0];
+        var outData={};
+        try{
+            var fileContentString=fs.readFileSync('./'+configDirectoryName+'/'+filename+'.json', 'utf8');
+        }catch(e){
+            outData.error=e;
+            res.send(outData);
+            return;
+        }
+        var pureJSONTxt=JSON.parse(common.getJSONWithoutComments(fileContentString));
+        outData.headers=pureJSONTxt.headers;
+        res.send(outData);
+    });
     app.get("/reports/getReportDataByReportName/*", function(req, res){
         var configDirectoryName=common.getConfigDirectoryName();
         var filename = req.params[0];
         var outData={};
-        var fileContentString=fs.readFileSync('./'+configDirectoryName+'/'+filename+'.json', 'utf8');
+        try{
+            var fileContentString=fs.readFileSync('./'+configDirectoryName+'/'+filename+'.json', 'utf8');
+        }catch(e){
+            outData.error=e;
+            res.send(outData);
+            return;
+        }
         var pureJSONTxt=JSON.parse(common.getJSONWithoutComments(fileContentString));
         outData.columns=pureJSONTxt.columns;
         outData.headers=pureJSONTxt.headers;

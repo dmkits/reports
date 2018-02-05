@@ -53,22 +53,22 @@
                             button.document =
                                 APP.childFor(reports_retail_ContentPaneDetailContainer, "reports_retail_TableSales"+instance.id,
                                     TDocumentSimpleTable, {titleText:instance.label, dataURL:'/reports/getReportDataByReportName/'+instance.id});
-
-                            console.log("button.document=",button.document);
-                            console.log("button.document.contentTable=",button.document.contentTable);
-                            console.log("button.document.contentTable.headers=",button.document.contentTable.headers);
-                            // for (var i = 0; i < button.document.contentTable.headers.length; i++) {
-                            //     // var headerConditionInstance = instance.headers.length[i];
-                            //     // if(headerConditionInstance.type=="selectBox")
-                            //     //     button.document.addSelectBox(headerConditionInstanse.label,headerConditionInstance.instanceParams);
-                            //     //  if(headerConditionInstance.type=="dateBox")
-                            //     //      button.document.addHeaderDateBox(headerConditionInstanse.label,headerConditionInstance.instanceParams)
-                            // }
-                            button.document.addTotalCountNumberBox("ИТОГО строк:", 140, {style:"font-weight:bold;",inputStyle:"width:40px;"})
-                                .addTotalSumNumberTextBox("ИТОГО кол-во:",260, "TotalQty", {style:"font-weight:bold;",inputStyle:"width:60px;"})
-                                .addTotalSumNumberTextBox("ИТОГО сумма:",200, "TotalSum", {style:"font-weight:bold;",inputStyle:"width:80px;",
-                                    pattern:"###,###,##0.00#######"})
-                                .startUp();
+                            Request.getJSONData({url:'/reports/getReportConfigByReportName/'+instance.id}, function(result){           console.log("result 60=",result);
+                                if(result.headers){
+                                    for (var i = 0; i < result.headers.length; i++) {
+                                        var headerConditionInstance = result.headers[i];
+                                        if(headerConditionInstance.type=="selectBox")
+                                            button.document.addSelectBox(headerConditionInstance.label,headerConditionInstance.instanceParams);
+                                        if(headerConditionInstance.type=="dateBox")
+                                            button.document.addHeaderDateBox(headerConditionInstance.label,headerConditionInstance.instanceParams)
+                                    }
+                                }
+                                button.document.addTotalCountNumberBox("ИТОГО строк:", 140, {style:"font-weight:bold;",inputStyle:"width:40px;"})
+                                    .addTotalSumNumberTextBox("ИТОГО кол-во:",260, "TotalQty", {style:"font-weight:bold;",inputStyle:"width:60px;"})
+                                    .addTotalSumNumberTextBox("ИТОГО сумма:",200, "TotalSum", {style:"font-weight:bold;",inputStyle:"width:80px;",
+                                        pattern:"###,###,##0.00#######"})
+                                    .startUp();
+                            });
                         }
                         reports_retail_ContentPaneDetailContainer.selectChild(button.document);
                     };
@@ -82,11 +82,3 @@
         });
 </script>
 </html>
-
-
-// var reportConditions= [
-//     {type:"selectBox", conditionName:"StockID", label:"Склад:", valueItemName:"StockID", labelItemName:"StockName", loadDropDownURL:"/reports/getStocks"}
-// ];
-//
-//     reportConditions.push({type:"dateBox", conditionName:"BDATE", label:"c", initValueDate:"curMonthBDate"});
-//     reportConditions.push({type:"dateBox", conditionName:"EDATE", label:"по"});
