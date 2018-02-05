@@ -65,7 +65,19 @@ module.exports= function(app) {
     });
     app.get("/reports/getStocks", function(req, res){
         var outData={};
-        database.selectStockNames(function(err, result){
+        if(req.isAdminUser||req.isSysadmin){
+            database.selectStockNames(function(err, result){
+                if (err){
+                    outData.error=err.message;
+                    res.send(outData);
+                    return;
+                }
+                outData.items=getResultItemsForSelect(result,{valueField:""});
+                res.send(outData)
+            });
+            return;
+        }
+        database.selectStockNameByUserID(req.userID, function(err, result){
             if (err){
                 outData.error=err.message;
                 res.send(outData);

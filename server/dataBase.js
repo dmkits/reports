@@ -166,10 +166,10 @@ module.exports.setPLIDForUserSession=function(EmpID, callback){
     });
 };
 
-module.exports.getUserNameAndStateCodeByLpid=function(LPID, callback){
+module.exports.getUserDataByLpid=function(LPID, callback){
     var reqSql = new sql.Request(conn);
     reqSql.input('LPID', LPID);
-    reqSql.query("select EmpName, ShiftPostID  from r_Emps where LPID=@LPID",
+    reqSql.query("select EmpName, ShiftPostID, EmpID  from r_Emps where LPID=@LPID",
         function (err, result) {
             if (err) {
                 callback(err);
@@ -213,3 +213,24 @@ module.exports.selectStockNames=function(callback){
             });
 };
 
+module.exports.selectStockNameByUserID=function(EmpID, callback){
+    var reqSql = new sql.Request(conn);
+    reqSql.input('EmpID',EmpID);
+    reqSql.query("select st.StockID, st.StockName,\n" +
+        "\t\te.EmpID, e.EmpName\n" +
+        "\t\t, op.OperID, op.OperName, opcr.CRID, cr.CRName\n" +
+        "\tfrom r_Emps e\n" +
+        "\tinner join r_Opers op on op.EmpID=e.EmpID\n" +
+        "\tinner join r_OperCRs opcr on opcr.OperID=op.OperID\n" +
+        "\tinner join r_Crs cr on cr.CRID=opcr.CRID\n" +
+        "\tinner join r_Stocks st on st.StockID=cr.StockID\n" +
+        "\twhere e.EmpID=@EmpID\n" +
+        "\torder by st.StockName",
+        function (err, recordset) {   console.log("err=",err);  console.log("recordset=",recordset);
+            if (err) {
+                callback(err);
+                return;
+            }
+            callback(null,recordset);
+        });
+};

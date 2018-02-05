@@ -2,7 +2,7 @@
   {"type":"selectBox","label":"Склад:", "instanceParams":{"contentTableCondition":"StockID","valueItemName":"StockID", "labelItemName":"StockName", "loadDropDownURL":"/reports/getStocks"}}
 ],
   "columns":[
-    { "data":"StockName", "name":"Склад", "width":150, "type":"text" },
+   /* { "data":"StockName", "name":"Склад", "width":150, "type":"text"},*/
     { "data":"ProdName", "name":"Наименование товара", "width":300, "type":"text"},
     { "data":"Article1", "name":"Артикул", "width":80, "type":"text"},
     { "data":"UM", "name":"Ед. изм", "width":80, "type":"text"},

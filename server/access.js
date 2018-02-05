@@ -63,7 +63,7 @@ module.exports= function(app) {
                 });
                 return;
             }
-            database.getUserNameAndStateCodeByLpid(req.cookies.lpid, function (err, result) {
+            database.getUserDataByLpid(req.cookies.lpid, function (err, result) {
                 if (err) {
                     res.send({error: err});
                     log.error(err);
@@ -77,6 +77,7 @@ module.exports= function(app) {
                     res.sendFile(path.join(__dirname, '../pages', 'login.html'));
                     return;
                 }
+                req.userID=result.EmpID;
                 if(result.ShiftPostID==1) req.isAdminUser= true;
                 else req.isAdminUser= false;
                 next();
