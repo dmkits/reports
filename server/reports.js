@@ -32,7 +32,7 @@ module.exports= function(app) {
     app.get("/reports/getReportDataByReportName/*", function(req, res){
         var outData={};
         if(req.url.indexOf("/reports/getReportDataByReportName/prod_balance")==0
-            && req.isAdminUser
+            && (req.isAdminUser || req.isSysadmin)
             && req.query['StockID']==-1){
             getExtendedQtyData(function(err, result){
                 if(err){
