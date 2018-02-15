@@ -28,6 +28,10 @@ module.exports= function(app) {
     app.get("/sysadmin/startup_parameters", function (req, res) {
         res.sendFile(path.join(__dirname, '../pages/sysadmin', 'startup_parameters.html'));
     });
+
+    app.get("/sysadmin/employees_login", function (req, res) {
+        res.sendFile(path.join(__dirname, '../pages/sysadmin', 'employees_login.html'));
+    });
     app.get("/sysadmin/startup_parameters/get_app_config", function (req, res) {
         if (app.ConfigurationError) {
             res.send({error:app.ConfigurationError});
@@ -164,5 +168,24 @@ module.exports= function(app) {
                 }
             }
         }
+    });
+    var employeeLoginColumns=[
+        {data: "ChID", name: "ChID", width: 120, type: "text", visible:false},
+        {data: "EmpName", name: "Имя сотрудника", width: 250, type: "text"},
+        {data: "Login", name: "Login", width: 120, type: "text", align:"center"},
+        {data: "LPass", name: "Password", width: 120, type: "text"}
+    ];
+    app.get('/sysadmin/employeeLoginTable/getDataForTable', function (req, res) {
+        database.getDataForTable({source:"r_Emps",
+                tableColumns:employeeLoginColumns, identifier:employeeLoginColumns[0].data, conditions:req.query} ,
+            function(result){
+                res.send(result);
+            });
+    });
+    app.post("/sysadmin/employeeLoginTable/storeBotMsgTableData", function(req, res){
+        database.storeTableDataItem({tableName:"r_Emps",idFieldName:"ChID",tableColumns:employeeLoginColumns,
+            storeTableData:req.body}, function(result){
+            res.send(result);
+        })
     });
 };

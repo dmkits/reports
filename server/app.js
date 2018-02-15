@@ -27,12 +27,7 @@ function startupParams() {
 var express = require('express');                   console.log("module  express",new Date().getTime() - startTime);
 var app = express();
 startupParams();
-var log = require('winston');                     console.log("module  winston", new Date().getTime() - startTime);
-if (!app.logToConsole) {
-    log.add(log.transports.File, {filename: 'history.log', level: 'debug', timestamp: true});
-    log.remove(log.transports.Console);
-}
-
+var log=require('./logger.js')(app.logToConsole);
 module.exports.startupMode = app.mode;
 
 var cookieParser = require('cookie-parser');        console.log("module  cookie-parser",new Date().getTime() - startTime);

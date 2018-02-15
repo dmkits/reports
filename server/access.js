@@ -69,7 +69,7 @@ module.exports= function(app) {
                     log.error(err);
                     return;
                 }
-                if (!result || !result.EmpName) {
+                if (!result || !result.Login) {
                     if (reqIsJSON(req.headers) || reqIsAJAX(req.headers)) {
                         res.send({error: "Failed to get data! Reason: unknown user!", userErrorMsg: "Неизвестный пользователь."});
                         return;

@@ -346,7 +346,7 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane","dojox/widget/Standby",
              * param = { updatedRows }
              * param.updatedRows has values if call updateRowData
              */
-            onUpdateContent: function(params){                                                                                    //console.log("HTableSimple onUpdateContent");
+            onUpdateContent: function(params){                                                                  //console.log("HTableSimple onUpdateContent");
                 //TODO actions on/after update table content (after set/reset/reload/clear table content data)
                 //TODO actions and after call updateRowData({rowData,newRowData})
             },
@@ -358,7 +358,7 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane","dojox/widget/Standby",
              * if duplexRequest=false, sends only one request to get table data with columns data.
              * if clearContentBeforeLoad==true content clearing before send request for table data
              */
-            setContentFromUrl: function(params){                                                                            console.log("HTableSimple setContentFromUrl ",params);
+            setContentFromUrl: function(params){                                                                console.log("HTableSimple setContentFromUrl ",params);
                 var instance = this;
                 if (!params) {
                     this.updateContent(null);
@@ -555,7 +555,7 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane","dojox/widget/Standby",
                     this.handsonTable.render();
                     return;
                 }
-                var oldSelRow= this.getSelectedRow();                                                                       //console.log("HTableSimple setSelection",selection);
+                var oldSelRow= this.getSelectedRow();                                                       //console.log("HTableSimple setSelection",selection);
                 this.handsonTable.getSettings().setDataSelectedProp(firstSelectedRowData, oldSelRow);
                 this.htSelection= selection;
                 this.handsonTable.render();
@@ -563,11 +563,11 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane","dojox/widget/Standby",
             /**
              * menuAction= function(selRowsData, actionParams, thisInstance)
              */
-            setMenuItem: function(itemName, actionParams, menuAction){                                              //console.log("HTableSimple setMenuItem",itemID,this.popupMenuItems,this);
+            setMenuItem: function(itemName, actionParams, menuAction){                                      //console.log("HTableSimple setMenuItem",itemID,this.popupMenuItems,this);
                 var thisInstance= this;
                 this.popupMenuItems.push({
                     name:itemName,
-                    callback: function(key, options){                                                                       //console.log("HTableSimple menuItem callback",key,options);
+                    callback: function(key, options){                                                       //console.log("HTableSimple menuItem callback",key,options);
                         var selRowsData= [];
                         if(options.start&&options.end){
                             var startRowIndex= options.start.row, endRowIndex= options.end.row;
