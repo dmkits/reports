@@ -16,7 +16,7 @@ function makeLogger (logToConsole){
     transports.push(new (require('winston-daily-rotate-file'))({
         name: 'file',
         datePattern: '.yyyy-MM-dd',
-        filename: path.join(logDir, "log_file.log"),
+        filename: path.join(logDir, "log_"),
         timestamp:function() {
             return moment(new Date()).format("YYYY-MM-DD HH:mm:ss");
         }
