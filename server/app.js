@@ -75,9 +75,9 @@ app.post("/login", function (req, res) {                        log.info("app.po
         return;
     }
     var sysAdminLoginDataArr=common.getSysAdminLoginDataArr();
-    for(var i in sysAdminLoginDataArr){                                                            console.log("for sysAdminLoginDataArr");
+    for(var i in sysAdminLoginDataArr){
         if(sysAdminLoginDataArr[i].login==userName){
-            if(sysAdminLoginDataArr[i].pswrd==userPswrd){                                          console.log("sysAdminLoginDataArr[i].pswrd==userPswrd");
+            if(sysAdminLoginDataArr[i].pswrd==userPswrd){
                 var newPLID=common.getUIDNumber();
                 var sysAdminLPIDObj=common.getSysAdminLPIDObj();
                 sysAdminLPIDObj[sysAdminLoginDataArr[i].login]=newPLID;
@@ -120,7 +120,7 @@ app.get("/", function(req, res){                                                
 app.post("/", function(req, res){                                                                   log.info("app.post /  req.body=",req.body);
     var outData={};
     if(req.body["action"] && req.body["action"]=="exit"){
-        var cookiesArr=Object.keys(req.cookies);     console.log("cookiesArr=",cookiesArr);
+        var cookiesArr=Object.keys(req.cookies);
         for(var i in cookiesArr){
             res.clearCookie(cookiesArr[i]);
         }
