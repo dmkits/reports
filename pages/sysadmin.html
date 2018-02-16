@@ -37,6 +37,7 @@
             <button id="display_startup_params">Startup params</button>
             <button id="display_reports_config">Reports config</button>
             <button id="employee_login">Employee login</button>
+            <button id="sysadmin_exit">Выход</button>
         </div>
     </div>
     <div id="sysadmin_ContentContainer"></div>
@@ -72,6 +73,7 @@
                 var startupBtn = new Button({id:"display_startup_params"},"display_startup_params");
                 var sqlBtn = new Button({id:"display_reports_config"},"display_reports_config");
                 var employeeLoginBtn = new Button({id:"employee_login"},"employee_login");
+                var sysAdminExitBtn = new Button({id:"sysadmin_exit", style:"float: right"},"sysadmin_exit");
 
                 var sysadmin_ContentContainer = APP.instanceForID("sysadmin_ContentContainer",
                         StackContainer, {region: "center", tabPosition: "top", class: "sysadmin_Content"});
@@ -148,6 +150,14 @@
                 };
                 employeeLoginBtn.onClick=function(){
                     sysadmin_MainContainer.runSysadminContentPage("employee_login", "Employees", false, "/sysadmin/employees_login");
+                };
+                sysAdminExitBtn.onClick=function(){
+                    Request.postJSONData({url:"/",data:{action:"exit"},consoleLog:true},
+                        function(result){
+                            if (result&&result.actionResult=="successfull"){
+                                window.location.replace(window.location.href)
+                            }
+                        });
                 };
                 sysadmin_MainContainer.getAppState();
             });
