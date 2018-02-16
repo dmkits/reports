@@ -30,13 +30,15 @@ module.exports= function(app) {
         res.send(outData);
     });
     app.get("/reports/getReportDataByReportName/*", function(req, res){
+        res.connection.setTimeout(0);
+        req.connection.setTimeout(0);
         var outData={};
         if(req.url.indexOf("/reports/getReportDataByReportName/prod_balance")==0
             && (req.isAdminUser || req.isSysadmin)
             && req.query['StockID']==-1){
-            getExtendedQtyData(function(err, result){
-                if(err){
-                    outData.error=err;
+            getExtendedQtyData(function(err, result){     console.log("getExtendedQtyData");
+                if(err){                                  console.log("getExtendedQtyData err=",err);
+                    outData.error=err.message;
                     res.send(outData);
                     return;
                 }
@@ -77,6 +79,7 @@ module.exports= function(app) {
             });
     });
     app.get("/reports/getStocks", function(req, res){
+        res.connection.setTimeout(0);
         var outData={};
         if(req.isAdminUser||req.isSysadmin){
             database.selectStockNames(function(err, result){
@@ -101,6 +104,7 @@ module.exports= function(app) {
         })
     });
     app.get("/reports/getStocksForRem", function(req, res){
+        res.connection.setTimeout(0);
         var outData={};
         if(req.isAdminUser||req.isSysadmin){
             database.selectStockNames(function(err, result){
@@ -116,6 +120,7 @@ module.exports= function(app) {
             return;
         }
         database.selectStockNameByUserID(req.userID, function(err, result){
+            res.connection.setTimeout(0);
             if (err){
                 outData.error=err.message;
                 res.send(outData);
@@ -147,7 +152,7 @@ function getResultItemsForSelect(result){
      for (var i in stocksArr){
          selectSnippetStr=selectSnippetStr+' SUM(r'+i+'.Qty) as R'+i+'Qty';
          joinSnippetStr=joinSnippetStr+	' left join r_Stocks st'+i+' on st'+i+'.StockID= '+stocksArr[i].StockID+
-         ' left join t_Rem r'+i+' on r'+i+'.ProdID=p.ProdID and r'+i+'.StockID=st'+i+'.StockID';
+         ' left join t_Rem r'+i+' on r'+i+'.ProdID=p.ProdID and r'+i+'.StockID=st'+i+'.StockID and r'+i+'.Qty<>0';
          whereSnippetStr=whereSnippetStr+' r'+i+'.Qty is NULL ';
          if(i<stocksArr.length-1){
              selectSnippetStr=selectSnippetStr+',';
@@ -184,7 +189,7 @@ function getExtendedQtyData(callback){
             return;
         }
         extendedQtyObj.columns=getQtyColumns(result);
-        var queryStr = getAllStocksProdBalanceQueryStr(result);
+        var queryStr = getAllStocksProdBalanceQueryStr(result);   console.log("queryStr=",queryStr);
         database.executeQuery(queryStr, function(err, res){
             if(err){
                 callback(err);

@@ -79,7 +79,7 @@
                                     } else if (!result.mode)
                                         eAppMode.innerHTML =  eAppMode.innerHTML+"<b>UNKNOWN MODE!!!</b>";
 
-                                    if(result.user) document.getElementById("main_username").innerHTML =  "<b>"+result.user+"</b>";
+                                    if(result.loginEmpName) document.getElementById("main_username").innerHTML =  "<b>"+result.loginEmpName+"</b>";
                                     if(result.error){
                                         main_MainContainer.mainContentData = [];
                                         main_MainContainer.mainContentData["error"]= result;

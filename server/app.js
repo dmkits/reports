@@ -138,7 +138,7 @@ app.get("/get_main_data", function(req, res){                                   
     outData.title= "REPORTS";
     outData.mode=app.mode;
     outData.modeName= app.mode.toUpperCase();
-
+    outData.loginEmpName=req.loginEmpName;
     if (app.ConfigurationError) {
         outData.error=app.ConfigurationError;                                                         log.error("req.ConfigurationError=",app.ConfigurationError);
     }

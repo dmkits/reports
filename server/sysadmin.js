@@ -11,6 +11,7 @@ module.exports= function(app) {
         var outData= {};
         outData.mode= app.mode;
         outData.port=app.port;
+        outData.loginEmpName=req.loginEmpName;
         outData.connUserName=database.getDBConfig().user;
         if (app.ConfigurationError) {
             outData.error= app.ConfigurationError;
@@ -170,6 +171,7 @@ module.exports= function(app) {
         {data: "ShiftPostID", name: "Менеджер", width: 100, type: "checkbox", align:"center"}
     ];
     app.get('/sysadmin/employeeLoginTable/getDataForTable', function (req, res) {
+        res.connection.setTimeout(0);
         var conditions=req.query;
         conditions["1=1"]=null;
         database.getDataForTable({source:"r_Emps",
@@ -179,6 +181,7 @@ module.exports= function(app) {
             });
     });
     app.post("/sysadmin/employeeLoginTable/storeTableData", function(req, res){
+        res.connection.setTimeout(0);
         database.storeTableDataItem({tableName:"r_Emps",idFieldName:"ChID",tableColumns:employeeLoginColumns,
             storeTableData:req.body}, function(result){
             res.send(result);

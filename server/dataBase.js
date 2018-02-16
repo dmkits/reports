@@ -28,6 +28,7 @@ module.exports.saveConfig=function(callback) {
 };
 module.exports.databaseConnection=function(callback){
     mssql.close();
+    dbConfig.requestTimeout=300000;
     mssql.connect(dbConfig, function(err){
         if(err){
             dbConnectError=err.message;
@@ -177,7 +178,7 @@ module.exports.setPLIDForUserSession=function(EmpID, callback){
 module.exports.getUserDataByLpid=function(LPID, callback){
     var reqSql = new mssql.Request();
     reqSql.input('LPID', LPID);
-    reqSql.query("select Login, ShiftPostID, EmpID  from r_Emps where LPID=@LPID",
+    reqSql.query("select Login, EmpName, ShiftPostID, EmpID  from r_Emps where LPID=@LPID",
         function (err, result) {
             if (err) {
                 callback(err);

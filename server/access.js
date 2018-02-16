@@ -21,15 +21,18 @@ module.exports= function(app) {
         }
         if (req.cookies.lpid) {
             var sysAdminAccess = false;
+            var sysAdminLogin = null;
             var sysAdminLPIDObj = common.getSysAdminLPIDObj();
             var properties = Object.keys(sysAdminLPIDObj);
             for (var i in properties) {
                 if (sysAdminLPIDObj[properties[i]] == req.cookies.lpid) {
                     sysAdminAccess = true;
+                    sysAdminLogin = properties[i];
                 }
             }
             if (sysAdminAccess) {
                 req.isSysadmin= true;
+                req.loginEmpName="sysadmin("+sysAdminLogin+")";
                 next();
                 return;
             }
@@ -78,6 +81,7 @@ module.exports= function(app) {
                     return;
                 }
                 req.userID=result.EmpID;
+                req.loginEmpName=result.EmpName;
                 if(result.ShiftPostID==1) req.isAdminUser= true;
                 else req.isAdminUser= false;
                 next();

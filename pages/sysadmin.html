@@ -25,6 +25,7 @@
     <div id="sysadmin_TopContainer">
         <div id="sysadmin_TopImg"></div>
         <div id="sysadmin_TopStateInfo">
+            <div id="sysadmin_name" style="display:inline;"></div>
             <div id="sysadmin_app_mode" style="display:inline;"></div>
             <div id="sysadmin_app_port" style="display:inline; margin-left:20px;;"></div>
             <div id="sysadmin_dbName" style="display:inline;;margin-left:20px;"></div>
@@ -81,10 +82,14 @@
                         function (result) {
                                 if (result === undefined || result == null) result = [];
                                 sysadmin_MainContainer.mainContentData = result;
+                                var sysadminName = document.getElementById("sysadmin_name");
                                 var eAppMode = document.getElementById("sysadmin_app_mode");
                                 var eAppPort = document.getElementById("sysadmin_app_port");
                                 eAppMode.innerHTML = "<b>MODE:</b>";
                                 eAppPort.innerHTML = "<b>PORT:</b>";
+                                if(result.loginEmpName){
+                                    sysadminName.innerHTML="<b style='color:dimgrey'>"+ result.loginEmpName+"</b>  ";
+                                }
                                 if(result.port){
                                     eAppPort.innerHTML=eAppPort.innerHTML+"<b style='color:dimgrey'>"+ result.port+"</b>";
                                 }
