@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <title></title>
@@ -9,8 +9,7 @@
     <div id="reports_retail_ContentPaneLeft" style="width:177px;height:100%; margin:0;padding:0;">
         <table>
             <tr><th>Отчеты</th></tr>
-            <tr><td id="reports_button_list">
-            </td></tr>
+            <tr><td id="reports_button_list"></td></tr>
         </table>
     </div>
     <div id="reports_retail_ContentPaneDetailContainer" style="width:100%;height:100%; margin:0;padding:0;"></div>
@@ -39,21 +38,21 @@
                                 }
                                 var items = JSON.parse(data.jsonFormattedText);
                                 for (var i in items) {
-                                    reports_retail_PageContainer.addButtonTo(reports_button_list, items[i].id, items[i].name,items[i].noDateBox );
+                                    reports_retail_PageContainer.addButtonTo(reports_button_list, items[i].id, items[i].name);
                                 }
                                 firstButton.onClick();
                             });
                 };
 
-                reports_retail_PageContainer.addButtonTo = function (parent, id, name, noDateBox) {
+                reports_retail_PageContainer.addButtonTo = function (parent, id, name) {
                     var button = new Button({id:id, label:name});
                     button.onClick= function(){
                         var instance=this;
                         if (!button.document){
                             button.document =
-                                APP.childFor(reports_retail_ContentPaneDetailContainer, "reports_retail_TableSales"+instance.id,
+                                APP.childFor(reports_retail_ContentPaneDetailContainer, "reports_retail_Table"+instance.id,
                                     TDocumentSimpleTable, {titleText:instance.label, dataURL:'/reports/getReportDataByReportName/'+instance.id});
-                            Request.getJSONData({url:'/reports/getReportConfigByReportName/'+instance.id}, function(result){           console.log("result 60=",result);
+                            Request.getJSONData({url:'/reports/getReportConfigByReportName/'+instance.id}, function(result){
                                 if(result.headers){
                                     for (var i = 0; i < result.headers.length; i++) {
                                         var headerConditionInstance = result.headers[i];

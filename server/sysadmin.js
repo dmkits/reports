@@ -1,8 +1,7 @@
-var fs = require('fs');
-var path=require ('path');
+var fs = require('fs'), path=require ('path');
+
 var common=require('./common');
 var database=require('./dataBase');
-
 
 module.exports= function(app) {
     app.get("/sysadmin", function(req, res){
@@ -29,17 +28,12 @@ module.exports= function(app) {
         res.sendFile(path.join(__dirname, '../pages/sysadmin', 'startup_parameters.html'));
     });
 
-    app.get("/sysadmin/employees_login", function (req, res) {
-        res.sendFile(path.join(__dirname, '../pages/sysadmin', 'employees_login.html'));
-    });
     app.get("/sysadmin/startup_parameters/get_app_config", function (req, res) {
         if (app.ConfigurationError) {
             res.send({error:app.ConfigurationError});
             return;
         }
-        var outData={};
-        outData=database.getDBConfig();
-        res.send(outData);
+        res.send(database.getDBConfig());
     });
     app.get("/sysadmin/startup_parameters/load_app_config", function (req, res) {
         common.tryLoadConfiguration(app);
@@ -47,9 +41,7 @@ module.exports= function(app) {
             res.send({error:app.ConfigurationError});
             return;
         }
-        var outData={};
-        outData=database.getDBConfig();
-        res.send(outData);
+        res.send(database.getDBConfig());
     });
     app.post("/sysadmin/startup_parameters/store_app_config_and_reconnect", function (req, res) {
         var newDBConfigString = req.body;
@@ -96,9 +88,6 @@ module.exports= function(app) {
     });
     app.post("/sysadmin/sql_queries/get_result_to_request", function (req, res) {
         var newQuery = req.body;
-        var sUnitlist = req.query.stocksList;
-        var bdate = req.query.bdate;
-        var edate = req.query.edate;
         database.getQueryResult(newQuery, req.query,
             function (err,result) {
                 var outData = {};
@@ -169,20 +158,27 @@ module.exports= function(app) {
             }
         }
     });
+
+    app.get("/sysadmin/employees_login", function (req, res) {
+        res.sendFile(path.join(__dirname, '../pages/sysadmin', 'employees_login.html'));
+    });
     var employeeLoginColumns=[
         {data: "ChID", name: "ChID", width: 120, type: "text", visible:false},
         {data: "EmpName", name: "Имя сотрудника", width: 250, type: "text"},
         {data: "Login", name: "Login", width: 120, type: "text", align:"center"},
-        {data: "LPass", name: "Password", width: 120, type: "text"}
+        {data: "LPass", name: "Password", width: 120, type: "text"},
+        {data: "ShiftPostID", name: "Менеджер", width: 100, type: "checkbox", align:"center"}
     ];
     app.get('/sysadmin/employeeLoginTable/getDataForTable', function (req, res) {
+        var conditions=req.query;
+        conditions["1=1"]=null;
         database.getDataForTable({source:"r_Emps",
-                tableColumns:employeeLoginColumns, identifier:employeeLoginColumns[0].data, conditions:req.query} ,
+                tableColumns:employeeLoginColumns, identifier:employeeLoginColumns[0].data, conditions:conditions, order:"EmpID"} ,
             function(result){
                 res.send(result);
             });
     });
-    app.post("/sysadmin/employeeLoginTable/storeBotMsgTableData", function(req, res){
+    app.post("/sysadmin/employeeLoginTable/storeTableData", function(req, res){
         database.storeTableDataItem({tableName:"r_Emps",idFieldName:"ChID",tableColumns:employeeLoginColumns,
             storeTableData:req.body}, function(result){
             res.send(result);

@@ -372,13 +372,12 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane","dojox/widget/Standby",
                         Request.getJSONData({url:params.url, condition:null}
                             ,/*postaction*/function(result){
                                 if(!result) {
-                                    instance.loadingGif.hide();
                                     instance.updateContent({columns:instance.htColumns, items:[]}, {callUpdateContent:params.callUpdateContent});
+                                    instance.loadingGif.hide();
                                     return;
                                 }
                                 if(!result.columns) result.columns=instance.htColumns;
                                 if(!result.items) result.items=[];
-                                instance.loadingGif.hide();
                                 instance.updateContent(result, {callUpdateContent:params.callUpdateContent, resetSelection:false});
                                 var sCondition= JSON.stringify(params.condition);
                                 if(sCondition.length==0||sCondition==="{}"){ instance.loadingGif.hide(); return; }  //if condition is Empty
@@ -387,8 +386,8 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane","dojox/widget/Standby",
                                         if(!result) result={};
                                         if(!result.columns) result.columns=instance.htColumns;
                                         if(!result.items) result.items=[];
-                                        instance.loadingGif.hide();
                                         instance.updateContent(result, {callUpdateContent:params.callUpdateContent});
+                                        instance.loadingGif.hide();
                                     });
                             });
                         return;
@@ -401,8 +400,8 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane","dojox/widget/Standby",
                             if(!result) result={};
                             if(!result.columns) result.columns=instance.htColumns;
                             if(!result.items) result.items=[];
-                            instance.loadingGif.hide();
                             instance.updateContent(result, {callUpdateContent:params.callUpdateContent});
+                            instance.loadingGif.hide();
                         });
                     return;
                 }
@@ -411,10 +410,12 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane","dojox/widget/Standby",
                     Request.postJSONData({url:params.url, condition:null},
                         /*postaction*/function(result){
                             if(!result) {
-                                instance.loadingGif.hide();
                                 instance.updateContent(result, {callUpdateContent:params.callUpdateContent});
+                                instance.loadingGif.hide();
                                 return;
                             }
+                            if(!result.columns) result.columns=instance.htColumns;
+                            if(!result.items) result.items=[];
                             instance.updateContent(result, {callUpdateContent:params.callUpdateContent, resetSelection:false});
                             var sCondition= JSON.stringify(params.condition);
                             if(sCondition.length==0||sCondition==="{}") {
@@ -424,13 +425,14 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane","dojox/widget/Standby",
                             Request.postJSONData({url:params.url, condition:params.condition, data:params.data},
                                 /*postaction*/function(result){
                                     if(!result) {
-                                        instance.loadingGif.hide();
                                         instance.updateContent({ columns:instance.htColumns, items:[] }, {callUpdateContent:params.callUpdateContent});
+                                        instance.loadingGif.hide();
                                         return;
                                     }
-                                    if (result.items && result.items.length>0)
-                                        instance.loadingGif.hide();
+                                    if(!result.columns) result.columns=instance.htColumns;
+                                    if(!result.items) result.items=[];
                                     instance.updateContent(result, {callUpdateContent:params.callUpdateContent});
+                                    instance.loadingGif.hide();
                                 });
                         });
                     return;
@@ -445,8 +447,10 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane","dojox/widget/Standby",
                             instance.loadingGif.hide();
                             return;
                         }
-                        instance.loadingGif.hide();
+                        if(!result.columns) result.columns=instance.htColumns;
+                        if(!result.items) result.items=[];
                         instance.updateContent(result, {callUpdateContent:params.callUpdateContent});
+                        instance.loadingGif.hide();
                     });
             },
             /**

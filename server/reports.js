@@ -109,7 +109,7 @@ module.exports= function(app) {
                     res.send(outData);
                     return;
                 }
-                result.push({StockName:"Все склады",StockID:-1});
+                result.unshift({StockName:"Все склады",StockID:-1});
                 outData.items=getResultItemsForSelect(result,{valueField:""});
                 res.send(outData)
             });

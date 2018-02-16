@@ -66,7 +66,7 @@ module.exports= function(app) {
             database.getUserDataByLpid(req.cookies.lpid, function (err, result) {
                 if (err) {
                     res.send({error: err});
-                    log.error(err);
+                    // log.error(err);
                     return;
                 }
                 if (!result || !result.Login) {

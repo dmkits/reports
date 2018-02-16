@@ -22,21 +22,12 @@
                     TDocumentSimpleTableEditable, {titleText:"Список сотрудников",
                         buttonExportToExcel:false,
                         rightPane:{width:150}, rightToolPane:{title:"Действия",
-                            buttons:{/*insertTableRow:"Добавить",*/ allowEditTableSelectedRow:"Изменить",
-                                storeTableSelectedRow:"Сохранить"/*,deleteTableSelectedRow:"Удалить"*/}},
-                        dataURL:"/sysadmin/employeeLoginTable/getDataForTable",dataURLCondition:{"ChID>":0},
-                        // dataNewURL:"/sysadmin/employeeLoginTable/newDataForBotMsgTable",
-                        dataStoreURL:"/sysadmin/employeeLoginTable/storeBotMsgTableData"
-                        // dataDeleteURL:"/botMsg/contractors/deleteDirContractorsTableData"
+                            buttons:{ allowEditTableSelectedRow:"Изменить", storeTableSelectedRow:"Сохранить"}},
+                        dataURL:"/sysadmin/employeeLoginTable/getDataForTable", dataStoreURL:"/sysadmin/employeeLoginTable/storeTableData"
                     })
                     .addTotalCountNumberBox("ИТОГО строк:", 150, {style:"font-weight:bold;",inputStyle:"width:50px"})
-                    .addContentTablePopupMenuTableRowsAction("Добавить строки",{actionName:"insertTableRowsAfterSelected",rowPosName:"POS"})//rowPosIndexName:"POSIND"
                     .addContentTablePopupMenuTableRowsAction("Изменить строки",{actionName:"allowEditTableSelectedRows"})
                     .addContentTablePopupMenuTableRowsAction("Сохранить строки",{actionName:"storeTableSelectedRows"})
-                    // .addContentTableRowChangeCallback(function(changedRowData, contentTable, params, nextCallback){
-                    //     // changedRowData.item("NOT_USED").setValue(0);
-                    //     nextCallback();
-                    // })
                     .startUp();
             employeeLogin_PageContainer.layout();
         })

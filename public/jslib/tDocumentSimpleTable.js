@@ -58,7 +58,7 @@ define(["dojo/_base/declare", "app", "tDocumentBase","dijit/form/Select", "hTabl
                 this.addChild(this.contentTable);
                 var instance = this;
                 this.contentTable.onUpdateContent = function(){ instance.onUpdateTableContent(); };
-                this.contentTable.onSelect = function(firstSelectedRowData, selection){
+                this.contentTable.onSelect = function(firstSelectedRowData, selection){ console.log("TemplateDocumentSimpleTable this.contentTable.onSelect firstSelectedRowData=",firstSelectedRowData);
                     this.setSelection(firstSelectedRowData, selection);
                     instance.onSelectTableContent(firstSelectedRowData, selection);
                 };
@@ -76,8 +76,10 @@ define(["dojo/_base/declare", "app", "tDocumentBase","dijit/form/Select", "hTabl
                 this.createContentTable(HTable);
                 this.createRightContent();
             },
-            loadTableContent: function(additionalCondition){                                                            //console.log("TemplateDocumentSimpleTable loadTableContent");
-                var condition = (this.dataURLCondition)?this.dataURLCondition:{};
+            loadTableContent: function(additionalCondition){                                                    //console.log("TemplateDocumentSimpleTable loadTableContent",this.dataURLCondition,additionalCondition);
+                var condition = {};
+                if(this.dataURLCondition)
+                    for(var dataCondItem in this.dataURLCondition) condition[dataCondItem.replace("=","~")]=this.dataURLCondition[dataCondItem];
                 if(this.headerData){
                     for(var i=0; i<this.headerData.length;i++){
                         var headerDataItem=this.headerData[i], headerInstanceType=headerDataItem.type, headerInstance=headerDataItem.instance;
@@ -86,7 +88,7 @@ define(["dojo/_base/declare", "app", "tDocumentBase","dijit/form/Select", "hTabl
                                 headerInstance.format(headerInstance.get("value"),{selector:"date",datePattern:"yyyy-MM-dd"});
                         } else if(headerInstanceType=="CheckButton"&&headerInstance.checked==true&&headerInstance.contentTableConditions){
                             var checkBtnConditions=headerInstance.contentTableConditions;
-                            for(var conditionItemName in checkBtnConditions) condition[conditionItemName]=checkBtnConditions[conditionItemName];
+                            for(var conditionItem in checkBtnConditions) condition[conditionItem.replace("=","~")]=checkBtnConditions[conditionItem];
                         } else if(headerInstanceType=="SelectBox"&&headerInstance.contentTableCondition){
                             condition[headerInstance.contentTableCondition.replace("=","~")] =headerInstance.get("value");
                         }
@@ -95,9 +97,9 @@ define(["dojo/_base/declare", "app", "tDocumentBase","dijit/form/Select", "hTabl
                 if (additionalCondition)
                     for(var addConditionItemName in additionalCondition)
                         condition[addConditionItemName.replace("=","~")]=additionalCondition[addConditionItemName];
-                this.contentTable.setContentFromUrl({url:this.dataURL,condition:condition, clearContentBeforeLoad:true});
+                this.contentTable.setContentFromUrl({url:this.dataURL,condition:condition, clearContentBeforeLoad:true});//console.log("TemplateDocumentSimpleTable loadTableContent condition",condition);
             },
-            reloadTableContentByCondition: function(additionalCondition){                                                     //console.log("TemplateDocumentSimpleTable reloadTableContentByCondition condition=",condition);
+            reloadTableContentByCondition: function(additionalCondition){                                       //console.log("TemplateDocumentSimpleTable reloadTableContentByCondition condition=",condition);
                 this.loadTableContent(additionalCondition);
             },
             setDetailContentErrorMsg: function(detailContentErrorMsg){
