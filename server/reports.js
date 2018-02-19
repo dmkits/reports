@@ -27,6 +27,7 @@ module.exports= function(app) {
         }
         var pureJSONTxt=JSON.parse(common.getJSONWithoutComments(fileContentString));
         outData.headers=pureJSONTxt.headers;
+        outData.totals=pureJSONTxt.totals;
         res.send(outData);
     });
     app.get("/reports/getReportDataByReportName/*", function(req, res){
@@ -147,15 +148,18 @@ function getResultItemsForSelect(result){
  function getAllStocksProdBalanceQueryStr(stocksArr){
     var queryText="";
      var selectSnippetStr="select p.Article1, p.ProdName, p.UM, ";
+     var totalQtySnippet=" ,";
      var joinSnippetStr='';
      var whereSnippetStr=' where NOT(';
      for (var i in stocksArr){
          selectSnippetStr=selectSnippetStr+' SUM(r'+i+'.Qty) as R'+i+'Qty';
+         totalQtySnippet=totalQtySnippet+'ISNULL(SUM(r'+i+'.Qty),0)';
          joinSnippetStr=joinSnippetStr+	' left join r_Stocks st'+i+' on st'+i+'.StockID= '+stocksArr[i].StockID+
          ' left join t_Rem r'+i+' on r'+i+'.ProdID=p.ProdID and r'+i+'.StockID=st'+i+'.StockID and r'+i+'.Qty<>0';
          whereSnippetStr=whereSnippetStr+' r'+i+'.Qty is NULL ';
          if(i<stocksArr.length-1){
              selectSnippetStr=selectSnippetStr+',';
+             totalQtySnippet=totalQtySnippet+'+';
              whereSnippetStr=whereSnippetStr+' and ';
          }
          if(i==stocksArr.length-1){
@@ -163,6 +167,7 @@ function getResultItemsForSelect(result){
          }
      }
      queryText=queryText+selectSnippetStr;
+     queryText=queryText+totalQtySnippet+' as Qty';
      queryText=queryText+" from r_Prods p ";
      queryText=queryText+joinSnippetStr;
      queryText=queryText+whereSnippetStr;
@@ -179,6 +184,7 @@ function getQtyColumns(stocksArr){
     for(var i in stocksArr){
         qtyCol.push({data:"R"+i+"Qty",name:stocksArr[i].StockName+"\nКол-во", "width":80, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.[#########]" });
     }
+    qtyCol.push({data:"Qty", name:"Итоговое кол-во", width:80, type:"numeric", language:"ru-RU", format:"#,###,###,##0.[#########]"});
     return qtyCol;
 }
 function getExtendedQtyData(callback){
@@ -189,7 +195,7 @@ function getExtendedQtyData(callback){
             return;
         }
         extendedQtyObj.columns=getQtyColumns(result);
-        var queryStr = getAllStocksProdBalanceQueryStr(result);   console.log("queryStr=",queryStr);
+        var queryStr = getAllStocksProdBalanceQueryStr(result);
         database.executeQuery(queryStr, function(err, res){
             if(err){
                 callback(err);

@@ -21,4 +21,7 @@ dfasdfadsf
   { "data":"TotalSum", "name":"Сумма", "width":150, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.00[#######]" }
 ],
 "totals":[
+  {"type":"rowCount", "label":"ИТОГО строк:"},
+  {"type":"sum", "label":"ИТОГО кол-во:", "width":260, "dataField":"TotalQty", "format":"#,###,###,##0.#########"},
+  {"type":"sum", "label":"ИТОГО сумма:", "width":200, "dataField":"TotalSum", "format":"#,###,###,##0.00#######"}
 ]}
