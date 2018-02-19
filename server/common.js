@@ -13,7 +13,7 @@ module.exports.tryLoadConfiguration=function (app){                             
     }
 };
 module.exports.getConfigDirectoryName=function (){
-    var dirName=database.getDBConfig()["reports.config"]?"reportsConfig"+database.getDBConfig()["reports.config"]:"reportsConfig";
+    var dirName=(database.getDBConfig()["reports.config"])?database.getDBConfig()["reports.config"]:"reportsConfig";
     return dirName;
 };
 

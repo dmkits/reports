@@ -3,6 +3,7 @@ var getDBConnectError= require("./dataBase").getDBConnectError;
 var database=require("./dataBase");
 var common=require("./common");
 var path=require('path');
+var logger=require('./logger')();
 
 module.exports= function(app) {
 
@@ -13,8 +14,7 @@ module.exports= function(app) {
         return (headers && headers["content-type"] == "application/x-www-form-urlencoded" && headers["x-requested-with"] == "XMLHttpRequest");
     };
 
-    app.use(function (req, res, next) {
-        console.log("ACCESS CONTROLLER  req.path=", req.path);
+    app.use(function (req, res, next) {   logger.info("ACCESS CONTROLLER  req.path=", req.path);
         if (req.originalUrl.indexOf("/login") >= 0) {
             next();
             return;

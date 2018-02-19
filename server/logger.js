@@ -33,7 +33,7 @@ function makeLogger (logToConsole){
 };
 
 module.exports=function(logToConsole){
-    if(! logger)
+    if(!logger)
         return  makeLogger(logToConsole);
     else return logger;
 };

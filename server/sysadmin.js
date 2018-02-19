@@ -64,15 +64,15 @@ module.exports= function(app) {
     app.get("/sysadmin/sql_queries/get_reports_list", function (req, res) {
         var outData={};
         var configDirectoryName=common.getConfigDirectoryName();
-        outData.jsonText =fs.readFileSync('./'+configDirectoryName+'/reports_list.json').toString();
+        outData.jsonText =fs.readFileSync(path.join(__dirname,'../'+configDirectoryName+'/reports_list.json')).toString();
         outData.jsonFormattedText = common.getJSONWithoutComments(outData.jsonText);
         res.send(outData);
     });
     app.get("/sysadmin/sql_queries/get_script", function (req, res) {
         var configDirectoryName=common.getConfigDirectoryName();
         var outData={};
-        var sqlFile = './'+configDirectoryName+'/' + req.query.filename + ".sql";
-        var jsonFile='./'+configDirectoryName+'/' + req.query.filename + ".json";
+        var sqlFile = path.join(__dirname,'../'+configDirectoryName+'/' + req.query.filename + ".sql");
+        var jsonFile=path.join(__dirname,'../'+configDirectoryName+'/' + req.query.filename + ".json");
         if(fs.existsSync(sqlFile)){
             outData.sqlText = fs.readFileSync(sqlFile,'utf8');
         }else{
