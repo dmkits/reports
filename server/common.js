@@ -8,7 +8,7 @@ module.exports.tryLoadConfiguration=function (app){                             
     try {
         database.loadConfig();
         app.ConfigurationError=null;
-    } catch (e) {                    console.log('ConfigurationError=', ConfigurationError);
+    } catch (e) {                    console.log('ConfigurationError=', app.ConfigurationError);
         app.ConfigurationError= "Failed to load configuration! Reason:"+e;
     }
 };
