@@ -106,6 +106,9 @@
                             displayFileContentJSON.value = result.jsonText;
                             var items=JSON.parse(result.jsonFormattedText);
                             for (var i in items) {
+                                if(items[i]['id']==undefined){
+                                    continue;
+                                }
                                 detailContentSQL.addButtonTo(leftContentSQL, items[i].id, items[i].id);
                             }
                         });

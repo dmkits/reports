@@ -1,5 +1,5 @@
 {"headers":[
-  {"type":"selectBox","label":"Склад:", "instanceParams":{"contentTableCondition":"StockID","valueItemName":"StockID", "labelItemName":"StockName", "loadDropDownURL":"/reports/getStocksForRem"}}
+  {"type":"selectBox","label":"Склад:", "params":{"contentTableCondition":"StockID","valueItemName":"StockID", "labelItemName":"StockName", "loadDropDownURL":"/reports/getStocksForRem"}}
 ],
   "columns":[
    /* { "data":"StockName", "name":"Склад", "width":150, "type":"text"},*/

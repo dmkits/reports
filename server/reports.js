@@ -10,7 +10,7 @@ module.exports= function(app) {
     app.get("/reports/getReportsList", function (req, res) {
         var outData={};
         var configDirectoryName=common.getConfigDirectoryName();
-        outData.jsonText =fs.readFileSync('./'+configDirectoryName+'/reports_list.json').toString();
+        outData.jsonText =fs.readFileSync(path.join(__dirname,'../'+configDirectoryName+'/reports_list.json')).toString();
         outData.jsonFormattedText = common.getJSONWithoutComments(outData.jsonText);
         res.send(outData);
     });
@@ -19,7 +19,7 @@ module.exports= function(app) {
         var filename = req.params[0];
         var outData={};
         try{
-            var fileContentString=fs.readFileSync('./'+configDirectoryName+'/'+filename+'.json', 'utf8');
+            var fileContentString=fs.readFileSync(path.join(__dirname,'../'+configDirectoryName+'/'+filename+'.json'), 'utf8');
         }catch(e){
             outData.error=e;
             res.send(outData);
@@ -34,11 +34,22 @@ module.exports= function(app) {
         res.connection.setTimeout(0);
         req.connection.setTimeout(0);
         var outData={};
+        var configDirectoryName=common.getConfigDirectoryName();
+        var filename = req.params[0];
+        try{
+            var fileContentString=fs.readFileSync(path.join(__dirname,'../'+configDirectoryName+'/'+filename+'.json'),'utf8');
+        }catch(e){
+            outData.error=e;
+            res.send(outData);
+            return;
+        }
+        var pureJSONTxt=JSON.parse(common.getJSONWithoutComments(fileContentString));
+        outData.columns=pureJSONTxt.columns;
         if(req.url.indexOf("/reports/getReportDataByReportName/prod_balance")==0
             && (req.isAdminUser || req.isSysadmin)
             && req.query['StockID']==-1){
-            getExtendedQtyData(function(err, result){     console.log("getExtendedQtyData");
-                if(err){                                  console.log("getExtendedQtyData err=",err);
+            getExtendedQtyData(outData.columns,function(err, result){
+                if(err){
                     outData.error=err.message;
                     res.send(outData);
                     return;
@@ -48,17 +59,6 @@ module.exports= function(app) {
             });
             return;
         }
-        var configDirectoryName=common.getConfigDirectoryName();
-        var filename = req.params[0];
-        try{
-            var fileContentString=fs.readFileSync('./'+configDirectoryName+'/'+filename+'.json', 'utf8');
-        }catch(e){
-            outData.error=e;
-            res.send(outData);
-            return;
-        }
-        var pureJSONTxt=JSON.parse(common.getJSONWithoutComments(fileContentString));
-        outData.columns=pureJSONTxt.columns;
         var conditions;
         for (var paramName in req.query) {
             if(!conditions)conditions={};
@@ -175,33 +175,34 @@ function getResultItemsForSelect(result){
 return queryText;
  };
 
-function getQtyColumns(stocksArr){
-    var qtyCol=[
-        { data:"ProdName", name:"Наименование товара", width:300, type:"text"},
-        { data:"Article1", name:"Артикул", width:80, type:"text"},
-        { data:"UM", name:"Ед. изм", width:80, type:"text"}
-    ];
-    for(var i in stocksArr){
-        qtyCol.push({data:"R"+i+"Qty",name:stocksArr[i].StockName+"\nКол-во", "width":80, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.[#########]" });
+function getQtyColumns(stocksArr,columns){
+    var extendedColumns=[];
+    var qtyColData;
+    for(var i in columns){
+        if(columns[i].data !="Qty")extendedColumns.push(columns[i]);
+        else qtyColData=columns[i];
     }
-    qtyCol.push({data:"Qty", name:"Итоговое кол-во", width:80, type:"numeric", language:"ru-RU", format:"#,###,###,##0.[#########]"});
-    return qtyCol;
+    for(var i in stocksArr){
+        extendedColumns.push({data:"R"+i+"Qty",name:"Кол-во\n"+stocksArr[i].StockName, width:qtyColData.width, type:qtyColData.type, language:qtyColData.language, format:qtyColData.format});
+    }
+    extendedColumns.push({data:"Qty", name:"Итоговое кол-во", width:qtyColData.width, type:qtyColData.type, language:qtyColData.language, format:qtyColData.format});
+    return extendedColumns;
 }
-function getExtendedQtyData(callback){
+function getExtendedQtyData(columns,callback){
     var extendedQtyObj={};
-    database.selectStockNames(function(err,result){
+    database.selectStockNames(function(err,stockNamesResult){
         if(err){
             callback(err);
             return;
         }
-        extendedQtyObj.columns=getQtyColumns(result);
-        var queryStr = getAllStocksProdBalanceQueryStr(result);
-        database.executeQuery(queryStr, function(err, res){
+        extendedQtyObj.columns=getQtyColumns(stockNamesResult,columns);
+        var queryStr = getAllStocksProdBalanceQueryStr(stockNamesResult);
+        database.executeQuery(queryStr, function(err, result){
             if(err){
                 callback(err);
                 return;
             }
-            extendedQtyObj.items=res;
+            extendedQtyObj.items=result;
             callback(null,extendedQtyObj);
         })
     });

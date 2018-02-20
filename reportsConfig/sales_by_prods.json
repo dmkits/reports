@@ -13,9 +13,9 @@
 
 
 {"headers":[
-  {"type":"dateBox", "label":"c", "instanceParams":{"contentTableCondition":"BDATE", "initValueDate":"curMonthBDate"}},
-  {"type":"dateBox", "label":"по", "instanceParams":{"contentTableCondition":"EDATE"}},
-  {"type":"selectBox","label":"Склад:", "instanceParams":{"contentTableCondition":"StockID","valueItemName":"StockID", "labelItemName":"StockName", "loadDropDownURL":"/reports/getStocks"}}
+  {"type":"dateBox", "label":"c", "params":{"contentTableCondition":"BDATE", "initValueDate":"curMonthBDate"}},
+  {"type":"dateBox", "label":"по", "params":{"contentTableCondition":"EDATE"}},
+  {"type":"selectBox","label":"Склад:", "params":{"contentTableCondition":"StockID","valueItemName":"StockID", "labelItemName":"StockName", "loadDropDownURL":"/reports/getStocks"}}
 ],
 "columns":[
   { "data":"PGrName2", "name":"Вид", "width":150, "type":"text" },

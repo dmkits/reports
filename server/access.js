@@ -32,7 +32,7 @@ module.exports= function(app) {
             }
             if (sysAdminAccess) {
                 req.isSysadmin= true;
-                req.loginEmpName="sysadmin("+sysAdminLogin+")";
+                req.loginEmpName="sysadmin ("+sysAdminLogin+")";
                 next();
                 return;
             }

@@ -38,9 +38,15 @@
                                 }
                                 var items = JSON.parse(data.jsonFormattedText);
                                 for (var i in items) {
+                                    if(items[i]['id']==undefined){          console.log("items[i] undefined=");
+                                        var div = document.createElement('div');
+                                        div.innerHTML='<br>';
+                                        document.getElementById('reports_button_list').appendChild(div);
+                                        continue;
+                                    }
                                     reports_retail_PageContainer.addButtonTo(reports_button_list, items[i].id, items[i].name);
                                 }
-                                firstButton.onClick();
+                               firstButton.onClick();
                             });
                 };
 
@@ -57,9 +63,9 @@
                                     for (var i = 0; i < result.headers.length; i++) {
                                         var headerConditionInstance = result.headers[i];
                                         if(headerConditionInstance.type=="selectBox")
-                                            button.document.addSelectBox(headerConditionInstance.label,headerConditionInstance.instanceParams);
+                                            button.document.addSelectBox(headerConditionInstance.label,headerConditionInstance.params);
                                         if(headerConditionInstance.type=="dateBox")
-                                            button.document.addHeaderDateBox(headerConditionInstance.label,headerConditionInstance.instanceParams)
+                                            button.document.addHeaderDateBox(headerConditionInstance.label,headerConditionInstance.params)
                                     }
                                 }
                                 if(result.totals){
