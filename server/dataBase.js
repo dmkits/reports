@@ -83,7 +83,7 @@ module.exports.getReportTableDataBy=function(filename, conditions, callback ){
             callback(err);
             return;
         }
-        var configDirectoryName=dbConfig["reports.config"]?'reportsConfig'+dbConfig["reports.config"]:"reportsConfig";
+        var configDirectoryName=dbConfig["reports.config"]?dbConfig["reports.config"]:"reportsConfig";
         var reqSql = new mssql.Request();
         try {
             var query_str = fs.readFileSync('./' + configDirectoryName + '/' + filename, 'utf8');
