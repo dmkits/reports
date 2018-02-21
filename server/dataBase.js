@@ -55,57 +55,45 @@ module.exports.getDBConnectError= function(){
     };
 
 module.exports.getQueryResult=function(newQuery, parameters, callback){
-    checkDBConnection(0,function(err){
-        if(err){
-            callback(err);
-            return;
-        }
-        var reqSql = new mssql.Request();
-        var newQueryString=newQuery.text;
-
-        for(var paramName in parameters) reqSql.input(paramName, deleteSpaces(parameters[paramName]));
-
-        reqSql.query(newQueryString,
-            function (err, result) {
-                if (err) {
-                    callback(err);
-                } else {
-                    callback(null,result.recordset);
-                }
-            })
-    });
+    var reqSql = new mssql.Request();
+    var newQueryString=newQuery.text;
+    for(var paramName in parameters) reqSql.input(paramName, deleteSpaces(parameters[paramName]));
+    reqSql.query(newQueryString,
+        function (err, result) {
+            if (err) {
+                if(err.name=="ConnectionError")dbConnectError=err.message;
+                callback(err);
+            } else {
+                callback(null,result.recordset);
+            }
+        })
 };
 /**getReportTableDataBy(params, callback) conditions= {bdate,edate,stockId, ... }
  */
 module.exports.getReportTableDataBy=function(filename, conditions, callback ){
-    checkDBConnection(0,function(err){
-        if(err){
-            callback(err);
-            return;
-        }
-        var configDirectoryName=dbConfig["reports.config"]?dbConfig["reports.config"]:"reportsConfig";
-        var reqSql = new mssql.Request();
-        try {
-            var query_str = fs.readFileSync('./' + configDirectoryName + '/' + filename, 'utf8');
-        }catch(e){
-            callback(e);
-            return;
-        }
-        for (var conditionName in conditions) {
-            if(conditionName.toLocaleLowerCase().indexOf("date")==conditionName-5){
-                reqSql.input(conditionName,mssql.Date, conditions[conditionName]);
-            }else
+    var configDirectoryName=dbConfig["reports.config"]?dbConfig["reports.config"]:"reportsConfig";
+    var reqSql = new mssql.Request();
+    try {
+        var query_str = fs.readFileSync('./' + configDirectoryName + '/' + filename, 'utf8');
+    }catch(e){
+        callback(e);
+        return;
+    }
+    for (var conditionName in conditions) {
+        if(conditionName.toLocaleLowerCase().indexOf("date")==conditionName-5){
+            reqSql.input(conditionName,mssql.Date, conditions[conditionName]);
+        }else
             reqSql.input(conditionName, conditions[conditionName]);
-        }
-        reqSql.query(query_str,
-            function (err, result) {
-                if (err) {
-                    callback(err);
-                } else {
-                    callback(null,result.recordset);
-                }
-            });
-    });
+    }
+    reqSql.query(query_str,
+        function (err, result) {
+            if (err) {
+                if(err.name=="ConnectionError")dbConnectError=err.message;
+                callback(err);
+            } else {
+                callback(null,result.recordset);
+            }
+        });
 };
 
 function deleteSpaces(text){
@@ -115,64 +103,34 @@ function deleteSpaces(text){
     return text;
 }
 
-function checkDBConnection(ind,callback){
-    if(conn){
-        callback();
-        return;
-    }
-    if(ind==4){
-        callback({msgForUser:"Не удалось подключиться к базе данных!"});
-        return;
-    }
-    setTimeout(function(){
-        exports.databaseConnection(function(err, conn){
-            if(err&&!conn){
-                checkDBConnection(ind+1,callback);
-                return;
-            }
-            callback();
-        })
-    }, 6000);
-}
-
 module.exports.getPswdByLogin=function(login, callback ){
-    checkDBConnection(0,function(err){
-        if(err){
-            callback(err);
-            return;
-        }
-        var reqSql = new mssql.Request();
-        reqSql.input('Login',login);
-        reqSql.query("select LPAss,EmpID from r_Emps where Login=@Login",
-            function (err, result) {
-                if (err) {
-                    callback(err);
-                } else {
-                    callback(null,result.recordset[0]);
-                }
-            });
-    });
+    var reqSql = new mssql.Request();
+    reqSql.input('Login',login);
+    reqSql.query("select LPAss,EmpID from r_Emps where Login=@Login",
+        function (err, result) {
+            if (err) {
+                if(err.name=="ConnectionError")dbConnectError=err.message;
+                callback(err);
+            } else {
+                callback(null,result.recordset[0]);
+            }
+        });
 };
 
 module.exports.setPLIDForUserSession=function(EmpID, callback){
-    checkDBConnection(0,function(err){
-        if(err){
-            callback(err);
-            return;
-        }
-        var LPID=common.getUIDNumber();
-        var reqSql = new mssql.Request();
-        reqSql.input('EmpID',EmpID);
-        reqSql.input('LPID',LPID);
-        reqSql.query("update r_Emps set LPID=@LPID where EmpID=@EmpID",
-            function (err, result) {
-                if (err) {
-                    callback(err);
-                } else {
-                    callback(null,LPID);
-                }
-            });
-    });
+    var LPID=common.getUIDNumber();
+    var reqSql = new mssql.Request();
+    reqSql.input('EmpID',EmpID);
+    reqSql.input('LPID',LPID);
+    reqSql.query("update r_Emps set LPID=@LPID where EmpID=@EmpID",
+        function (err, result) {
+            if (err) {
+                if(err.name=="ConnectionError")dbConnectError=err.message;
+                callback(err);
+            } else {
+                callback(null,LPID);
+            }
+        });
 };
 
 module.exports.getUserDataByLpid=function(LPID, callback){
@@ -181,35 +139,13 @@ module.exports.getUserDataByLpid=function(LPID, callback){
     reqSql.query("select Login, EmpName, ShiftPostID, EmpID  from r_Emps where LPID=@LPID",
         function (err, result) {
             if (err) {
-                callback(err);
+                if(err.name=="ConnectionError")dbConnectError=err.message;
+                callback(err.message);
             } else {
                 callback(null,result.recordset[0]);
             }
         });
 };
-module.exports.getLPID=function(LPID, callback){
-    checkDBConnection(0,function(err){
-        if(err){
-            callback(err);
-            return;
-        }
-        var reqSql = new mssql.Request();
-        reqSql.input('LPID',LPID);
-        reqSql.query("select  EmpID, LPID from r_Emps where LPID=@LPID",
-            function (err, result) {
-                if (err) {
-                    callback(err);
-                } else {
-                    if(result[0]&&result.recordset[0].LPID){
-                        callback(null,result.recordset[0].LPID);
-                        return;
-                    }
-                    callback(null,null);
-                }
-            });
-    });
-};
-
 module.exports.selectStockNames=function(callback){
         var reqSql = new mssql.Request();
         reqSql.query("SELECT distinct s.StockName, r.StockID \n" +
@@ -217,6 +153,7 @@ module.exports.selectStockNames=function(callback){
             "inner join r_Stocks s on s.StockID=r.StockID;",
             function (err, result) {
                 if (err) {
+                    if(err.name=="ConnectionError")dbConnectError=err.message;
                     callback(err);
                     return;
                 }
@@ -239,7 +176,8 @@ module.exports.selectStockNameByUserID=function(EmpID, callback){
         "\torder by st.StockName",
         function (err, result) {
             if (err) {
-                callback(err);
+                if(err.name=="ConnectionError")dbConnectError=err.message;
+                callback(err.message);
                 return;
             }
             callback(null,result.recordset);
@@ -251,6 +189,7 @@ module.exports.executeQuery=function(queryText, callback){
     reqSql.query(queryText,
         function (err, result) {
             if (err) {
+                if(err.name=="ConnectionError")dbConnectError=err.message;
                 callback(err);
                 return;
             }
@@ -261,7 +200,9 @@ function selectMSSQLQuery(query, callback) {                                    
     var request = new mssql.Request();
     request.query(query,
         function (err, result) {
-            if (err) {                                                                              logger.error('database: selectMSSQLQuery error:',err.message,{});//test
+            if (err) {
+                if(err.name=="ConnectionError")dbConnectError=err.message;
+                logger.error('database: selectMSSQLQuery error:',err.message,{});//test
                 callback(err);
                 return;
             }
@@ -282,6 +223,7 @@ module.exports.executeMSSQLParamsQuery= function(query, parameters, callback) { 
     request.query(query,
         function (err, result) {
             if (err) {                                                                        logger.error('database: executeMSSQLParamsQuery error:',err.message,{});//test
+                if(err.name=="ConnectionError")dbConnectError=err.message;
                 callback(err);
                 return;
             }                                                                                 logger.debug('database: executeMSSQLParamsQuery recordset:',result,{});//test
@@ -302,6 +244,7 @@ function selectParamsMSSQLQuery(query, parameters, callback) {                  
     request.query(query,
         function (err, result) {
             if (err) {                                                                              logger.error('database: selectParamsMSSQLQuery error:',err.message,{});//test
+                if(err.name=="ConnectionError")dbConnectError=err.message;
                 callback(err);
                 return;
             }                                                                                       logger.debug('database: selectParamsMSSQLQuery: result.recordset',result.recordset,{});//test

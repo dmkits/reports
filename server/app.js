@@ -91,14 +91,14 @@ app.post("/login", function (req, res) {                        log.info("app.po
     database.getPswdByLogin(userName, function(err,result){
         if(err){
             log.error(err);
-            res.send({error:err});
+            res.send({error:err.message});
             return;
         }
         if(result&&result.LPAss && result.LPAss==userPswrd){
             database.setPLIDForUserSession(result.EmpID, function(err,LPID){
                 if(err){
                     log.error(err);
-                    res.send({error:err});
+                    res.send({error:err.message});
                     return;
                 }
                 res.cookie("lpid", LPID);

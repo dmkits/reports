@@ -50,7 +50,7 @@ module.exports= function(app) {
             && req.query['StockID']==-1){
             getExtendedQtyData(outData.columns,function(err, result){
                 if(err){
-                    outData.error=err.message;
+                    outData.error=err;
                     res.send(outData);
                     return;
                 }
@@ -192,14 +192,14 @@ function getExtendedQtyData(columns,callback){
     var extendedQtyObj={};
     database.selectStockNames(function(err,stockNamesResult){
         if(err){
-            callback(err);
+            callback(err.message);
             return;
         }
         extendedQtyObj.columns=getQtyColumns(stockNamesResult,columns);
         var queryStr = getAllStocksProdBalanceQueryStr(stockNamesResult);
         database.executeQuery(queryStr, function(err, result){
             if(err){
-                callback(err);
+                callback(err.message);
                 return;
             }
             extendedQtyObj.items=result;
