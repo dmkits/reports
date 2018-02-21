@@ -38,7 +38,7 @@
                                 }
                                 var items = JSON.parse(data.jsonFormattedText);
                                 for (var i in items) {
-                                    if(items[i]['id']==undefined){          console.log("items[i] undefined=");
+                                    if(items[i]['id']==undefined){
                                         var div = document.createElement('div');
                                         div.innerHTML='<br>';
                                         document.getElementById('reports_button_list').appendChild(div);
@@ -72,10 +72,10 @@
                                     for(var k = 0; k < result.totals.length; k++){
                                         var totalsItem=result.totals[k];
                                         if(totalsItem.type=="rowCount"){
-                                            button.document.addTotalCountNumberBox(totalsItem.label, 140, {style:"font-weight:bold;",inputStyle:"width:40px;"})
+                                            button.document.addTotalCountNumberBox(totalsItem.label, 140, {style:"font-weight:bold;",inputWidth:totalsItem.inputWidth/*inputStyle:"width:40px;"*/})
                                         }else if(totalsItem.type=="sum"){
                                             button.document.addTotalSumNumberTextBox(totalsItem.label,totalsItem.width, totalsItem.dataField,
-                                                {pattern:totalsItem.format,style:"font-weight:bold;",inputStyle:"width:60px;"})
+                                                {pattern:totalsItem.format,style:"font-weight:bold;", inputWidth:totalsItem.inputWidth})
                                         }
                                     }
                                 }

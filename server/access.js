@@ -1,5 +1,4 @@
 
-var getDBConnectError= require("./dataBase").getDBConnectError;
 var database=require("./dataBase");
 var common=require("./common");
 var path=require('path');
@@ -14,7 +13,7 @@ module.exports= function(app) {
         return (headers && headers["content-type"] == "application/x-www-form-urlencoded" && headers["x-requested-with"] == "XMLHttpRequest");
     };
 
-    app.use(function (req, res, next) {   logger.info("ACCESS CONTROLLER  req.path=", req.path);
+    app.use(function (req, res, next) {   logger.info("ACCESS CONTROLLER  req.path=", req.path, " params:",req.query,{});
         if (req.originalUrl.indexOf("/login") >= 0) {
             next();
             return;
@@ -47,7 +46,7 @@ module.exports= function(app) {
                 res.redirect('/');
                 return;
             }
-            if (getDBConnectError()) {
+            if (app.DBConnectError) {
                 if (reqIsJSON(req.headers) || reqIsAJAX(req.headers)) {
                     res.send({
                         error: "Failed to connect to database!",
@@ -88,7 +87,7 @@ module.exports= function(app) {
             });
             return;
         }
-        if (getDBConnectError()) {
+        if (app.DBConnectError) {
             if (reqIsJSON(req.headers) || reqIsAJAX(req.headers)) {
                 res.send({
                     error: "Failed to connect to database!",

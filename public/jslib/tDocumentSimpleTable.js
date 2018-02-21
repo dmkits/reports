@@ -322,6 +322,8 @@ define(["dojo/_base/declare", "app", "tDocumentBase","dijit/form/Select", "hTabl
                 if (!params) params={};
                 if (!params.style&&totalItemName=="TableRowCount") params.style="font-weight:bold;";
                 else if (!params.style) params.style="";
+                if(!params.inputStyle)params.inputStyle="";
+                if(params.inputWidth)params.inputStyle=params.inputStyle+"width:"+params.inputWidth+"px;";
                 if (!params.inputStyle&&totalItemName&&totalItemName.indexOf("QTY")>=0) params.inputStyle="width:60px";
                 else if (!params.inputStyle&&totalItemName&&totalItemName.indexOf("SUM")>=0) params.inputStyle="width:90px";
                 else if (!params.inputStyle) params.inputStyle="width:50px";

@@ -30,16 +30,28 @@ module.exports.getJSONWithoutComments= function (text){
     return text;
 };
 
-module.exports.tryDBConnect=function (app,postaction) {                                        //console.log('tryDBConnect...', new Date().getTime() - startTime);
+module.exports.tryDBConnect=function (app,postaction) {
+   tryToConnectToDBRecursively(0,app,postaction);
+};
+function tryToConnectToDBRecursively(index,app,postaction){
     database.databaseConnection(function (err) {
-        app.DBConnectError = null;
         if (err) {
-            app.DBConnectError = "Failed to connect to database! Reason:" + err;              console.log('DBConnectError=',app.DBConnectError);
+            if(index==3) {
+                app.DBConnectError = "Failed to connect to database! Reason:" + err;
+            }
+            else if(index<3){
+                setTimeout(function () {
+                    tryToConnectToDBRecursively(index+1,app,postaction)
+                },10000);
+                return;
+            }
+            if (postaction)postaction(err);
+            return;
         }
+        app.DBConnectError = null;
         if (postaction)postaction(err);
     });
-};
-
+}
 
 module.exports.getSysAdminLPIDObj=function (){
     try{

@@ -50,9 +50,9 @@ module.exports.databaseConnection=function(callback){
     });
 };
 
-module.exports.getDBConnectError= function(){
-        return dbConnectError;
-    };
+// module.exports.getDBConnectError= function(){
+//         return dbConnectError;
+//     };
 
 module.exports.getQueryResult=function(newQuery, parameters, callback){
     var reqSql = new mssql.Request();
@@ -150,7 +150,7 @@ module.exports.selectStockNames=function(callback){
         var reqSql = new mssql.Request();
         reqSql.query("SELECT distinct s.StockName, r.StockID \n" +
             "from   t_Rem r\n" +
-            "inner join r_Stocks s on s.StockID=r.StockID;",
+            "inner join r_Stocks s on s.StockID=r.StockID order by s.StockName;",
             function (err, result) {
                 if (err) {
                     if(err.name=="ConnectionError")dbConnectError=err.message;

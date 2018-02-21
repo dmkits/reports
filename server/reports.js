@@ -45,29 +45,32 @@ module.exports= function(app) {
         }
         var pureJSONTxt=JSON.parse(common.getJSONWithoutComments(fileContentString));
         outData.columns=pureJSONTxt.columns;
-        if(req.url.indexOf("/reports/getReportDataByReportName/prod_balance")==0
-            && (req.isAdminUser || req.isSysadmin)
-            && req.query['StockID']==-1){
-            getExtendedQtyData(outData.columns,function(err, result){
-                if(err){
-                    outData.error=err;
-                    res.send(outData);
-                    return;
-                }
-                outData=result;
-                res.send(outData);
-            });
-            return;
+        // if(req.url.indexOf("/reports/getReportDataByReportName/prod_balance")==0
+        //     && (req.isAdminUser || req.isSysadmin)
+        //     && req.query['StockID']==-1){
+        //     getExtendedQtyData(outData.columns,function(err, result){
+        //         if(err){
+        //             outData.error=err;
+        //             res.send(outData);
+        //             return;
+        //         }
+        //         outData=result;
+        //         res.send(outData);
+        //     });
+        //     return;
+        // }
+        var noConditions=true;
+        for (var condition in req.query) {
+            noConditions=false;
+            break;
         }
-        var conditions;
-        for (var paramName in req.query) {
-            if(!conditions)conditions={};
-            conditions[paramName]= req.query[paramName];
-        }
-        if(!conditions){
+        if(noConditions){
             res.send(outData);
             return;
         }
+        var conditions=req.query;
+        var doConvertReport=false;
+        if(doConvertReport= (conditions["Stock"]=="-1")) conditions["Stock"]="1,2,3,4,5,6,7,9";
         database.getReportTableDataBy(filename+".sql", conditions,
             function (error,recordset) {
                 if (error){
@@ -76,9 +79,78 @@ module.exports= function(app) {
                     return;
                 }
                 outData.items=recordset;
+                if(doConvertReport)
+                    convertReport({outData:outData, rowToColumnFieldName:"StockName", rowToColumnKeyField:"StockID", columnDataFieldName:"Qty"});
                 res.send(outData);
             });
     });
+
+    /**
+     * params: { outData, rowToColumnFieldName, rowToColumnKeyField, columnDataFieldName }
+     */
+    function convertReport(params){
+        var repData= params.outData.items, repColumns= params.outData.columns;
+        var newRepData=[], newRepColumns=[], newRepDataRows={}, dynamicRepColumns={}, dynamicColumnData={};
+
+        for (var col = 0; col < repColumns.length; col++) {
+            var colData = repColumns[col];
+            if(colData.data==params.columnDataFieldName){
+                for (var cKey in colData) dynamicColumnData[cKey]=colData[cKey];
+            } else if(colData.data!=params.rowToColumnFieldName&&colData.data!=params.rowToColumnKeyField)
+                newRepColumns.push(colData);
+        }
+
+        for (var row = 0; row < repData.length; row++) {
+            var rowData = repData[row];
+
+            if(rowData[params.rowToColumnFieldName]&&rowData[params.columnDataFieldName]!=undefined){
+                var newRowData={}, newRowDataKeyValue="";
+                for (var rdKey in rowData) {
+                    if(rdKey==params.rowToColumnFieldName||rdKey==params.rowToColumnKeyField||rdKey==params.columnDataFieldName) continue;
+                    var rowDataValue=rowData[rdKey]
+                    newRowData[rdKey]= rowDataValue;
+                    newRowDataKeyValue+=rowDataValue;
+                }
+
+                if(newRepDataRows[newRowDataKeyValue]) newRowData=newRepDataRows[newRowDataKeyValue];
+
+                var dynamicColumnKeyValue= rowData[params.rowToColumnKeyField];
+                var newDynamicColumnName=params.columnDataFieldName+"_"+dynamicColumnKeyValue;
+
+                if(!newRepDataRows[newRowDataKeyValue]) {
+                    // newRowData[newDynamicColumnName]=rowData[params.columnDataFieldName];
+                    newRepData.push(newRowData);
+                    newRepDataRows[newRowDataKeyValue]=newRowData;
+                } else {
+                    newRowData=newRepDataRows[newRowDataKeyValue];
+                    // newRowData[newDynamicColumnName]=rowData[params.columnDataFieldName];
+                }
+                newRowData[newDynamicColumnName]=rowData[params.columnDataFieldName];
+                if(dynamicColumnData.necessary) {
+                    if(newRowData[params.columnDataFieldName]==undefined) newRowData[params.columnDataFieldName]=0;
+                    newRowData[params.columnDataFieldName]+=rowData[params.columnDataFieldName];
+                }
+
+                if(!dynamicRepColumns[newDynamicColumnName]){
+                    var newDynamicColumnNameValue=dynamicColumnData.name+" "+rowData[params.rowToColumnFieldName];
+                    var newDynamicColumnData={};
+                    for (var cKey in colData) newDynamicColumnData[cKey]=dynamicColumnData[cKey];
+                    newDynamicColumnData.data=newDynamicColumnName;
+                    newDynamicColumnData.name=newDynamicColumnNameValue;
+                    newRepColumns.push(newDynamicColumnData);
+                    dynamicRepColumns[newDynamicColumnName]= true;
+                }
+            }
+
+        }
+        if(dynamicColumnData.necessary) {
+            newRepColumns.push(dynamicColumnData);
+            dynamicColumnData.name+=" ИТОГО";
+        }
+        params.outData.items=newRepData;
+        params.outData.columns=newRepColumns;
+    }
+
     app.get("/reports/getStocks", function(req, res){
         res.connection.setTimeout(0);
         var outData={};
@@ -145,65 +217,72 @@ function getResultItemsForSelect(result){
         return items;
 }
 
- function getAllStocksProdBalanceQueryStr(stocksArr){
-    var queryText="";
-     var selectSnippetStr="select p.Article1, p.ProdName, p.UM, ";
-     var totalQtySnippet=" ,";
-     var joinSnippetStr='';
-     var whereSnippetStr=' where NOT(';
-     for (var i in stocksArr){
-         selectSnippetStr=selectSnippetStr+' SUM(r'+i+'.Qty) as R'+i+'Qty';
-         totalQtySnippet=totalQtySnippet+'ISNULL(SUM(r'+i+'.Qty),0)';
-         joinSnippetStr=joinSnippetStr+	' left join r_Stocks st'+i+' on st'+i+'.StockID= '+stocksArr[i].StockID+
-         ' left join t_Rem r'+i+' on r'+i+'.ProdID=p.ProdID and r'+i+'.StockID=st'+i+'.StockID and r'+i+'.Qty<>0';
-         whereSnippetStr=whereSnippetStr+' r'+i+'.Qty is NULL ';
-         if(i<stocksArr.length-1){
-             selectSnippetStr=selectSnippetStr+',';
-             totalQtySnippet=totalQtySnippet+'+';
-             whereSnippetStr=whereSnippetStr+' and ';
-         }
-         if(i==stocksArr.length-1){
-             whereSnippetStr=whereSnippetStr+')';
-         }
-     }
-     queryText=queryText+selectSnippetStr;
-     queryText=queryText+totalQtySnippet+' as Qty';
-     queryText=queryText+" from r_Prods p ";
-     queryText=queryText+joinSnippetStr;
-     queryText=queryText+whereSnippetStr;
-     queryText=queryText+" group by p.Article1, p.ProdName, p.UM;";
-return queryText;
- };
+//  function getAllStocksProdBalanceQueryStr(stocksArr){
+//     var queryText="";
+//      var selectSnippetStr="select p.ProdId,p.Article1, p.ProdName, p.UM, ";
+//      var totalQtySnippet=" ,";
+//      var joinSnippetStr='';
+//      var whereSnippetStr=' where NOT(';
+//      for (var i in stocksArr){
+//          selectSnippetStr=selectSnippetStr+' SUM(r'+i+'.Qty) as R'+i+'Qty';
+//          totalQtySnippet=totalQtySnippet+'ISNULL(SUM(r'+i+'.Qty),0)';
+//          joinSnippetStr=joinSnippetStr+	' left join r_Stocks st'+i+' on st'+i+'.StockID= '+stocksArr[i].StockID+
+//          ' left join t_Rem r'+i+' on r'+i+'.ProdID=p.ProdID and r'+i+'.StockID=st'+i+'.StockID and r'+i+'.Qty<>0';
+//          whereSnippetStr=whereSnippetStr+' r'+i+'.Qty is NULL ';
+//          if(i<stocksArr.length-1){
+//              selectSnippetStr=selectSnippetStr+',';
+//              totalQtySnippet=totalQtySnippet+'+';
+//              whereSnippetStr=whereSnippetStr+' and ';
+//          }
+//          if(i==stocksArr.length-1){
+//              whereSnippetStr=whereSnippetStr+')';
+//          }
+//      }
+//      queryText=queryText+selectSnippetStr;
+//      queryText=queryText+totalQtySnippet+' as Qty';
+//      queryText=queryText+" from r_Prods p ";
+//      queryText=queryText+joinSnippetStr;
+//      queryText=queryText+whereSnippetStr;
+//      queryText=queryText+" group by p.ProdId, p.Article1, p.ProdName, p.UM;";
+// return queryText;
+//  };
 
-function getQtyColumns(stocksArr,columns){
-    var extendedColumns=[];
-    var qtyColData;
-    for(var i in columns){
-        if(columns[i].data !="Qty")extendedColumns.push(columns[i]);
-        else qtyColData=columns[i];
-    }
-    for(var i in stocksArr){
-        extendedColumns.push({data:"R"+i+"Qty",name:"Кол-во\n"+stocksArr[i].StockName, width:qtyColData.width, type:qtyColData.type, language:qtyColData.language, format:qtyColData.format});
-    }
-    extendedColumns.push({data:"Qty", name:"Итоговое кол-во", width:qtyColData.width, type:qtyColData.type, language:qtyColData.language, format:qtyColData.format});
-    return extendedColumns;
-}
-function getExtendedQtyData(columns,callback){
-    var extendedQtyObj={};
-    database.selectStockNames(function(err,stockNamesResult){
-        if(err){
-            callback(err.message);
-            return;
-        }
-        extendedQtyObj.columns=getQtyColumns(stockNamesResult,columns);
-        var queryStr = getAllStocksProdBalanceQueryStr(stockNamesResult);
-        database.executeQuery(queryStr, function(err, result){
-            if(err){
-                callback(err.message);
-                return;
-            }
-            extendedQtyObj.items=result;
-            callback(null,extendedQtyObj);
-        })
-    });
-}
+// function getQtyColumns(stocksArr,columns){
+//     var extendedColumns=[];
+//     var qtyColData;
+//     for(var i in columns){
+//         if(columns[i].data !="Qty")extendedColumns.push(columns[i]);
+//         else qtyColData=columns[i];
+//     }
+//     for(var i in stocksArr){
+//         var newQtyColumn={data:"R"+i+"Qty",name:"Кол-во\n"+stocksArr[i].StockName};
+//         var qtyParams=Object.keys(qtyColData);
+//         for(var param in qtyParams){
+//             if(param=="data" ||param=="name") continue;
+//             newQtyColumn[param]=qtyParams[param];
+//         }
+//         extendedColumns.push(newQtyColumn);
+//     }
+//     qtyColData.name="Итоговое кол-во";
+//     extendedColumns.push(qtyColData);
+//     return extendedColumns;
+// }
+// function getExtendedQtyData(columns,callback){
+//     var extendedQtyObj={};
+//     database.selectStockNames(function(err,stockNamesResult){
+//         if(err){
+//             callback(err.message);
+//             return;
+//         }
+//         extendedQtyObj.columns=getQtyColumns(stockNamesResult,columns);
+//         var queryStr = getAllStocksProdBalanceQueryStr(stockNamesResult);
+//         database.executeQuery(queryStr, function(err, result){
+//             if(err){
+//                 callback(err.message);
+//                 return;
+//             }
+//             extendedQtyObj.items=result;
+//             callback(null,extendedQtyObj);
+//         })
+//     });
+// }

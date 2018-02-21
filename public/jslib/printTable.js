@@ -18,6 +18,7 @@ var calcTableWidth = function (printSectionData) {
     if (!tableColumns) return 0;
     for (var col = 0; col < tableColumns.length; col++) {
         var tableColumnData = tableColumns[col];
+        if (typeof tableColumnData.width=='string')tableColumnData.width= parseInt(tableColumnData.width,10);
         col_width = (tableColumnData.width != undefined) ? tableColumnData.width : 80;
         table_width += col_width;
     }
@@ -52,6 +53,7 @@ var createPrintDetailTable = function (tableColumns, tableData, table_width) {  
     for (var col = 0; col < tableColumns.length; col++) {
         var tableColumnData = tableColumns[col];
         var h_cell = document.createElement("TH");
+        if (typeof tableColumnData.width=='string')tableColumnData.width= parseInt(tableColumnData.width,10);
         var col_width = (tableColumnData.width != undefined) ? tableColumnData.width-5 : 80;
         h_cell.setAttribute("style", "margin:0;padding:2px;width:" + col_width + "px;");
         h_cell.innerHTML = tableColumnData.name;

@@ -2,16 +2,16 @@
   {"type":"selectBox","label":"Склад:", "params":{"contentTableCondition":"Stock","valueItemName":"StockID", "labelItemName":"StockName", "loadDropDownURL":"/reports/getStocksForRem"}}
 ],
   "columns":[
-    { "data":"ProdID", "name":"Код товара", "width":55, "type":"text", "align":"center" },
+    { "data": "ProdID", "name": "Код товара", "type": "numeric", "language": "ru-RU", "width": "55", "align":"center" },
     { "data":"ProdName", "name":"Наименование товара", "width":300, "type":"text"},
     { "data":"Article1", "name":"Артикул", "width":80, "type":"text"},
-    { "data":"UM", "name":"Ед. изм", "width":80, "type":"text"},
+    { "data":"UM", "name":"Ед. изм", "width":50, "type":"text", "align":"center" },
     { "data":"StockName", "name":"Склад", "width":150, "type":"text", "visible":false },
     { "data":"StockID", "name":"StockID", "width":50, "type":"text", "visible":false },
-    { "data":"Qty", "name":"Кол-во", "width":80, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.[#########]" }
+    { "data":"Qty", "name":"Кол-во", "width":65, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.[#########]", "align":"center", "necessary":true }
   ],
   "totals":[
     {"type":"rowCount", "label":"ИТОГО строк:"},
-    {"type":"sum", "label":"ИТОГО кол-во:", "width":260, "dataField":"Qty", "format":"#,###,###,##0.#########"}
+    {"type":"sum", "label":"ИТОГО кол-во:", "width":410, "inputWidth":100, "dataField":"Qty", "format":"#,###,###,##0.#########"}
   ]
 }
