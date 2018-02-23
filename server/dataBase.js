@@ -395,28 +395,128 @@ function getTableColumnsDataForHTable(tableColumns){
  */
 function getDataItemsForTable(params, resultCallback){
     var tableData={};
-    if(!params){                                                                                        logger.error("FAILED _getDataItemsForTable! Reason: no function parameters!");//test
+    if(!params){                                                                                        log.error("FAILED _getDataItemsForTable! Reason: no function parameters!");//test
         tableData.error="FAILED _getDataItemsForTable! Reason: no function parameters!";
         resultCallback(tableData);
         return;
     }
     if(params.tableData) tableData=params.tableData;
-    if(!params.tableColumns){                                                                           logger.error("FAILED _getDataItemsForTable! Reason: no table columns!");//test
+    if(!params.tableColumns){                                                                           log.error("FAILED _getDataItemsForTable! Reason: no table columns!");//test
         tableData.error="FAILED _getDataItemsForTable! Reason: no table columns!";
         resultCallback(tableData);
         return;
     }
-    params.fields=[];
-    for(var i in params.tableColumns) {
-        params.fields.push(params.tableColumns[i].data);
+    if(!params.source){                                                                                 log.error("FAILED _getDataItemsForTable! Reason: no table source!");//test
+        tableData.error="FAILED _getDataItemsForTable! Reason: no table source!";
+        resultCallback(tableData);
+        return;
     }
-    tableData.tableColumns=params.tableColumns;
+    var hasSources=false, hasAFunctions=false;
+    for(var i in params.tableColumns) {
+        var tableColumnData=params.tableColumns[i];
+        if(tableColumnData.dataSource) hasSources=true;
+        if(tableColumnData.dataFunction
+            && (tableColumnData.dataFunction.function=="sumIsNull"||tableColumnData.dataFunction.function=="rowsCountIsNull") )
+            hasAFunctions=true;
+        if(hasSources&&hasAFunctions) break;
+    }
+    var fieldsList=[], fieldsSources={}, fieldsFunctions, groupedFieldsList=[], addJoinedSources;
+    for(var i in params.tableColumns) {
+        var tableColumnData=params.tableColumns[i], fieldName=tableColumnData.data;
+
+        if(!tableColumnData.dataFunction &&( tableColumnData.sourceField||tableColumnData.dataSource)) {
+            if (tableColumnData.name) fieldsList.push(fieldName);
+            if (tableColumnData.name && hasAFunctions)groupedFieldsList.push(fieldName);
+            if (tableColumnData.dataSource && tableColumnData.sourceField)
+                fieldsSources[fieldName] = tableColumnData.dataSource + "." + tableColumnData.sourceField;
+            else if (tableColumnData.dataSource)
+                fieldsSources[fieldName] = tableColumnData.dataSource + "." + fieldName;
+            else if (tableColumnData.sourceField && hasSources)
+                fieldsSources[fieldName] = ((params.source) ? params.source : this.source) + "." + tableColumnData.sourceField;
+            else if (tableColumnData.sourceField)
+                fieldsSources[fieldName] = tableColumnData.sourceField;
+            }
+            // else if(tableColumnData.dataFunction){
+            //    if(tableColumnData.name) fieldsList.push(fieldName);
+            //    if(hasAFunctions&&tableColumnData.name&&!tableColumnData.dataFunction
+            //        &&tableColumnData.dataFunction.function!="sumIsNull"&&tableColumnData.dataFunction.function!="rowsCountIsNull")
+            //        groupedFieldsList.push(fieldName);
+            //    if(!fieldsFunctions)fieldsFunctions={};
+            //    fieldsFunctions[fieldName]= tableColumnData.dataFunction;
+            //} else if(!this.fieldsMetadata) {
+            //    if(tableColumnData.name) fieldsList.push(fieldName);
+            //    if(tableColumnData.name&&hasAFunctions)groupedFieldsList.push(fieldName);
+            //}
+            //if(tableColumnData.dataSource && this.joinedSources&&this.joinedSources[tableColumnData.dataSource]){
+            //    if(!params.joinedSources) params.joinedSources={};
+            //    params.joinedSources[tableColumnData.dataSource]=this.joinedSources[tableColumnData.dataSource];
+            //}else
+        if(tableColumnData.dataSource&&tableColumnData.linkCondition){
+            if(!addJoinedSources) addJoinedSources={};
+            if(!addJoinedSources[tableColumnData.dataSource]){
+                var joinedSourceLinkConditions={};
+                joinedSourceLinkConditions[tableColumnData.linkCondition]=null;
+                addJoinedSources[tableColumnData.dataSource]=joinedSourceLinkConditions;
+            }
+        } else {
+            if(tableColumnData.name) fieldsList.push(fieldName);
+            if(tableColumnData.name&&hasAFunctions)groupedFieldsList.push(fieldName);
+            if(tableColumnData.dataSource&&tableColumnData.sourceField)
+                fieldsSources[fieldName]=tableColumnData.dataSource+"."+tableColumnData.sourceField;
+            else if(tableColumnData.dataSource)
+                fieldsSources[fieldName]=tableColumnData.dataSource+"."+fieldName;
+            else if(hasSources&&(params.source))
+                fieldsSources[fieldName]=params.source+"."+fieldName;
+        }
+        //if(tableColumnData.childDataSource&& (!params.leftJoinedSources||!params.leftJoinedSources[tableColumnData.childDataSource]) ){
+        //    if(!params.leftJoinedSources) params.leftJoinedSources={};
+        //    var childLinkConditions={};
+        //    var parentDataSource=tableColumnData.parentDataSource;
+        //    if(!parentDataSource&&params.source) parentDataSource=params.source;
+        //    if(!parentDataSource&&this.source) parentDataSource=this.source;
+        //    childLinkConditions[tableColumnData.childDataSource+"."+tableColumnData.childLinkField+"="+parentDataSource+"."+tableColumnData.parentLinkField]=null;
+        //    params.leftJoinedSources[tableColumnData.childDataSource]=childLinkConditions;
+        //}
+        //if(tableColumnData.leftJoinedSources){
+        //    params.leftJoinedSources=tableColumnData.leftJoinedSources;
+        //}
+    }
+    params.fields=fieldsList;
+    params.fieldsSources=fieldsSources;
+    if(addJoinedSources){
+        if(!params.joinedSources) params.joinedSources={};
+        for(var sourceName in addJoinedSources) params.joinedSources[sourceName]=addJoinedSources[sourceName];
+    }
+    params.fieldsFunctions=fieldsFunctions;
+    if(groupedFieldsList.length>0)params.groupedFields=groupedFieldsList;
     getSelectItems(params, function(err, recordset){
         if(err) tableData.error="Failed get data for table! Reason:"+err.message;
         tableData.items= recordset;
-        formatItemsByColumnsTypes(tableData);
         resultCallback(tableData);
     });
+    // var tableData={};
+    // if(!params){                                                                                        logger.error("FAILED _getDataItemsForTable! Reason: no function parameters!");//test
+    //     tableData.error="FAILED _getDataItemsForTable! Reason: no function parameters!";
+    //     resultCallback(tableData);
+    //     return;
+    // }
+    // if(params.tableData) tableData=params.tableData;
+    // if(!params.tableColumns){                                                                           logger.error("FAILED _getDataItemsForTable! Reason: no table columns!");//test
+    //     tableData.error="FAILED _getDataItemsForTable! Reason: no table columns!";
+    //     resultCallback(tableData);
+    //     return;
+    // }
+    // params.fields=[];
+    // for(var i in params.tableColumns) {
+    //     params.fields.push(params.tableColumns[i].data);
+    // }
+    // tableData.tableColumns=params.tableColumns;
+    // getSelectItems(params, function(err, recordset){
+    //     if(err) tableData.error="Failed get data for table! Reason:"+err.message;
+    //     tableData.items= recordset;
+    //     formatItemsByColumnsTypes(tableData);
+    //     resultCallback(tableData);
+    // });
 }
 
 /**
@@ -427,16 +527,16 @@ function getDataItemsForTable(params, resultCallback){
  * }
  * resultCallback = function(err, recordset)
  */
-function getSelectItems(params, resultCallback){
-    if(!params){                                                                                        logger.error("FAILED _getSelectItems! Reason: no function parameters!");//test
+function getSelectItems(params, resultCallback){                         console.log("getSelectItems params=",params);
+    if(!params){                                                                                        log.error("FAILED _getSelectItems! Reason: no function parameters!");//test
         resultCallback("FAILED _getSelectItems! Reason: no function parameters!");
         return;
     }
-    if(!params.source){                                                                                 logger.error("FAILED _getSelectItems! Reason: no source!");//test
+    if(!params.source){                                                                                 log.error("FAILED _getSelectItems! Reason: no source!");//test
         resultCallback("FAILED _getSelectItems! Reason: no source!");
         return;
     }
-    if(!params.fields){                                                                                 logger.error("FAILED _getSelectItems from source:"+params.source+"! Reason: no source fields!");//test
+    if(!params.fields){                                                                                 log.error("FAILED _getSelectItems from source:"+params.source+"! Reason: no source fields!");//test
         resultCallback("FAILED _getSelectItems from source:"+params.source+"! Reason: no source fields!");
         return;
     }
@@ -444,9 +544,53 @@ function getSelectItems(params, resultCallback){
     for(var fieldNameIndex in params.fields) {
         if (queryFields!="") queryFields+= ",";
         var fieldName=params.fields[fieldNameIndex], fieldFunction=null;
+        if(params.fieldsSources&&params.fieldsSources[fieldName]){
+            fieldName= params.fieldsSources[fieldName]+" as "+fieldName;
+        } else if(params.fieldsFunctions&&params.fieldsFunctions[fieldName]){
+            var fieldFunctionData= params.fieldsFunctions[fieldName];
+            if(typeof(fieldFunctionData)=="string") fieldFunction= fieldFunctionData;
+            else if(typeof(fieldFunctionData)=="object") {
+                if(fieldFunctionData.function=="maxPlus1")
+                    fieldFunction="COALESCE(MAX("+((fieldFunctionData.source)?fieldFunctionData.source+".":"")+fieldFunctionData.sourceField+")+1,1)";
+                else if(fieldFunctionData.function=="sumIsNull")
+                    fieldFunction="COALESCE(SUM("+((fieldFunctionData.source)?fieldFunctionData.source+".":"")+fieldFunctionData.sourceField+"),0)";
+                else if(fieldFunctionData.function=="rowsCountIsNull")
+                    fieldFunction= "COALESCE(SUM(CASE When "+
+                        ((fieldFunctionData.source)?fieldFunctionData.source+".":"")+fieldFunctionData.sourceField+
+                        " is NULL Then 0 Else 1 END),0)";
+                else if(fieldFunctionData.function=="concat"&&fieldFunctionData.fields) {
+                    for(var ind in fieldFunctionData.fields){
+                        fieldFunction= (!fieldFunction)?fieldFunctionData.fields[ind]:fieldFunction+","+fieldFunctionData.fields[ind];
+                    }
+                    fieldFunction="CONCAT("+fieldFunction+")";
+                } else if(fieldFunctionData.function&&fieldFunctionData.sourceField){
+                    fieldFunction=fieldFunctionData.function+"("+((fieldFunctionData.source)?fieldFunctionData.source+".":"")+fieldFunctionData.sourceField+")";
+                } else if(fieldFunctionData.function)
+                    fieldFunction=fieldFunctionData.function;
+            }
+        }
         queryFields+= ((fieldFunction)?fieldFunction+" as ":"") + fieldName;
     }
     var selectQuery="select "+queryFields+" from "+params.source;
+    var joins="";
+    if(params.joinedSources){
+        for(var joinSourceName in params.joinedSources) {
+            var joinedSourceConditions=params.joinedSources[joinSourceName], joinedSourceOnCondition=null;
+            for(var linkCondition in joinedSourceConditions)
+                joinedSourceOnCondition= (!joinedSourceOnCondition)?linkCondition:joinedSourceOnCondition+" and "+linkCondition;
+            joins += " inner join " + joinSourceName + " on "+joinedSourceOnCondition;
+        }
+    }
+    if(params.leftJoinedSources){
+        for(var leftJoinSourceName in params.leftJoinedSources) {
+            var leftJoinedSourceConditions=params.leftJoinedSources[leftJoinSourceName], leftJoinedSourceOnCondition="";
+            for(var leftJoinLinkCondition in leftJoinedSourceConditions)
+                leftJoinedSourceOnCondition= (!leftJoinedSourceOnCondition)?leftJoinLinkCondition:leftJoinedSourceOnCondition+" and "+leftJoinLinkCondition;
+            joins += " left join " + leftJoinSourceName + " on "+leftJoinedSourceOnCondition;
+        }
+    }
+    selectQuery+=joins;
+    var wConditionQuery, hConditionQuery, coditionValues=[];
     var wConditionQuery, coditionValues=[];
     if (params.conditions&&typeof(params.conditions)=="object"&&params.conditions.length===undefined) {//object
         for(var conditionItem in params.conditions) {
@@ -469,21 +613,95 @@ function getSelectItems(params, resultCallback){
         }
     }
     if(wConditionQuery)selectQuery+=" where "+wConditionQuery;
+    if (params.groupedFields) {
+        var queryGroupedFields = "";
+        for (var groupedFieldNameIndex in params.groupedFields) {
+            if (queryGroupedFields != "") queryGroupedFields += ",";
+            var groupedFieldName = params.groupedFields[groupedFieldNameIndex];
+            if (params.fieldsSources && params.fieldsSources[groupedFieldName]) {
+                groupedFieldName = params.fieldsSources[groupedFieldName];
+            }
+            queryGroupedFields += groupedFieldName;
+        }
+        selectQuery+=" group by "+queryGroupedFields;
+    }
+    if(hConditionQuery)selectQuery+=" having "+hConditionQuery;
     if (params.order) selectQuery+=" order by "+params.order;
     if (coditionValues.length==0)
-        selectMSSQLQuery(selectQuery,function(err, recordset, count){
-            if(err) {                                                                                       logger.error("FAILED _getSelectItems selectMSSQLQuery! Reason:",err.message,"!");//test
+        selectMSSQLQuery(selectQuery,function(err, recordset, count, fields){
+            if(err) {                                                                                       log.error("FAILED _getSelectItems selectQuery! Reason:",err.message,"!");//test
                 resultCallback(err);
             } else
                 resultCallback(null,recordset);
         });
     else
-        selectParamsMSSQLQuery(selectQuery,coditionValues, function(err, recordset, count){
-            if(err) {                                                                                       logger.error("FAILED _getSelectItems selectParamsMSSQLQuery! Reason:",err.message,"!");//test
+        selectParamsMSSQLQuery(selectQuery,coditionValues, function(err, recordset, count, fields){
+            if(err) {                                                                                       log.error("FAILED _getSelectItems selectParamsQuery! Reason:",err.message,"!");//test
                 resultCallback(err);
             } else
                 resultCallback(null,recordset);
         });
+
+
+
+
+
+    //if(!params){                                                                                        logger.error("FAILED _getSelectItems! Reason: no function parameters!");//test
+    //    resultCallback("FAILED _getSelectItems! Reason: no function parameters!");
+    //    return;
+    //}
+    //if(!params.source){                                                                                 logger.error("FAILED _getSelectItems! Reason: no source!");//test
+    //    resultCallback("FAILED _getSelectItems! Reason: no source!");
+    //    return;
+    //}
+    //if(!params.fields){                                                                                 logger.error("FAILED _getSelectItems from source:"+params.source+"! Reason: no source fields!");//test
+    //    resultCallback("FAILED _getSelectItems from source:"+params.source+"! Reason: no source fields!");
+    //    return;
+    //}
+    //var queryFields="";
+    //for(var fieldNameIndex in params.fields) {
+    //    if (queryFields!="") queryFields+= ",";
+    //    var fieldName=params.fields[fieldNameIndex], fieldFunction=null;
+    //    queryFields+= ((fieldFunction)?fieldFunction+" as ":"") + fieldName;
+    //}
+    //var selectQuery="select "+queryFields+" from "+params.source;
+    //var wConditionQuery, coditionValues=[];
+    //if (params.conditions&&typeof(params.conditions)=="object"&&params.conditions.length===undefined) {//object
+    //    for(var conditionItem in params.conditions) {
+    //        var conditionItemValue=params.conditions[conditionItem];
+    //        var conditionItemValueQuery= (conditionItemValue===null||conditionItemValue==='null')?conditionItem:conditionItem+"@p"+coditionValues.length;
+    //        conditionItemValueQuery= conditionItemValueQuery.replace("~","=");
+    //        wConditionQuery= (!wConditionQuery)?conditionItemValueQuery:wConditionQuery+" and "+conditionItemValueQuery;
+    //        if (conditionItemValue!==null) coditionValues.push(conditionItemValue);
+    //    }
+    //} else if (params.conditions&&typeof(params.conditions)=="object"&&params.conditions.length>0) {//array
+    //    for(var ind in params.conditions) {
+    //        var conditionItem= params.conditions[ind];
+    //        var conditionFieldName=conditionItem.fieldName;
+    //        if(params.fieldsSources&&params.fieldsSources[conditionFieldName])
+    //            conditionFieldName= params.fieldsSources[conditionFieldName];
+    //        var conditionItemValueQuery=
+    //            (conditionItem.value===null)?conditionFieldName+conditionItem.condition:conditionFieldName+conditionItem.condition+"@p"+coditionValues.length;
+    //        wConditionQuery= (!wConditionQuery)?conditionItemValueQuery:wConditionQuery+" and "+conditionItemValueQuery;
+    //        if (conditionItem.value!==null) coditionValues.push(conditionItem.value);
+    //    }
+    //}
+    //if(wConditionQuery)selectQuery+=" where "+wConditionQuery;
+    //if (params.order) selectQuery+=" order by "+params.order;
+    //if (coditionValues.length==0)
+    //    selectMSSQLQuery(selectQuery,function(err, recordset, count){
+    //        if(err) {                                                                                       logger.error("FAILED _getSelectItems selectMSSQLQuery! Reason:",err.message,"!");//test
+    //            resultCallback(err);
+    //        } else
+    //            resultCallback(null,recordset);
+    //    });
+    //else
+    //    selectParamsMSSQLQuery(selectQuery,coditionValues, function(err, recordset, count){
+    //        if(err) {                                                                                       logger.error("FAILED _getSelectItems selectParamsMSSQLQuery! Reason:",err.message,"!");//test
+    //            resultCallback(err);
+    //        } else
+    //            resultCallback(null,recordset);
+    //    });
 
 }
 
@@ -704,3 +922,111 @@ function getDataItemForTable(params, resultCallback){
         resultCallback(tableDataItem);
     });
 }
+/**
+ * params = { source, comboboxFields = { <tableComboboxFieldName>:<sourceFieldName>, ... },
+ *      joinedDMSources=[ <joinedSourceName>, ... ]
+ *      conditions={ <condition>:<conditionValue>, ... },
+ *      order = "<orderFieldsList>"
+ * }
+ * if !params.conditions returns all items
+ * resultCallback = function(result = { items:[ {<tableComboboxFieldName>:<value>, ... }, ... ], error, errorCode } )
+ */
+function getDataItemsForTableCombobox(params, resultCallback){
+    if(!params) {                                                                                       log.error("FAILED _getDataItemsForTableCombobox! Reason: no function parameters!");//test
+        resultCallback("FAILED _getDataItemsForTableCombobox! Reason: no function parameters!");
+        return;
+    }
+    if(!params.comboboxFields) {                                                                        log.error("FAILED _getDataItemsForTableCombobox! Reason: no comboboxFields!");//test
+        resultCallback("FAILED _getDataItemsForTableCombobox! Reason: no comboboxFields!");
+        return;
+    }
+    if(!params.source) params.source=this.source;
+    if(!params.conditions) params.conditions={"1=1":null};
+    params.fields=[];
+    var joinedSources;
+    for(var cFieldName in params.comboboxFields){
+        var cFieldData=params.comboboxFields[cFieldName];
+        if(cFieldData&&typeof(cFieldData)=="object"&&cFieldData.source) {
+            if (!joinedSources) joinedSources={};
+            if(!joinedSources[cFieldData.source]) joinedSources[cFieldData.source]=true;
+        }
+
+    }
+    for(var cFieldName in params.comboboxFields){
+        var cFieldData=params.comboboxFields[cFieldName];
+        params.fields.push(cFieldName);
+        if(typeof(cFieldData)=="string") {
+            var mainSourceName=(params.source)?params.source:this.source;
+            if(!params.fieldsSources) params.fieldsSources={};
+            if(joinedSources&&mainSourceName)
+                params.fieldsSources[cFieldName]=mainSourceName+"."+cFieldData;
+            else
+                params.fieldsSources[cFieldName]=cFieldData;
+        } else if(cFieldData&&typeof(cFieldData)=="object"&&cFieldData.field) {
+            if(cFieldData.source){
+                if(!params.fieldsSources) params.fieldsSources={};
+                params.fieldsSources[cFieldName]=cFieldData.source+"."+cFieldData.field;
+            }
+        }
+    }
+    if(joinedSources&&this.joinedSources){
+        params.joinedSources={};
+        for(var joinedSourceName in joinedSources){
+            var joinedSourceMetadata=this.joinedSources[joinedSourceName];
+            if(joinedSourceMetadata) params.joinedSources[joinedSourceName]=joinedSourceMetadata;
+        }
+    }
+    getDataItems(params,function(result){
+        if(result.items){
+            for(var i in result.items){
+                var resultItemData=result.items[i];
+                for(var rItemName in resultItemData){
+                    var rItemDataValue=resultItemData[rItemName];
+                    if(rItemDataValue==null) continue;
+                    if(typeof(rItemDataValue)!=="string") resultItemData[rItemName]=rItemDataValue.toString();
+                }
+            }
+        }
+        resultCallback(result);
+    });
+}
+module.exports.getDataItemsForTableCombobox=getDataItemsForTableCombobox;
+/**
+ * params = { source,
+ *      fields = [<tableFieldName>,<tableFieldName>,<tableFieldName>,...],
+ *      conditions={ <condition>:<conditionValue>, ... },
+ *      order = "<orderFieldsList>"
+ * }
+ * resultCallback = function(result = { items:[ {<tableFieldName>:<value>,...}, ... ], error, errorCode } )
+ */
+function getDataItems(params, resultCallback){                                                             //log.debug('_getDataItems: params:',params,{});//test
+    if(!params) params={};
+    if(!params.source) params.source= this.source;
+    if(!params.fields) params.fields=this.fields;
+    if(!params.conditions){                                                                                 log.error("FAILED _getDataItems from source:"+params.source+"! Reason: no conditions!");//test
+        resultCallback({error:"FAILED _getDataItems from source:"+params.source+"! Reason: no conditions!"});
+        return;
+    }
+    var condition={}, hasCondition=false;
+    for(var condItem in params.conditions){
+        var condValue=params.conditions[condItem];
+        if(condValue!==undefined) {
+            condition[condItem]=condValue;
+            hasCondition= true;
+        }
+    }
+    if(!hasCondition){                                                                                 log.error("FAILED _getDataItems from source:"+params.source+"! Reason: no data conditions!");//test
+        resultCallback({error:"FAILED _getDataItems from source:"+params.source+"! Reason: no data conditions!"});
+        return;
+    }
+    getSelectItems(params,function(err,recordset){
+        var selectResult={};
+        if(err) {
+            selectResult.error="Failed get data items! Reason:"+err.message;
+            selectResult.errorCode=err.code;
+        }
+        if (recordset) selectResult.items= recordset;                                                       //log.debug('_getDataItems: _getSelectItems: result:',selectResult,{});//test
+        resultCallback(selectResult);
+    });
+}
+

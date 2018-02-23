@@ -168,7 +168,11 @@ module.exports= function(app) {
         {data: "EmpName", name: "Имя сотрудника", width: 250, type: "text"},
         {data: "Login", name: "Login", width: 120, type: "text", align:"center"},
         {data: "LPass", name: "Password", width: 120, type: "text"},
-        {data: "ShiftPostID", name: "Менеджер", width: 100, type: "checkbox", align:"center"}
+        // /{data: "ShiftPostID", name: "Менеджер", width: 100, type: "checkbox", align:"center"}
+        //{childDataSource:"r_Uni", childLinkField:"RefTypeID",parentDataSource:"r_Emps",  parentLinkField:"r_Emps.ShiftPostID" },
+        {dataSource:"r_Uni", linkCondition:"r_Uni.RefID=r_Emps.ShiftPostID and r_Uni.RefTypeID=10606" },
+        {data: "RefName", dataSource:"r_Uni", name: "Роль", width: 100, type: "combobox",
+            sourceURL:"/sysadmin/employeeLoginTable/getDataForRoleCombobox",sourceField:"RefName"}
     ];
     app.get('/sysadmin/employeeLoginTable/getDataForTable', function (req, res) {
         res.connection.setTimeout(0);
@@ -187,4 +191,15 @@ module.exports= function(app) {
             res.send(result);
         })
     });
+    app.get('/sysadmin/employeeLoginTable/getDataForRoleCombobox', function(req,res){  //ShiftPostID
+        database.getDataItemsForTableCombobox({source:"r_Uni",comboboxFields:{/*"RefTypeID":"RefTypeID",*/"RefName":"RefName"},
+                order:"RefName",
+            conditions:{"RefTypeID=":10606}},
+        function(result){
+            res.send(result);
+        })
+    })
+
+
+
 };
