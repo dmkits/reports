@@ -707,16 +707,22 @@ module.exports.storeTableDataItem = function (params, resultCallback) {
     }
     var idValue=params.storeTableData[idFieldName];
     getDateFromFormattedStr(params.tableColumns,params.storeTableData);
-    if (idValue===undefined||idValue===null){//insert
+    var storeTableDataRefactored={};
+    for(var i in params.tableColumns){
+        var column=params.tableColumns[i];
+        if(column.dataSource && (column.dataSource!=params.tableName)){
+            continue;
+        }
+        storeTableDataRefactored[column.data]=params.storeTableData[column.data];
+    }
+    if (idValue===undefined||idValue===null){
         insTableDataWithNewID({tableName:params.tableName, idFieldName:idFieldName, tableColumns:params.tableColumns,
-            insTableData:params.storeTableData}, resultCallback);
+            insTableData:storeTableDataRefactored}, resultCallback);
         return;
     }
-    //update
     updTableDataItem({tableName:params.tableName, idFieldName:idFieldName, tableColumns:params.tableColumns,
-        updTableData:params.storeTableData}, resultCallback);
+        updTableData:storeTableDataRefactored}, resultCallback);
 };
-
 function getDateFromFormattedStr(columnsData, tableData){
     if(!columnsData||!tableData||columnsData.length==0) return tableData;
 
