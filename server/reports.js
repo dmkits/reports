@@ -70,7 +70,8 @@ module.exports= function(app) {
         }
         var conditions=req.query;
         var doConvertReport=false;
-        if(doConvertReport= (conditions["Stock"]=="-1")) conditions["Stock"]="1,2,3,4,5,6,7,9";
+        //if(doConvertReport= (conditions["Stock"]=="-1")) conditions["Stock"]="1,2,3,4,5,6,7,9";
+        if(conditions["Stock"]&&conditions["Stock"].indexOf(",">=0))doConvertReport=true;
         database.getReportTableDataBy(filename+".sql", conditions,
             function (error,recordset) {
                 if (error){
@@ -186,7 +187,8 @@ module.exports= function(app) {
                     res.send(outData);
                     return;
                 }
-                result.unshift({StockName:"Все склады",StockID:-1});
+                //result.unshift({StockName:"Все склады",StockID:-1});
+                getAllStocksIdStr(result);
                 outData.items=getResultItemsForSelect(result,{valueField:""});
                 res.send(outData)
             });
@@ -199,6 +201,7 @@ module.exports= function(app) {
                 res.send(outData);
                 return;
             }
+            getAllStocksIdStr(result);
             outData.items=getResultItemsForSelect(result,{valueField:""});
             res.send(outData)
         })
@@ -215,6 +218,17 @@ function getResultItemsForSelect(result){
             items.push(selectItem);
         }
         return items;
+}
+function getAllStocksIdStr(result){
+    if(result.length<=1) return;
+    var stockStr="";
+    for(var i in result ){
+        if(stockStr.length>0){
+            stockStr+=',';
+        }
+        stockStr+=result[i].StockID;
+    }
+    result.unshift({StockName:"Все склады",StockID:stockStr});
 }
 
 //  function getAllStocksProdBalanceQueryStr(stocksArr){

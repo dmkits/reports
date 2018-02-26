@@ -150,7 +150,9 @@ module.exports.selectStockNames=function(callback){
         var reqSql = new mssql.Request();
         reqSql.query("SELECT distinct s.StockName, r.StockID \n" +
             "from   t_Rem r\n" +
-            "inner join r_Stocks s on s.StockID=r.StockID order by s.StockName;",
+            "inner join r_Stocks s on s.StockID=r.StockID " +
+            "where s.StockID>0 " +
+            "order by s.StockName;",
             function (err, result) {
                 if (err) {
                     if(err.name=="ConnectionError")dbConnectError=err.message;

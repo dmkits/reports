@@ -21,7 +21,7 @@
 "totals":[
   {"type":"rowCount", "label":"ИТОГО строк:"},
   {"type":"sum", "label":"ИТОГО кол-во:", "width":260, "dataField":"TotalQty", "format":"#,###,###,##0.#########"},
-  {"type":"sum", "label":"ИТОГО сумма:", "width":200, "dataField":"TotalSum", "format":"#,###,###,##0.00#######"}
+  {"type":"sum", "label":"ИТОГО сумма:", "width":200, "inputWidth":80,"dataField":"TotalSum", "format":"#,###,###,##0.00#######"}
 ]}
 
 
