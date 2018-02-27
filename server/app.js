@@ -36,13 +36,17 @@ var port=app.port;
 var path=require ('path');                          console.log("module  path",new Date().getTime() - startTime);
 var bodyParser = require('body-parser');            console.log("module body-parser",new Date().getTime() - startTime);
 var XLSX = require('xlsx');                         console.log("xlsx",new Date().getTime() - startTime);
+var favicon = require('serve-favicon');             console.log("serve-favicon",new Date().getTime() - startTime);
+
 
 
 app.use(cookieParser());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
-app.use(bodyParser.text());
+app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
+app.use(bodyParser.json({limit: '50mb'}));
+app.use(bodyParser.text({limit: '50mb'}));
 app.use('/',express.static('public'));
+app.use(favicon(path.join(__dirname, '../public/icons', 'profits16x16.ico')));
+
 var database = require('./dataBase');               console.log("module ./dataBase",new Date().getTime() - startTime);
 app.ConfigurationError, app.DBConnectError="No connection";
 
@@ -234,6 +238,7 @@ function fillRowData(wb,rowData,columns, lineNum){
     var lastCellInRaw;
     for (var i = 0; i < columns.length; i++) {
         var column=columns[i];
+        if(!column) continue;
         var columnDataID = column.data;
 
         var cellType=getCellType(column);
@@ -249,6 +254,7 @@ function fillRowData(wb,rowData,columns, lineNum){
             wbCell.z=column.datetimeFormat || "DD.MM.YYYY";
         }
         if(wbCell.t=="n"){
+            if(!column.format) continue;
             if(column.format.indexOf("0.00")>0 )wbCell.z= '#,###,##0.00';
             if(column.format.indexOf("0.[")>0 )wbCell.z= '#,###,##0';
         }

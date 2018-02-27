@@ -10,7 +10,7 @@
  * <script src="/jslib/Numeral-js/min/numeral.min.js"></script>
  * <script src="/jslib/Numeral-js/min/languages/ru-UA.min.js"></script>
  */
-
+numeral.language('ru-UA');
 var calcTableWidth = function (printSectionData) {
     var col_width;
     var table_width = 0;
@@ -179,14 +179,13 @@ var createDescriptiveTable = function (descriptiveData, table_width) {          
     return descriptContent;
 };
 var getBaseStyleForValue = function (ItemData) {
-    if (ItemData.type == "date" ||(ItemData.type == "text"&&ItemData.datetimeFormat) ) return "text-align:center;";
+    if (ItemData.align) return "text-align:"+ItemData.align+";";
+    else if (ItemData.type == "date" ||(ItemData.type == "text"&&ItemData.datetimeFormat) ) return "text-align:center;";
     else if (ItemData.type == "numeric") return "text-align:right;";
     else if (ItemData.type == "currency") return "text-align:right;";
-    else if (ItemData.align) return "text-align:"+ItemData.align+";";
     return "text-align:left;";
 };
 var getPrintValue = function (value, valueType, printFormat) {
-    numeral.language('ru-UA');
     if (value===undefined||value===null||!valueType) return value;
     if (valueType === "date") {
         if (!printFormat) return moment(value).format("DD.MM.YYYY");

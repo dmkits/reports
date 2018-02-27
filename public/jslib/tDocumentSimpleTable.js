@@ -595,7 +595,7 @@ define(["dojo/_base/declare", "app", "tDocumentBase","dijit/form/Select", "hTabl
                         }else if(headerItemData.type=="SelectBox"){
                             printParams = headerItemData.instance.printParams;
                             this.addPrintDataSubItemTo(printData, "header",
-                                {label:printParams.labelText, width:printParams.cellWidth, align:"left",style:headerTextStyle, contentStyle:headerDateContentStyle, value:headerItemData.instance.get("value")});
+                                {label:printParams.labelText, width:printParams.cellWidth, align:"left",style:headerTextStyle, contentStyle:headerDateContentStyle, value:headerItemData.instance.domNode.innerText});
                         }else if(headerItemData.type=="CheckButton"){
                             if(headerItemData.instance.checked==true) {
                                 printParams = headerItemData.instance.printParams;

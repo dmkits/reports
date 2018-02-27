@@ -114,7 +114,6 @@ define(["dojo/_base/declare", "dijit/layout/BorderContainer", "dijit/layout/Layo
                 tableRow.insertBefore(tableCell, tableRow.lastChild);
                 return tableCell;
             },
-
             /**
              * params= {labelText, btnStyle, btnChecked, btnParameters}
              */

@@ -148,10 +148,9 @@ module.exports.getUserDataByLpid=function(LPID, callback){
 };
 module.exports.selectStockNames=function(callback){
         var reqSql = new mssql.Request();
-        reqSql.query("SELECT s.StockName, r.StockID "+
+        reqSql.query("SELECT s.StockName, CONVERT(varchar,r.StockID) as StockID "+
             "from   t_Rem r "+
             "inner join r_Stocks s on s.StockID=r.StockID "+
-            "where s.StockID>0 "+
             "group by r.StockID,s.StockName "+
             "having sum(r.Qty)<>0 "+
             "order by r.StockID ",
@@ -168,7 +167,7 @@ module.exports.selectStockNames=function(callback){
 module.exports.selectStockNameByUserID=function(EmpID, callback){
     var reqSql = new mssql.Request();
     reqSql.input('EmpID',EmpID);
-    reqSql.query("select st.StockID, st.StockName,\n" +
+    reqSql.query("select CONVERT(varchar,st.StockID)  as StockID, st.StockName,\n" +
         "\te.EmpID, e.EmpName\n" +
         "\t, op.OperID, op.OperName, opcr.CRID, cr.CRName\n" +
         "\tfrom r_Emps e\n" +
@@ -191,16 +190,16 @@ module.exports.selectStockNameByUserID=function(EmpID, callback){
 module.exports.selectStockNamesForRemByUserID=function(EmpID, callback){
     var reqSql = new mssql.Request();
     reqSql.input('EmpID',EmpID);
-    reqSql.query("select st.StockID, st.StockName,\n" +
-        "\te.EmpID, e.EmpName\n" +
-        "\t, op.OperID, op.OperName, opcr.CRID, cr.CRName\n" +
-        "\tfrom r_Emps e\n" +
-        "\tinner join r_Opers op on op.EmpID=e.EmpID\n" +
-        "\tinner join r_OperCRs opcr on opcr.OperID=op.OperID\n" +
-        "\tinner join r_Crs cr on cr.CRID=opcr.CRID\n" +
-        "\tinner join r_Stocks st on st.StockID=cr.StockID\n" +
-        "\twhere e.EmpID=@EmpID\n" +
-        "\torder by st.StockID",
+    reqSql.query("select  st.StockName, CONVERT(varchar,st.StockID )  as StockID ,"+
+        "e.EmpID, e.EmpName, op.OperID, op.OperName "+
+        "from r_Emps e "+
+        "inner join r_Opers op on op.EmpID=e.EmpID "+
+        "inner join r_OperCRs opcr on opcr.OperID=op.OperID "+
+        "inner join r_Crs cr on cr.CRID=opcr.CRID "+
+        "inner join r_Stocks st on st.StockID=cr.StockID "+
+        "where e.EmpID=@EmpID "+
+        "group by  st.StockName,st.StockID ,e.EmpID,e.EmpName,op.OperID,op.OperName "+
+        "order by st.StockID;",
         function (err, result) {
             if (err) {
                 if(err.name=="ConnectionError")dbConnectError=err.message;
