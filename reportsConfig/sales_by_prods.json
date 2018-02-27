@@ -1,38 +1,25 @@
-/*[
-  { "data":"PGrName2", "name":"Вид", "width":150, "type":"text" },
-  { "data":"PGrName3", "name":"Тип", "width":200, "type":"text" },
-  { "data":"Article1", "name":"Артикул", "width":120, "type":"text" },
-  { "data":"ProdName", "name":"Наименование", "width":400, "type":"text" },
-  { "data":"UM", "name":"Ед. изм.", "width":60, "type":"text" },
-  { "data":"TotalQty", "name":"Кол-во", "width":80, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.[#########]" },
-  { "data":"PriceCC_wt", "name":"Цена", "width":80, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.00[#######]" },
-  { "data":"TotalSum", "name":"Сумма", "width":100, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.00[#######]" }
-]
-*/
-
-
-
 {"headers":[
   {"type":"dateBox", "label":"c", "params":{"contentTableCondition":"BDATE", "initValueDate":"curMonthBDate"}},
   {"type":"dateBox", "label":"по", "params":{"contentTableCondition":"EDATE"}},
   {"type":"selectBox","label":"Склад:", "params":{"contentTableCondition":"StockID","valueItemName":"StockID", "labelItemName":"StockName", "loadDropDownURL":"/reports/getStocks"}}
 ],
 "columns":[
-  { "data":"PGrName2", "name":"Вид", "width":150, "type":"text" },
-  { "data":"DocName", "name":"Имя документа", "width":175, "type":"text"},
-  { "data":"PGrName3", "name":"Тип", "width":200, "type":"text" },
-  { "data":"Article1", "name":"Артикул", "width":120, "type":"text" },
-  { "data":"ProdName", "name":"Наименование", "width":400, "type":"text" },
-  { "data":"UM", "name":"Ед. изм.", "width":60, "type":"text" },
-  { "data":"TotalQty", "name":"Кол-во", "width":80, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.[#########]" },
-  { "data":"PriceCC_wt", "name":"Цена", "width":80, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.00[#######]" },
-  { "data":"TotalSum", "name":"Сумма", "width":100, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.00[#######]" }
+  { "data": "StockName", "name": "Склад", "type": "text", "width": 120, "visible":false },
+  { "data": "PCatName", "name": "Категория", "type": "text", "width": 200 },
+  { "data": "ProdID", "name": "Код товара", "type": "numeric", "language": "ru-RU", "width": 55, "format":"#,###,###,##0", "align":"center" },
+  { "data":"Article1", "name":"Артикул", "width":120, "type":"text", "align":"center" },
+  { "data":"ProdName", "name":"Наименование", "width":350, "type":"text" },
+  { "data":"UM", "name":"Ед. изм.", "width":50, "type":"text", "align":"center" },
+  { "data":"PriceCC_wt", "name":"Цена", "width":70, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.00[#######]" },
+  { "data":"SaleQty", "name":"Кол-во продаж", "width":65, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.[#########]", "align":"center" },
+  { "data":"RetQty", "name":"Кол-во возвратов", "width":65, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.[#########]", "align":"center" },
+  { "data":"TotalQty", "name":"Кол-во ИТОГО", "width":65, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.[#########]", "align":"center" },
+  { "data":"SaleSum", "name":"Сумма продаж", "width":80, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.00[#######]" },
+  { "data":"RetSum", "name":"Сумма возвратов", "width":80, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.00[#######]" },
+  { "data":"TotalSum", "name":"Сумма ИТОГО", "width":85, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.00[#######]" }
 ],
 "totals":[
   {"type":"rowCount", "label":"ИТОГО строк:"},
-  {"type":"sum", "label":"ИТОГО кол-во:", "width":260, "dataField":"TotalQty", "format":"#,###,###,##0.#########"},
-  {"type":"sum", "label":"ИТОГО сумма:", "width":200, "dataField":"TotalSum", "format":"#,###,###,##0.00#######"}
+  {"type":"sum", "label":"ИТОГО кол-во:", "width":900, "dataField":"TotalQty", "format":"#,###,###,##0.#########", "inputWidth":70 },
+  {"type":"sum", "label":"ИТОГО сумма:", "width":245, "dataField":"TotalSum", "format":"#,###,###,##0.00#######", "inputWidth":90 }
 ]}
-
-
-

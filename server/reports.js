@@ -151,7 +151,6 @@ module.exports= function(app) {
         params.outData.items=newRepData;
         params.outData.columns=newRepColumns;
     }
-
     app.get("/reports/getStocks", function(req, res){
         res.connection.setTimeout(0);
         var outData={};
@@ -194,7 +193,7 @@ module.exports= function(app) {
             });
             return;
         }
-        database.selectStockNameByUserID(req.userID, function(err, result){
+        database.selectStockNamesForRemByUserID(req.userID, function(err, result){
             res.connection.setTimeout(0);
             if (err){
                 outData.error=err.message;

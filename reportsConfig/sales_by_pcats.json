@@ -1,27 +1,20 @@
-/*
-dfasdfadsf
-*/
-/*
-[
-  { "data":"PCatName", "name":"Бренд", "width":400, "type":"text" },
-  { "data":"TotalQty", "name":"Кол-во", "width":100, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.[#########]" },
-  { "data":"TotalSum", "name":"Сумма", "width":150, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.00[#######]" }
-]
-*/
-
 {"headers":[
   {"type":"dateBox", "label":"c", "params":{"contentTableCondition":"BDATE", "initValueDate":"curMonthBDate"}},
   {"type":"dateBox", "label":"по", "params":{"contentTableCondition":"EDATE"}},
   {"type":"selectBox","label":"Склад:", "params":{"contentTableCondition":"StockID","valueItemName":"StockID", "labelItemName":"StockName", "loadDropDownURL":"/reports/getStocks"}}
 ],
 "columns":[
-  { "data":"PCatName", "name":"Бренд", "width":400, "type":"text" },
-  { "data":"DocName", "name":"Имя документа", "width":175, "type":"text"},
-  { "data":"TotalQty", "name":"Кол-во", "width":100, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.[#########]" },
-  { "data":"TotalSum", "name":"Сумма", "width":150, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.00[#######]" }
+  { "data": "StockName", "name": "Склад", "type": "text", "width": 120, "visible":false },
+  { "data":"PCatName", "name":"Категория", "width":200, "type":"text" },
+  { "data":"SaleQty", "name":"Кол-во продаж", "width":65, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.[#########]", "align":"center" },
+  { "data":"RetQty", "name":"Кол-во возвратов", "width":65, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.[#########]", "align":"center" },
+  { "data":"TotalQty", "name":"Кол-во ИТОГО", "width":65, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.[#########]", "align":"center" },
+  { "data":"SaleSum", "name":"Сумма продаж", "width":80, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.00[#######]" },
+  { "data":"RetSum", "name":"Сумма возвратов", "width":80, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.00[#######]" },
+  { "data":"TotalSum", "name":"Сумма ИТОГО", "width":85, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.00[#######]" }
 ],
 "totals":[
   {"type":"rowCount", "label":"ИТОГО строк:"},
-  {"type":"sum", "label":"ИТОГО кол-во:", "width":260, "dataField":"TotalQty", "format":"#,###,###,##0.#########"},
-  {"type":"sum", "label":"ИТОГО сумма:", "width":200, "dataField":"TotalSum", "format":"#,###,###,##0.00#######"}
+  {"type":"sum", "label":"ИТОГО кол-во:", "width":255, "dataField":"TotalQty", "format":"#,###,###,##0.#########", "inputWidth":70 },
+  {"type":"sum", "label":"ИТОГО сумма:", "width":245, "dataField":"TotalSum", "format":"#,###,###,##0.00#######", "inputWidth":90 }
 ]}

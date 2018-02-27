@@ -148,11 +148,13 @@ module.exports.getUserDataByLpid=function(LPID, callback){
 };
 module.exports.selectStockNames=function(callback){
         var reqSql = new mssql.Request();
-        reqSql.query("SELECT distinct s.StockName, r.StockID \n" +
-            "from   t_Rem r\n" +
-            "inner join r_Stocks s on s.StockID=r.StockID " +
-            "where s.StockID>0 " +
-            "order by s.StockName;",
+        reqSql.query("SELECT s.StockName, r.StockID "+
+            "from   t_Rem r "+
+            "inner join r_Stocks s on s.StockID=r.StockID "+
+            "where s.StockID>0 "+
+            "group by r.StockID,s.StockName "+
+            "having sum(r.Qty)<>0 "+
+            "order by r.StockID ",
             function (err, result) {
                 if (err) {
                     if(err.name=="ConnectionError")dbConnectError=err.message;
@@ -167,15 +169,38 @@ module.exports.selectStockNameByUserID=function(EmpID, callback){
     var reqSql = new mssql.Request();
     reqSql.input('EmpID',EmpID);
     reqSql.query("select st.StockID, st.StockName,\n" +
-        "\t\te.EmpID, e.EmpName\n" +
-        "\t\t, op.OperID, op.OperName, opcr.CRID, cr.CRName\n" +
+        "\te.EmpID, e.EmpName\n" +
+        "\t, op.OperID, op.OperName, opcr.CRID, cr.CRName\n" +
+        "\tfrom r_Emps e\n" +
+        "\tinner join r_Opers op on op.EmpID=e.EmpID\n" +
+        "\tinner join r_OperCRs opcr on opcr.OperID=op.OperID and opcr.CRVisible>0\n" +
+        "\tinner join r_Crs cr on cr.CRID=opcr.CRID\n" +
+        "\tinner join r_Stocks st on st.StockID=cr.StockID\n" +
+        "\twhere e.EmpID=@EmpID\n" +
+        "\torder by st.StockID",
+        function (err, result) {
+            if (err) {
+                if(err.name=="ConnectionError")dbConnectError=err.message;
+                callback(err.message);
+                return;
+            }
+            callback(null,result.recordset);
+        });
+};
+
+module.exports.selectStockNamesForRemByUserID=function(EmpID, callback){
+    var reqSql = new mssql.Request();
+    reqSql.input('EmpID',EmpID);
+    reqSql.query("select st.StockID, st.StockName,\n" +
+        "\te.EmpID, e.EmpName\n" +
+        "\t, op.OperID, op.OperName, opcr.CRID, cr.CRName\n" +
         "\tfrom r_Emps e\n" +
         "\tinner join r_Opers op on op.EmpID=e.EmpID\n" +
         "\tinner join r_OperCRs opcr on opcr.OperID=op.OperID\n" +
         "\tinner join r_Crs cr on cr.CRID=opcr.CRID\n" +
         "\tinner join r_Stocks st on st.StockID=cr.StockID\n" +
         "\twhere e.EmpID=@EmpID\n" +
-        "\torder by st.StockName",
+        "\torder by st.StockID",
         function (err, result) {
             if (err) {
                 if(err.name=="ConnectionError")dbConnectError=err.message;

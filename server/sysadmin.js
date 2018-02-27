@@ -34,7 +34,9 @@ module.exports= function(app) {
             res.send({error:app.ConfigurationError});
             return;
         }
-        res.send(database.getDBConfig());
+        var appConfig=database.getDBConfig();
+        if(!appConfig["reports.config"])appConfig["reports.config"]=common.getConfigDirectoryName();
+        res.send(appConfig);
     });
     app.get("/sysadmin/startup_parameters/load_app_config", function (req, res) {
         common.tryLoadConfiguration(app);
@@ -42,7 +44,9 @@ module.exports= function(app) {
             res.send({error:app.ConfigurationError});
             return;
         }
-        res.send(database.getDBConfig());
+        var appConfig=database.getDBConfig();
+        if(!appConfig["reports.config"])appConfig["reports.config"]=common.getConfigDirectoryName();
+        res.send(appConfig);
     });
     app.post("/sysadmin/startup_parameters/store_app_config_and_reconnect", function (req, res) {
         var newDBConfigString = req.body;
