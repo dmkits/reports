@@ -103,8 +103,8 @@
                     Request.getJSONData({url: "/sysadmin/sql_queries/get_reports_list"},
                         function (result) {
                             document.getElementById("filename").innerHTML = "reports_list";
-                            displayFileContentJSON.value = result.jsonText;
-                            var items=JSON.parse(result.jsonFormattedText);
+                            displayFileContentJSON.value = result.fileContent;
+                            var items=result.items;
                             for (var i in items) {
                                 if(items[i]['id']==undefined){
                                     continue;

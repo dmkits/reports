@@ -1,7 +1,15 @@
-[
-  {  "id": "sales_by_pcats",    "name": "Реализация по категориям"  },
-  {  "id": "sales_by_prods",   "name": "Реализация по наименованию" },
-  {  "id": "sales_by_days", "name": "Реализация по дням" },
-  {},
-  { "id": "prod_balance", "name": "Остатки товара"}
-]
+{
+  "reports": [
+    {  "id": "sales_by_pcats",    "name": "Реализация по категориям"  },
+    {  "id": "sales_by_prods",   "name": "Реализация по наименованию" },
+    {  "id": "sales_by_days", "name": "Реализация по дням" },
+    {},
+    { "id": "prod_balance", "name": "Остатки товара"}
+  ],
+  "rolesCodes":{
+    "0":["sales_by_pcats","","sales_by_prods","sales_by_days","prod_balance"],
+    "1":["sales_by_pcats","sales_by_prods","sales_by_days","","prod_balance"],
+    "2":[],
+    "sysadmin":[/*all reports are avaliable*/]
+  }
+}

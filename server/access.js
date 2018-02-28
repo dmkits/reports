@@ -31,6 +31,7 @@ module.exports= function(app) {
             }
             if (sysAdminAccess) {
                 req.isSysadmin= true;
+                req.userRoleCode="sysadmin";
                 req.loginEmpName="sysadmin ("+sysAdminLogin+")";
                 next();
                 return;
@@ -79,6 +80,7 @@ module.exports= function(app) {
                     res.sendFile(path.join(__dirname, '../pages', 'login.html'));
                     return;
                 }
+                req.userRoleCode=result.ShiftPostID;
                 req.userID=result.EmpID;
                 req.loginEmpName=result.EmpName;
                 if(result.ShiftPostID==1) req.isAdminUser= true;

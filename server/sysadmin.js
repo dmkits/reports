@@ -2,6 +2,7 @@ var fs = require('fs'), path=require ('path');
 
 var common=require('./common');
 var database=require('./dataBase');
+var logger=require('./logger')();
 
 module.exports= function(app) {
     app.get("/sysadmin", function(req, res){
@@ -68,8 +69,17 @@ module.exports= function(app) {
     app.get("/sysadmin/sql_queries/get_reports_list", function (req, res) {
         var outData={};
         var configDirectoryName=common.getConfigDirectoryName();
-        outData.jsonText =fs.readFileSync(path.join(__dirname,'../'+configDirectoryName+'/reports_list.json')).toString();
-        outData.jsonFormattedText = common.getJSONWithoutComments(outData.jsonText);
+        try{
+            var fileContent=fs.readFileSync(path.join(__dirname,'../'+configDirectoryName+'/reports_list.json'),'utf8');
+            var repData=JSON.parse(common.getJSONWithoutComments(fileContent));
+        }catch(e){
+            logger.error("Failed to get reports list file. Reason:"+e);
+            outData.error= "Failed to get reports list file. Reason:"+e;
+            res.send(outData);
+            return;
+        }
+        outData.fileContent=fileContent;
+        outData.items=repData.reports;
         res.send(outData);
     });
     app.get("/sysadmin/sql_queries/get_script", function (req, res) {

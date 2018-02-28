@@ -2,6 +2,7 @@ var common=require("./common");
 var database=require("./dataBase");
 var path=require('path');
 var fs=require('fs');
+var logger=require('./logger')();
 
 module.exports= function(app) {
     app.get("/reports/reportPage", function(req, res){
@@ -10,8 +11,36 @@ module.exports= function(app) {
     app.get("/reports/getReportsList", function (req, res) {
         var outData={};
         var configDirectoryName=common.getConfigDirectoryName();
-        outData.jsonText =fs.readFileSync(path.join(__dirname,'../'+configDirectoryName+'/reports_list.json')).toString();
-        outData.jsonFormattedText = common.getJSONWithoutComments(outData.jsonText);
+        var repData;
+        try{
+            repData=JSON.parse(common.getJSONWithoutComments(fs.readFileSync(path.join(__dirname,'../'+configDirectoryName+'/reports_list.json'),'utf8')));
+        }catch(e){
+            logger.error("Failed to get reports list file. Reason:"+e);
+            outData.error= "Failed to get reports list file. Reason:"+e;
+            res.send(outData);
+            return;
+        }
+        var reports=repData.reports;
+        if(req.userRoleCode=="sysadmin"){
+            outData.items=reports;
+            res.send(outData);
+            return;
+        }
+        var userRepList=repData.rolesCodes[req.userRoleCode];
+        var userReports=[];
+        for(var i in userRepList){
+            if(userRepList[i].trim().length==0){
+                userReports.push({});
+                continue;
+            }
+            for(var j in reports){
+                if(!reports[j].id) continue;
+                else if(userRepList[i]==reports[j].id){
+                    userReports.push(reports[j]);
+                }
+            }
+        }
+        outData.items=userReports;   console.log("userReports=",userReports);
         res.send(outData);
     });
     app.get("/reports/getReportConfigByReportName/*", function(req, res){
