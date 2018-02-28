@@ -118,7 +118,7 @@
                         Request.postJSONData({url:"/",data:{action:"exit"},consoleLog:true},
                                 function(result){
                                     var resultContent;
-                                    if (result&&result.actionResult=="successfull") resultContent= "<div>Вы закрыли все окна и вышли из рабочей сессии.</div>";
+                                    if (result&&result.actionResult=="successfull") resultContent= "<div>Вы закрыли все окна и вышли из рабочей сессии. <a href='/login'>Войти</a></div>";
                                     else resultContent= "<div>Вы закрыли все окна.</div>";
                                     main_MainContainer.addChild(new ContentPane({id:"finish", title:"finish", region:"center",content:resultContent}) );
                                 });

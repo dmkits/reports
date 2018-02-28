@@ -65,7 +65,7 @@ define(["app", "dijit/ConfirmDialog","dojox/widget/DialogSimple", "dijit/form/Bu
             },
             mainAboutDialog: function (){
                 this.doDialogMsg({title:"О программе",
-                    content:"Система учета <b>REPORTS</b>. <br>Разработчики: dmkits, ianagez<br>2017-2018",
+                    content:"Система отчетности <b>REPORTS</b>. <br>Разработчики: dmkits, ianagez<br>2017-2018",
                     btnOkLabel:"OK", btnCancelLabel:"Закрыть"});
             },
             printTagsDialog: function(callback) {
