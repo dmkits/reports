@@ -63,30 +63,42 @@ module.exports= function(app) {
             }
         );
     });
-    app.get("/sysadmin/reports_config", function (req, res) {
+    app.get("/sysadmin/pages_config", function (req, res) {
         res.sendFile(path.join(__dirname, '../pages/sysadmin', 'sql_queries.html'));
     });
     app.get("/sysadmin/sql_queries/get_reports_list", function (req, res) {
         var outData={};
         var configDirectoryName=common.getConfigDirectoryName();
         try{
-            var fileContent=fs.readFileSync(path.join(__dirname,'../'+configDirectoryName+'/reports_list.json'),'utf8');
-            var repData=JSON.parse(common.getJSONWithoutComments(fileContent));
+            var fileContent=fs.readFileSync(path.join(__dirname,'../'+configDirectoryName+'/pagesConfig.json'),'utf8');
+            var pagesConfig=JSON.parse(common.getJSONWithoutComments(fileContent));
         }catch(e){
             logger.error("Failed to get reports list file. Reason:"+e);
             outData.error= "Failed to get reports list file. Reason:"+e;
             res.send(outData);
             return;
         }
+        var items=[];
+        var pages=pagesConfig.pages;
+        for(var i in pages ){
+            var page=pages[i];
+            var buttons=page.buttons;
+            for(var j in buttons){
+                var button=buttons[j];
+                if(!button.id) continue;
+                items.push({id:page.id+"."+button.id});
+            }
+        }
         outData.fileContent=fileContent;
-        outData.items=repData.reports;
+        outData.items=items;
         res.send(outData);
     });
     app.get("/sysadmin/sql_queries/get_script", function (req, res) {
         var configDirectoryName=common.getConfigDirectoryName();
         var outData={};
-        var sqlFile = path.join(__dirname,'../'+configDirectoryName+'/' + req.query.filename + ".sql");
-        var jsonFile=path.join(__dirname,'../'+configDirectoryName+'/' + req.query.filename + ".json");
+        var filename=req.query.filename.replace(".","/");
+        var sqlFile = path.join(__dirname,'../'+configDirectoryName+'/' + filename + ".sql");
+        var jsonFile=path.join(__dirname,'../'+configDirectoryName+'/' + filename + ".json");
         if(fs.existsSync(sqlFile)){
             outData.sqlText = fs.readFileSync(sqlFile,'utf8');
         }else{

@@ -164,14 +164,18 @@ app.get("/get_main_data", function(req, res){                                   
         res.send(outData);
         return;
     }
-    var userConfigPagesList=pagesConfig.rolesCodes[req.userRoleCode];
     var pages=pagesConfig.pages;
     var userPages=[];
-    for(var userPage in userConfigPagesList){
-        for(var i in pages){
-            var page=pages[i];
-            if(page.id==userConfigPagesList[userPage]){
-                userPages.push(page);
+    if(req.userRoleCode=="sysadmin"){
+        userPages=pages;
+    }else{
+        var userConfigPagesList=pagesConfig.rolesCodes[req.userRoleCode];
+        for(var userPage in userConfigPagesList){
+            for(var i in pages){
+                var page=pages[i];
+                if(page.id==userConfigPagesList[userPage]){
+                    userPages.push(page);
+                }
             }
         }
     }

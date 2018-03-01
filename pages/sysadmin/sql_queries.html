@@ -81,16 +81,16 @@
                     button.domNode.firstChild.setAttribute("style", "width:150px;");
                 };
 
-                var reportsListBtn = APP.childFor(leftContentSQL, "reports_list", Button, {label: "reports_list"});
+                var reportsListBtn = APP.childFor(leftContentSQL, "pages_list", Button, {label: "pages_list"});
                 reportsListBtn.domNode.firstChild.setAttribute("style", "width:150px;");
                 reportsListBtn.startup();
                 reportsListBtn.onClick = function () {
                     displayFileContentSQL.value ="" ;
                     displayFileContentJSON.value ="" ;
                     var childrenList=leftContentSQL.getChildren();
-                    if (childrenList.length > 1) {                                  console.log("childrenList=",childrenList);
+                    if (childrenList.length > 1) {
                         for(var i in childrenList){
-                            if(childrenList[i].id!=="reports_list"){
+                            if(childrenList[i].id!=="pages_list"){
                                 childrenList[i].destroy(false);
                             }
                         }
@@ -102,7 +102,7 @@
                     }
                     Request.getJSONData({url: "/sysadmin/sql_queries/get_reports_list"},
                         function (result) {
-                            document.getElementById("filename").innerHTML = "reports_list";
+                            document.getElementById("filename").innerHTML = "pages_list";
                             displayFileContentJSON.value = result.fileContent;
                             var items=result.items;
                             for (var i in items) {
