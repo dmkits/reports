@@ -213,31 +213,61 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane","dojox/widget/Standby",
             setHTParams: function(params){
                 this.handsonTable.updateSettings(params);
             },
-            setAddingHeaderRow: function(addingHeaderElements){
+            setAddingHeaderRow: function(addingHeaderElements){     console.log("this=",this);
                 if (addingHeaderElements) this.tableHeaderAddedElements=addingHeaderElements;
                 var hInstance= this.getHandsonTable();
                 hInstance.updateSettings({
-                    afterRender: function () {
-                        var theads=hInstance.rootElement.getElementsByTagName('thead');                         //console.log("HTableSimple afterRender theads=",theads);
-                        var div= document.createElement("div");
-                        for(var theadInd=0;theadInd<theads.length;theadInd++){
-                            var thead= theads[theadInd];
-                            var newTR = document.createElement("tr");
-                            var newTH=document.createElement("th");
-                            newTR.appendChild(newTH);
-                            var tr=thead.getElementsByTagName('tr')[0];
-                            if(theadInd<=1) {
-                                thead.insertBefore(newTR, tr);
-                                newTH.setAttribute("colspan", tr.childNodes.length.toString());
-                                if(theadInd==1)newTH.appendChild(div);
-                                if (tr.firstChild) tr.firstChild.removeAttribute("colspan");
-                            }
+                    afterRender: function () {                                     // console.log("hInstance=",hInstance);
+                        var table=document.getElementById("headerFilterTable");
+                        if(table){
+                            table.parentNode.removeChild(table);
                         }
+                        var hWidth=hInstance.table.clientWidth;
+                        var element=hInstance.rootElement;
+                        var parentEl=hInstance.rootElement.parentElement;
+                        table=document.createElement('table');
+                        table.id="headerFilterTable";
+                        table.width=hWidth;
+                        table.style.border='solid  #CCC';
+                        table.style.borderWidth="0 1px 0 1px";
+
+                        var tr = document.createElement("tr");
+                        var th = document.createElement('th');
+                        table.appendChild(tr);
+                        tr.appendChild(th);
+                        var div= document.createElement("div");
+                        th.appendChild(div);
                         for(var eName in addingHeaderElements)
                             div.appendChild(addingHeaderElements[eName]);
+                        parentEl.insertBefore(table,element);
                     }
                 });
             },
+            //setAddingHeaderRow: function(addingHeaderElements){
+            //    if (addingHeaderElements) this.tableHeaderAddedElements=addingHeaderElements;
+            //    var hInstance= this.getHandsonTable();
+            //    hInstance.updateSettings({
+            //        afterRender: function () {                                      console.log("hInstance=",hInstance);
+            //            var theads=hInstance.rootElement.getElementsByTagName('thead');                         //console.log("HTableSimple afterRender theads=",theads);
+            //            var div= document.createElement("div");
+            //            for(var theadInd=0;theadInd<theads.length;theadInd++){
+            //                var thead= theads[theadInd];
+            //                var newTR = document.createElement("tr");
+            //                var newTH=document.createElement("th");
+            //                newTR.appendChild(newTH);
+            //                var tr=thead.getElementsByTagName('tr')[0];
+            //                if(theadInd<=1) {
+            //                    thead.insertBefore(newTR, tr);
+            //                    newTH.setAttribute("colspan", tr.childNodes.length.toString());
+            //                    if(theadInd==1)newTH.appendChild(div);
+            //                    if (tr.firstChild) tr.firstChild.removeAttribute("colspan");
+            //                }
+            //            }
+            //            for(var eName in addingHeaderElements)
+            //                div.appendChild(addingHeaderElements[eName]);
+            //        }
+            //    });
+            //},
             resizeAll: function(changeSize,resultSize){
                 if(!changeSize) return;
                 this.resizePane(changeSize,resultSize);

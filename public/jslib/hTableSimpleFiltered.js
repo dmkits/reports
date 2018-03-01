@@ -18,13 +18,20 @@ define(["dojo/_base/declare", "hTableSimple"], function(declare, HTableSimple){
             lblGlobalFilter.innerHTML="Фильтр по таблице:"; lblGlobalFilter.className = "changeTypeLbl";
             var inputGlobalFilter = document.createElement("input"); this.globalFilter.input=inputGlobalFilter;
             inputGlobalFilter.id = "inputGlobalFilter"; inputGlobalFilter.className = "changeTypeC";
-            this.globalFilter.setGlobalFilter=function(value){
-                if(value!==null&&value.length>0){
+            this.globalFilter.setGlobalFilter=function(value){                      console.log("globalFilter");
+               var headerFilterTable=document.getElementById('headerFilterTable');
+                if(value!==null&&value.length>0){      console.log("value!==null&&value.length>0="); console.log("headerFilterTable=",headerFilterTable);
                     this.value= value.trim();
-                    this.input.classList.add("changeTypeAccent"); this.label.classList.add("changeTypeAccent");
+                    //headerFilterTable. firstChild.firstChild.firstChild.style.color='red';
+                    //headerFilterTable. firstChild.firstChild.firstChild.setAttribute('font-color','red');
+                    //this.input.classList.add("changeTypeAccent"); this.label.classList.add("changeTypeAccent");
+                    this.input.setAttribute('text-color','red');
+                    console.log("this.input=",this.input);
+                    console.log("headerFilterTable fontColor=",headerFilterTable);
                 } else {
                     this.value= null; this.input.value=null;
-                    this.input.classList.remove("changeTypeAccent"); this.label.classList.remove("changeTypeAccent");
+                    //this.input.classList.remove("changeTypeAccent"); this.label.classList.remove("changeTypeAccent");
+                    headerFilterTable.style.fontWeight='normal';
                 }
             };
             var thisGlobalFilter= this.globalFilter;
@@ -72,13 +79,13 @@ define(["dojo/_base/declare", "hTableSimple"], function(declare, HTableSimple){
                 if(event.target.id.indexOf("filter_menu_")<0)/*filter menu closed if filter menu item element focusout*/
                     parent.handsonTable.hideFilterMenu();
             });
-            Handsontable.Dom.addEvent(document, 'mousedown', function (event) {                                         //console.log("HTableSimpleFiltered document mousedown target=",event.target);
+            Handsontable.Dom.addEvent(document, 'mousedown', function (event) {                                       // console.log("HTableSimpleFiltered document mousedown target=",event.target);
                 if(event.target.id.indexOf("filter_button_for_")>=0) event.stopPropagation();
                 if(event.target.id.indexOf("filter_menu_")<0)/*filter menu closed if filter button focusout*/
                     parent.handsonTable.hideFilterMenu();
             });
             var thisGlobalFilter=this.globalFilter;
-            Handsontable.Dom.addEvent(this.handsonTable.rootElement, 'mouseup', function (event) {                      //console.log("HTableSimpleFiltered mouseup ",event);
+            Handsontable.Dom.addEvent(this.handsonTable.rootElement.parentElement, 'mouseup', function (event) {       // console.log("HTableSimpleFiltered mouseup ",event);
                 if(event.target.id.indexOf("filter_button_for_")>=0){
                     var button= event.target;
                     parent.handsonTable.showFilterMenu(button);
