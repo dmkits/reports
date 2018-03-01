@@ -28,10 +28,10 @@
 
                 var  reports_button_list=document.getElementById("reports_button_list");
                 var firstButton;
-
+                var reportId="<%-baseReportUrl%>";
                 reports_retail_PageContainer.createReportButtons=function(){
-                    Request.getJSONData({url: "/simpleReport/reportsRetail/getReportsList"/*"/reports/getReportsList"*/,consoleLog: true},
-                            function (data) {
+                    Request.getJSONData({url: "/simpleReport/"+reportId+"/getReportsList",consoleLog: true},
+                            function (data) {       console.log("data=",data);
                                 if (data===undefined) {
                                     reports_retail_ContentPaneDetailContainer.innerHTML = "<div><b style='color:red'>No connection!</b></div>";
                                     return;
@@ -61,8 +61,8 @@
                         if (!button.document){
                             button.document =
                                 APP.childFor(reports_retail_ContentPaneDetailContainer, "reports_retail_Table"+instance.id,
-                                    TDocumentSimpleTable, {titleText:instance.label, dataURL:'/reports/getReportDataByReportName/'+instance.id});
-                            Request.getJSONData({url:'/reports/getReportConfigByReportName/'+instance.id}, function(result){
+                                    TDocumentSimpleTable, {titleText:instance.label, dataURL:'/simpleReport/'+reportId+'/getReportDataByReportName/'+instance.id});
+                            Request.getJSONData({url:'/simpleReport/'+reportId+'/getReportConfigByReportName/'+instance.id}, function(result){
                                 if(result.headers){
                                     for (var i = 0; i < result.headers.length; i++) {
                                         var headerConditionInstance = result.headers[i];

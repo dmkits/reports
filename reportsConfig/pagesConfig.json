@@ -1,0 +1,21 @@
+{
+    "pages":[
+        { "id":"reportsRetail", "title":"Отчеты Retail",  "type":"simpleReport",
+            "buttons":[
+                {  "id": "salesByPCats",    "name": "Реализация по категориям" },
+                {  "id": "salesByProds",   "name": "Реализация по наименованию" },
+                {  "id": "salesByDays", "name": "Реализация по дням"},
+                {},
+                { "id": "prodsBalance", "name": "Остатки товара", "reportFile":""}
+            ]
+       }
+    ],
+    "autorun":["reportsRetail"],
+
+  "rolesCodes":{
+    "0":["reportsRetail"],
+    "1":["reportsRetail"],
+    "2":["reportsRetail"],
+    "sysadmin":[/*all reports are avaliable*/]
+  }
+}

@@ -146,6 +146,7 @@ app.get("/get_main_data", function(req, res){                                   
     if (app.ConfigurationError) {
         outData.error=app.ConfigurationError;                                                         log.error("req.ConfigurationError=",app.ConfigurationError);
     }
+    var configDirectoryName=common.getConfigDirectoryName();
     // if(req.isSysadmin||req.isAdminUser){
     //     menuBar.push({itemname:"menuBarItemRetailSales",itemtitle:"Отчеты retail",
     //         action:"open",content:"/reports/reportPage", id:"ReportRetailSales",title:"Отчеты retail", closable:false});
@@ -154,13 +155,36 @@ app.get("/get_main_data", function(req, res){                                   
     //     menuBar.push({itemname:"menuBarItemRetailCashier",itemtitle:"Отчеты кассира",
     //         action:"open",content:"/reports/retail_cashier", id:"ReportRetailCashier",title:"Отчеты кассира", closable:false});
     // }
-    menuBar.push({itemname:"menuBarItemRetailSales",itemtitle:"Отчеты retail",
-        action:"open",content:"/reports/reportPage", id:"ReportRetail",title:"Отчеты retail", closable:false});
+    var pagesConfig;
+    try{
+        pagesConfig=JSON.parse(common.getJSONWithoutComments(fs.readFileSync(path.join(__dirname,'../'+configDirectoryName+'/pagesConfig.json'),'utf8')));
+    }catch(e){
+        log.error("Failed to get reports list file. Reason:"+e);
+        outData.error= "Failed to get reports list file. Reason:"+e;
+        res.send(outData);
+        return;
+    }
+    var userConfigPagesList=pagesConfig.rolesCodes[req.userRoleCode];
+    var pages=pagesConfig.pages;
+    var userPages=[];
+    for(var userPage in userConfigPagesList){
+        for(var i in pages){
+            var page=pages[i];
+            if(page.id==userConfigPagesList[userPage]){
+                userPages.push(page);
+            }
+        }
+    }
+    for(var k in userPages){
+        var pageData=userPages[k];
+        menuBar.push({itemname:pageData.id,itemtitle:pageData.title,
+            action:"open",content:"/"+pageData.type+"/"+pageData.id, id:pageData.id,title:pageData.title, closable:true});
+    }
     menuBar.push({itemname:"menuBarClose",itemtitle:"Выход",action:"close"});
     menuBar.push({itemname:"menuBarAbout",itemtitle:"О программе",action:"help_about"});
     outData.menuBar= menuBar;
     outData.autorun= [];
-    outData.autorun.push({menuitem:"menuBarItemRetailSales", runaction:1});
+    outData.autorun.push({menuitem: pagesConfig.autorun, runaction:1});
     res.send(outData);
 });
 

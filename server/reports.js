@@ -3,117 +3,200 @@ var database=require("./dataBase");
 var path=require('path');
 var fs=require('fs');
 var logger=require('./logger')();
+var ejs = require('ejs');
 
-module.exports= function(app) {
-    app.get("/reports/reportPage", function(req, res){
-        res.sendFile(path.join(__dirname, '../pages/reports', 'simpleReport.html'));
-    });
-    app.get("/reports/getReportsList", function (req, res) {
-        var outData={};
-        var configDirectoryName=common.getConfigDirectoryName();
-        var repData;
-        try{
-            repData=JSON.parse(common.getJSONWithoutComments(fs.readFileSync(path.join(__dirname,'../'+configDirectoryName+'/reports_list.json'),'utf8')));
-        }catch(e){
-            logger.error("Failed to get reports list file. Reason:"+e);
-            outData.error= "Failed to get reports list file. Reason:"+e;
-            res.send(outData);
+module.exports= function(app) {                        //    /type/repId/action/repName
+    app.get("/simpleReport/*", function(req, res){
+        var paramsArray=req.params[0].split('/');
+        if(paramsArray.length==1){
+            res.render(path.join(__dirname, '../pages/reports', 'simpleReport.ejs'),{baseReportUrl:paramsArray[0]});
             return;
         }
-        var reports=repData.reports;
-        if(req.userRoleCode=="sysadmin"){
-            outData.items=reports;
-            res.send(outData);
-            return;
-        }
-        var userRepList=repData.rolesCodes[req.userRoleCode];
-        var userReports=[];
-        for(var i in userRepList){
-            if(userRepList[i].trim().length==0){
-                userReports.push({});
-                continue;
-            }
-            for(var j in reports){
-                if(!reports[j].id) continue;
-                else if(userRepList[i]==reports[j].id){
-                    userReports.push(reports[j]);
-                }
-            }
-        }
-        outData.items=userReports;   console.log("userReports=",userReports);
-        res.send(outData);
-    });
-    app.get("/reports/getReportConfigByReportName/*", function(req, res){
-        var configDirectoryName=common.getConfigDirectoryName();
-        var filename = req.params[0];
-        var outData={};
-        try{
-            var fileContentString=fs.readFileSync(path.join(__dirname,'../'+configDirectoryName+'/'+filename+'.json'), 'utf8');
-        }catch(e){
-            outData.error=e;
-            res.send(outData);
-            return;
-        }
-        var pureJSONTxt=JSON.parse(common.getJSONWithoutComments(fileContentString));
-        outData.headers=pureJSONTxt.headers;
-        outData.totals=pureJSONTxt.totals;
-        res.send(outData);
-    });
-    app.get("/reports/getReportDataByReportName/*", function(req, res){
-        res.connection.setTimeout(0);
-        req.connection.setTimeout(0);
-        var outData={};
-        var configDirectoryName=common.getConfigDirectoryName();
-        var filename = req.params[0];
-        try{
-            var fileContentString=fs.readFileSync(path.join(__dirname,'../'+configDirectoryName+'/'+filename+'.json'),'utf8');
-        }catch(e){
-            outData.error=e;
-            res.send(outData);
-            return;
-        }
-        var pureJSONTxt=JSON.parse(common.getJSONWithoutComments(fileContentString));
-        outData.columns=pureJSONTxt.columns;
-        // if(req.url.indexOf("/reports/getReportDataByReportName/prod_balance")==0
-        //     && (req.isAdminUser || req.isSysadmin)
-        //     && req.query['StockID']==-1){
-        //     getExtendedQtyData(outData.columns,function(err, result){
-        //         if(err){
-        //             outData.error=err;
-        //             res.send(outData);
-        //             return;
-        //         }
-        //         outData=result;
-        //         res.send(outData);
-        //     });
-        //     return;
-        // }
-        var noConditions=true;
-        for (var condition in req.query) {
-            noConditions=false;
-            break;
-        }
-        if(noConditions){
-            res.send(outData);
-            return;
-        }
-        var conditions=req.query;
-        var doConvertReport=false;
-        //if(doConvertReport= (conditions["Stock"]=="-1")) conditions["Stock"]="1,2,3,4,5,6,7,9";
-        if(conditions["Stock"]&&conditions["Stock"].indexOf(",">=0))doConvertReport=true;
-        database.getReportTableDataBy(filename+".sql", conditions,
-            function (error,recordset) {
-                if (error){
-                    outData.error=error.message;
-                    res.send(outData);
-                    return;
-                }
-                outData.items=recordset;
-                if(doConvertReport)
-                    convertReport({outData:outData, rowToColumnFieldName:"StockName", rowToColumnKeyField:"StockID", columnDataFieldName:"Qty"});
+        if(paramsArray[1]=="getReportsList"){
+            var outData={};
+            var configDirectoryName=common.getConfigDirectoryName();
+            var pagesConfig;
+            try{
+                pagesConfig=JSON.parse(common.getJSONWithoutComments(fs.readFileSync(path.join(__dirname,'../'+configDirectoryName+'/pagesConfig.json'),'utf8')));
+            }catch(e){
+                logger.error("Failed to get reports list file. Reason:"+e);
+                outData.error= "Failed to get reports list file. Reason:"+e;
                 res.send(outData);
-            });
+                return;
+            }
+            var pageId=paramsArray[0];
+            var pages=pagesConfig.pages;
+                for(var i in pages){
+                    if(pages[i].id==pageId){
+                        outData.items=pages[i].buttons;
+                        break;
+                    }
+                }
+            res.send(outData);
+            return;
+        }
+        if(paramsArray[1]=="getReportConfigByReportName"){
+            var configDirectoryName=common.getConfigDirectoryName();
+            var reportFolderName=paramsArray[0];
+            var filename = paramsArray[2];
+            var outData={};
+            try{
+                var fileContentString=fs.readFileSync(path.join(__dirname,'../'+configDirectoryName+'/'+reportFolderName+'/'+filename+'.json'), 'utf8');
+            }catch(e){
+                outData.error=e;
+                logger.error(e);
+                res.send(outData);
+                return;
+            }
+            var pureJSONTxt=JSON.parse(common.getJSONWithoutComments(fileContentString));
+            outData.headers=pureJSONTxt.headers;
+            outData.totals=pureJSONTxt.totals;
+            res.send(outData);
+        }
+        if(paramsArray[1]=="getReportDataByReportName"){
+            var outData={};
+            var configDirectoryName=common.getConfigDirectoryName();
+            var reportFolderName=paramsArray[0];
+            var filename = paramsArray[2];
+            try{
+                var fileContentString=fs.readFileSync(path.join(__dirname,'../'+configDirectoryName+'/'+reportFolderName+'/'+filename+'.json'),'utf8');
+            }catch(e){
+                outData.error= e;
+                logger.error(e);
+                res.send(outData);
+                return;
+            }
+            var pureJSONTxt=JSON.parse(common.getJSONWithoutComments(fileContentString));
+            outData.columns=pureJSONTxt.columns;
+            var noConditions=true;
+            for (var condition in req.query) {
+                noConditions=false;
+                break;
+            }
+            if(noConditions){
+                res.send(outData);
+                return;
+            }
+            var conditions=req.query;
+            var doConvertReport=false;
+            if(conditions["Stock"]&&conditions["Stock"].indexOf(",">=0))doConvertReport=true;
+            database.getReportTableDataBy(reportFolderName,filename+".sql", conditions,
+                function (error,recordset) {
+                    if (error){
+                        outData.error=error.message;
+                        logger.error(error.message);
+                        res.send(outData);
+                        return;
+                    }
+                    outData.items=recordset;
+                    if(doConvertReport)
+                        convertReport({outData:outData, rowToColumnFieldName:"StockName", rowToColumnKeyField:"StockID", columnDataFieldName:"Qty"});
+                    res.send(outData);
+                });
+        }
     });
+
+    //app.get("/reports/getReportsList", function (req, res) {
+    //    var outData={};
+    //    var configDirectoryName=common.getConfigDirectoryName();
+    //    var pagesConfig;
+    //    try{
+    //        pagesConfig=JSON.parse(common.getJSONWithoutComments(fs.readFileSync(path.join(__dirname,'../'+configDirectoryName+'/pagesConfig.json'),'utf8')));
+    //    }catch(e){
+    //        logger.error("Failed to get reports list file. Reason:"+e);
+    //        outData.error= "Failed to get reports list file. Reason:"+e;
+    //        res.send(outData);
+    //        return;
+    //    }
+    //
+    //    var outData={};
+    //    var configDirectoryName=common.getConfigDirectoryName();
+    //    var repData;
+    //    try{
+    //        repData=JSON.parse(common.getJSONWithoutComments(fs.readFileSync(path.join(__dirname,'../'+configDirectoryName+'/reports_list.json'),'utf8')));
+    //    }catch(e){
+    //        logger.error("Failed to get reports list file. Reason:"+e);
+    //        outData.error= "Failed to get reports list file. Reason:"+e;
+    //        res.send(outData);
+    //        return;
+    //    }
+    //    var reports=repData.reports;
+    //    if(req.userRoleCode=="sysadmin"){
+    //        outData.items=reports;
+    //        res.send(outData);
+    //        return;
+    //    }
+    //    var userRepList=repData.rolesCodes[req.userRoleCode];
+    //    var userReports=[];
+    //    for(var i in userRepList){
+    //        if(userRepList[i].trim().length==0){
+    //            userReports.push({});
+    //            continue;
+    //        }
+    //        for(var j in reports){
+    //            if(!reports[j].id) continue;
+    //            else if(userRepList[i]==reports[j].id){
+    //                userReports.push(reports[j]);
+    //            }
+    //        }
+    //    }
+    //    outData.items=userReports;
+    //    res.send(outData);
+    //});
+    //app.get("/reports/getReportConfigByReportName/*", function(req, res){
+    //    var configDirectoryName=common.getConfigDirectoryName();
+    //    var filename = req.params[0];
+    //    var outData={};
+    //    try{
+    //        var fileContentString=fs.readFileSync(path.join(__dirname,'../'+configDirectoryName+'/'+filename+'.json'), 'utf8');
+    //    }catch(e){
+    //        outData.error=e;
+    //        res.send(outData);
+    //        return;
+    //    }
+    //    var pureJSONTxt=JSON.parse(common.getJSONWithoutComments(fileContentString));
+    //    outData.headers=pureJSONTxt.headers;
+    //    outData.totals=pureJSONTxt.totals;
+    //    res.send(outData);
+    //});
+    //app.get("/reports/getReportDataByReportName/*", function(req, res){
+    //    var outData={};
+    //    var configDirectoryName=common.getConfigDirectoryName();
+    //    var filename = req.params[0];
+    //    try{
+    //        var fileContentString=fs.readFileSync(path.join(__dirname,'../'+configDirectoryName+'/'+filename+'.json'),'utf8');
+    //    }catch(e){
+    //        outData.error= e;
+    //        res.send(outData);
+    //        return;
+    //    }
+    //    var pureJSONTxt=JSON.parse(common.getJSONWithoutComments(fileContentString));
+    //    outData.columns=pureJSONTxt.columns;
+    //    var noConditions=true;
+    //    for (var condition in req.query) {
+    //        noConditions=false;
+    //        break;
+    //    }
+    //    if(noConditions){
+    //        res.send(outData);
+    //        return;
+    //    }
+    //    var conditions=req.query;
+    //    var doConvertReport=false;
+    //    if(conditions["Stock"]&&conditions["Stock"].indexOf(",">=0))doConvertReport=true;
+    //    database.getReportTableDataBy(filename+".sql", conditions,
+    //        function (error,recordset) {
+    //            if (error){
+    //                outData.error=error.message;
+    //                res.send(outData);
+    //                return;
+    //            }
+    //            outData.items=recordset;
+    //            if(doConvertReport)
+    //                convertReport({outData:outData, rowToColumnFieldName:"StockName", rowToColumnKeyField:"StockID", columnDataFieldName:"Qty"});
+    //            res.send(outData);
+    //        });
+    //});
 
     /**
      * params: { outData, rowToColumnFieldName, rowToColumnKeyField, columnDataFieldName }

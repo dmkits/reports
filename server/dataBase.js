@@ -70,11 +70,11 @@ module.exports.getQueryResult=function(newQuery, parameters, callback){
 };
 /**getReportTableDataBy(params, callback) conditions= {bdate,edate,stockId, ... }
  */
-module.exports.getReportTableDataBy=function(filename, conditions, callback ){
+module.exports.getReportTableDataBy=function(folder, filename, conditions, callback ){
     var configDirectoryName=dbConfig["reports.config"]?dbConfig["reports.config"]:"reportsConfig";
     var reqSql = new mssql.Request();
     try {
-        var query_str = fs.readFileSync('./' + configDirectoryName + '/' + filename, 'utf8');
+        var query_str = fs.readFileSync('./' + configDirectoryName + '/'+folder+'/' + filename, 'utf8');
     }catch(e){
         callback(e);
         return;
