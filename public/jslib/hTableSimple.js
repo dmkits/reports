@@ -217,7 +217,7 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane","dojox/widget/Standby",
                 if (addingHeaderElements) this.tableHeaderAddedElements=addingHeaderElements;
                 var hInstance= this.getHandsonTable();
                 hInstance.updateSettings({
-                    afterRender: function () {                                     // console.log("hInstance=",hInstance);
+                    afterRender: function () {                                      console.log("hInstance=",hInstance);
                         var table=document.getElementById("headerFilterTable");
                         if(table){
                             table.parentNode.removeChild(table);
@@ -227,6 +227,7 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane","dojox/widget/Standby",
                         var parentEl=hInstance.rootElement.parentElement;
                         table=document.createElement('table');
                         table.id="headerFilterTable";
+                        //table.style.position="relative";
                         table.width=hWidth;
                         table.style.border='solid  #CCC';
                         table.style.borderWidth="0 1px 0 1px";
@@ -240,6 +241,22 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane","dojox/widget/Standby",
                         for(var eName in addingHeaderElements)
                             div.appendChild(addingHeaderElements[eName]);
                         parentEl.insertBefore(table,element);
+                       // var h=table.clientHeight;
+
+                        var topDivs = hInstance.rootElement.getElementsByClassName('wtSpreader');
+                        //for(var i=0;i<topDivs.length;i++){
+                        //    var div= topDivs[i];
+                        //    var style=div.style.cssText;console.log("div.style.cssText=",div.style.cssText);
+                        //    if(style.indexOf('top:'>-1)){
+                        //        var oldTopSrt=style.substring(style.indexOf('top:'),style.indexOf(';',style.indexOf('top:')));
+                        //        var style=style.replace(oldTopSrt,"top:"+h+"px");
+                        //    }
+                        //    if(style.indexOf('position:'>-1)){
+                        //        var oldPositionSrt=style.substring(style.indexOf('position:'),style.indexOf(';',style.indexOf('position:')));
+                        //        var style=style.replace(oldPositionSrt,"position:fixed");                                                     console.log("div 282=",div);
+                        //    }
+                        //    div.setAttribute('style',style);
+                        //}
                     }
                 });
             },
