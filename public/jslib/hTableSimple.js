@@ -240,10 +240,37 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane","dojox/widget/Standby",
                         th.appendChild(div);
                         for(var eName in addingHeaderElements)
                             div.appendChild(addingHeaderElements[eName]);
-                        parentEl.insertBefore(table,element);
-                       // var h=table.clientHeight;
+                       // parentEl.insertBefore(table,element);
+                       // var h=table.clientHeight;     console.log("h=",h);
 
-                        var topDivs = hInstance.rootElement.getElementsByClassName('wtSpreader');
+
+                        var htCoreEls = hInstance.rootElement.getElementsByClassName('ht_clone_top handsontable');   console.log("htCoreEls=",htCoreEls);
+                        var coreElement=htCoreEls[0];
+                        coreElement.insertBefore(table,coreElement.firstChild);
+                        var h=table.clientHeight;     console.log("h=",h);
+                        var coreElementStyle=coreElement.style.cssText;
+                        var coreElHeight=parseInt(coreElement.style.height.replace("px",""));  console.log("coreElHeight=",coreElHeight);
+                        if(coreElementStyle.indexOf('height:'>-1)){
+                            var oldHeightthSrt=coreElementStyle.substring(coreElementStyle.indexOf('height:'),coreElementStyle.indexOf(';',coreElementStyle.indexOf('height:')));
+                            var newHeight= h+coreElHeight;   console.log("newHeight=",newHeight);
+                            coreElementStyle=coreElementStyle.replace(oldHeightthSrt,"height:"+newHeight+"px");
+                        }
+                        coreElement.setAttribute('style',coreElementStyle);  console.log("coreElementStyle=",coreElementStyle);
+
+
+
+                        //console.log("htCoreEls[0].firstChild=",htCoreEls[0].firstChild);
+                        //   console.log("htCoreEls[0].firstChild.style.cssText=",htCoreEls[0].firstChild.style.cssText);
+                        //htCoreEls[0].insertBefore(table,htCoreEls[0].firstChild);
+                        //htCoreEls[0].firstChild.setAttribute('style',htCoreEls[0].firstChild.style.cssText+"margin_top:30px");
+                        //console.log("htCoreEls[0].firstChild.style.cssText=",htCoreEls[0].firstChild.style.cssText);
+                        //
+                        //var coreElement=htCoreEls[0];
+
+
+                        //htCoreEls[1].parentElement.insertBefore(table,htCoreEls[1]);
+                        //htCoreEls[2].parentElement.insertBefore(table,htCoreEls[2]);
+                        //var topDivs = hInstance.rootElement.getElementsByClassName('wtSpreader');
                         //for(var i=0;i<topDivs.length;i++){
                         //    var div= topDivs[i];
                         //    var style=div.style.cssText;console.log("div.style.cssText=",div.style.cssText);
