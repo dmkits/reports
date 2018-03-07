@@ -1,6 +1,6 @@
 /*!
  * numbro.js
- * version : 1.8.0
+ * version : 1.11.0
  * author : Företagsplatsen AB
  * license : MIT
  * http://www.foretagsplatsen.se
@@ -14,7 +14,7 @@
     ************************************/
 
     var numbro,
-        VERSION = '1.8.0',
+        VERSION = '1.11.0',
         binarySuffixes = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'],
         decimalSuffixes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
         bytes = {
@@ -75,6 +75,11 @@
     // Numbro prototype object
     function Numbro(number) {
         this._value = number;
+    }
+
+    function numberLength(number) {
+        if (number === 0) { return 1; }
+        return Math.floor(Math.log(Math.abs(number)) / Math.LN10) + 1;
     }
 
     function zeroes(count) {
@@ -184,7 +189,7 @@
 
         // figure out what kind of format we are dealing with
         if (escapedFormat.indexOf('$') > -1) { // currency!!!!!
-            output = formatCurrency(n, format, roundingFunction);
+            output = formatCurrency(n, cultures[currentCulture].currency.symbol, format, roundingFunction);
         } else if (escapedFormat.indexOf('%') > -1) { // percentage
             output = formatPercentage(n, format, roundingFunction);
         } else if (escapedFormat.indexOf(':') > -1) { // time
@@ -261,7 +266,7 @@
         return n._value;
     }
 
-    function formatCurrency(n, originalFormat, roundingFunction) {
+    function formatCurrency(n, currencySymbol, originalFormat, roundingFunction) {
         var format = originalFormat,
             symbolIndex = format.indexOf('$'),
             openParenIndex = format.indexOf('('),
@@ -275,7 +280,7 @@
         if(format.indexOf('$') === -1){
             // Use defaults instead of the format provided
             if (cultures[currentCulture].currency.position === 'infix') {
-                decimalSeparator = cultures[currentCulture].currency.symbol;
+                decimalSeparator = currencySymbol;
                 if (cultures[currentCulture].currency.spaceSeparated) {
                     decimalSeparator = ' ' + decimalSeparator + ' ';
                 }
@@ -304,10 +309,10 @@
                 case 'postfix':
                     if (output.indexOf(')') > -1) {
                         output = output.split('');
-                        output.splice(-1, 0, space + cultures[currentCulture].currency.symbol);
+                        output.splice(-1, 0, space + currencySymbol);
                         output = output.join('');
                     } else {
-                        output = output + space + cultures[currentCulture].currency.symbol;
+                        output = output + space + currencySymbol;
                     }
                     break;
                 case 'infix':
@@ -317,10 +322,10 @@
                         output = output.split('');
                         spliceIndex = Math.max(openParenIndex, minusSignIndex) + 1;
 
-                        output.splice(spliceIndex, 0, cultures[currentCulture].currency.symbol + space);
+                        output.splice(spliceIndex, 0, currencySymbol + space);
                         output = output.join('');
                     } else {
-                        output = cultures[currentCulture].currency.symbol + space + output;
+                        output = currencySymbol + space + output;
                     }
                     break;
                 default:
@@ -336,23 +341,27 @@
                         // the symbol appears before the "(", "+" or "-"
                         spliceIndex = 0;
                     }
-                    output.splice(spliceIndex, 0, cultures[currentCulture].currency.symbol + space);
+                    output.splice(spliceIndex, 0, currencySymbol + space);
                     output = output.join('');
                 } else {
-                    output = cultures[currentCulture].currency.symbol + space + output;
+                    output = currencySymbol + space + output;
                 }
             } else {
                 if (output.indexOf(')') > -1) {
                     output = output.split('');
-                    output.splice(-1, 0, space + cultures[currentCulture].currency.symbol);
+                    output.splice(-1, 0, space + currencySymbol);
                     output = output.join('');
                 } else {
-                    output = output + space + cultures[currentCulture].currency.symbol;
+                    output = output + space + currencySymbol;
                 }
             }
         }
 
         return output;
+    }
+
+    function formatForeignCurrency(n, foreignCurrencySymbol, originalFormat, roundingFunction) {
+        return formatCurrency(n, foreignCurrencySymbol, originalFormat, roundingFunction);
     }
 
     function formatPercentage(n, format, roundingFunction) {
@@ -468,7 +477,6 @@
             forcedNeg = false,
             neg = false,
             indexOpenP,
-            size,
             indexMinus,
             paren = '',
             minlen,
@@ -494,7 +502,7 @@
             prefix = '';
         }
 
-        if (format.indexOf('}') === format.length - 1) {
+        if (format.indexOf('}') === format.length - 1 && format.length) {
             var start = format.indexOf('{');
             if (start === -1) {
                 throw Error('Format should also contain a "{"');
@@ -547,30 +555,16 @@
                 format = format.replace('a', '');
             }
 
-            totalLength = Math.floor(Math.log(abs) / Math.LN10) + 1;
-
+            totalLength = numberLength(value);
             minimumPrecision = totalLength % 3;
             minimumPrecision = minimumPrecision === 0 ? 3 : minimumPrecision;
 
             if (intPrecision && abs !== 0) {
-
-                length = Math.floor(Math.log(abs) / Math.LN10) + 1 - intPrecision;
-
                 pow = 3 * ~~((Math.min(intPrecision, totalLength) - minimumPrecision) / 3);
-
                 abs = abs / Math.pow(10, pow);
-
-                if (format.indexOf('.') === -1 && intPrecision > 3) {
-                    format += '[.]';
-
-                    size = length === 0 ? 0 : 3 * ~~(length / 3) - length;
-                    size = size < 0 ? size + 3 : size;
-
-                    format += zeroes(size);
-                }
             }
 
-            if (Math.floor(Math.log(Math.abs(value)) / Math.LN10) + 1 !== intPrecision) {
+            if (totalLength !== intPrecision) {
                 if (abs >= Math.pow(10, 12) && !abbrForce || abbrT) {
                     // trillion
                     abbr = abbr + cultures[currentCulture].abbreviations.trillion;
@@ -588,6 +582,12 @@
                     abbr = abbr + cultures[currentCulture].abbreviations.thousand;
                     value = value / Math.pow(10, 3);
                 }
+            }
+
+            length = numberLength(value);
+            if (intPrecision && length < intPrecision && format.indexOf('.') === -1) {
+                format += '[.]';
+                format += zeroes(intPrecision - length);
             }
         }
 
@@ -634,13 +634,18 @@
             format = format.replace('[.]', '.');
         }
 
-        w = value.toString().split('.')[0];
         precision = format.split('.')[1];
         thousands = format.indexOf(',');
 
         if (precision) {
+            var dSplit = [];
+
             if (precision.indexOf('*') !== -1) {
-                d = toFixed(value, value.toString().split('.')[1].length, roundingFunction);
+                d = value.toString();
+                dSplit = d.split('.');
+                if (dSplit.length > 1) {
+                    d = toFixed(value, dSplit[1].length, roundingFunction);
+                }
             } else {
                 if (precision.indexOf('[') > -1) {
                     precision = precision.replace(']', '');
@@ -652,11 +657,12 @@
                 }
             }
 
-            w = d.split('.')[0];
+            dSplit = d.split('.');
+            w = dSplit[0];
 
-            if (d.split('.')[1].length) {
+            if (dSplit.length > 1 && dSplit[1].length) {
                 var p = sep ? abbr + sep : cultures[currentCulture].delimiters.decimal;
-                d = p + d.split('.')[1];
+                d = p + dSplit[1];
             } else {
                 d = '';
             }
@@ -713,10 +719,10 @@
     numbro = function(input) {
         if (numbro.isNumbro(input)) {
             input = input.value();
-        } else if (input === 0 || typeof input === 'undefined') {
-            input = 0;
-        } else if (!Number(input)) {
+        } else if (typeof input === 'string' || typeof input === 'number') {
             input = numbro.fn.unformat(input);
+        } else {
+            input = NaN;
         }
 
         return new Numbro(Number(input));
@@ -919,6 +925,9 @@
         //trim whitespaces from either sides
         val = val.trim();
 
+        //replace the initial '+' or '-' sign if present
+        val = val.replace(/^[+-]?/, '');
+
         //if val is just digits return true
         if ( !! val.match(/^\d+$/)) {
             return true;
@@ -948,7 +957,7 @@
         }
 
         // validating currency symbol
-        temp = val.match(/^[^\d]+/);
+        temp = val.match(/^[^\d\.\,]+/);
         if (temp !== null) {
             val = val.substr(1);
             if (temp[0] !== _currSymbol) {
@@ -976,7 +985,12 @@
                 if (_valArray.length < 2) {
                     return ( !! _valArray[0].match(/^\d+.*\d$/) && !_valArray[0].match(_thousandRegEx));
                 } else {
-                    if (_valArray[0].length === 1) {
+                    if (_valArray[0] === '') {
+                        // for values without leading zero eg. .984
+                        return (!_valArray[0].match(_thousandRegEx) &&
+                            !!_valArray[1].match(/^\d+$/));
+
+                    } else if (_valArray[0].length === 1) {
                         return ( !! _valArray[0].match(/^\d+$/) &&
                             !_valArray[0].match(_thousandRegEx) &&
                             !! _valArray[1].match(/^\d+$/));
@@ -1035,7 +1049,13 @@
     function inNodejsRuntime() {
         return (typeof process !== 'undefined') &&
             (process.browser === undefined) &&
-            (process.title.indexOf('node') === 0 || process.title === 'grunt' || process.title === 'gulp') &&
+            process.title &&
+            (
+                process.title.indexOf('node') !== -1 ||
+                process.title.indexOf('meteor-tool') > 0 ||
+                process.title === 'grunt' ||
+                process.title === 'gulp'
+            ) &&
             (typeof require !== 'undefined');
     }
 
@@ -1141,6 +1161,15 @@
 
         formatCurrency: function(inputString, roundingFunction) {
             return formatCurrency(this,
+                cultures[currentCulture].currency.symbol,
+                inputString ? inputString : defaultCurrencyFormat,
+                (roundingFunction !== undefined) ? roundingFunction : Math.round
+            );
+        },
+
+        formatForeignCurrency: function(currencySymbol, inputString, roundingFunction) {
+            return formatForeignCurrency(this,
+                currencySymbol,
                 inputString ? inputString : defaultCurrencyFormat,
                 (roundingFunction !== undefined) ? roundingFunction : Math.round
             );

@@ -67,22 +67,40 @@ define(["dojo/_base/declare", "hTableSimple"], function(declare, HTableSimple){
                         parent.handsonTable.hideFilterMenu();
                     if(element.tagName==="TH") { event.stopImmediatePropagation(); }//disable column header click event
                 }
-            });
-            Handsontable.Dom.addEvent(document, 'focusin', function (event) {                                           //console.log("HTableSimpleFiltered document focus target=", event.target);
+            });   //eventListeners
+            console.log("this.handsonTable=",this.handsonTable);
+
+            this.handsonTable.eventListeners.push(document, 'focusin', function (event) {                                           //console.log("HTableSimpleFiltered document focus target=", event.target);
                 if(event.target.id.indexOf("filter_menu_")<0)/*filter menu closed if filter menu item element focusout*/
                     parent.handsonTable.hideFilterMenu();
             });
-            Handsontable.Dom.addEvent(document, 'mousedown', function (event) {                                         //console.log("HTableSimpleFiltered document mousedown target=",event.target);
+            this.handsonTable.eventListeners.push(document, 'mousedown', function (event) {                                         //console.log("HTableSimpleFiltered document mousedown target=",event.target);
                 if(event.target.id.indexOf("filter_button_for_")>=0) event.stopPropagation();
                 if(event.target.id.indexOf("filter_menu_")<0)/*filter menu closed if filter button focusout*/
                     parent.handsonTable.hideFilterMenu();
             });
+
+            //Handsontable.Dom.addEvent(document, 'focusin', function (event) {                                           //console.log("HTableSimpleFiltered document focus target=", event.target);
+            //    if(event.target.id.indexOf("filter_menu_")<0)/*filter menu closed if filter menu item element focusout*/
+            //        parent.handsonTable.hideFilterMenu();
+            //});
+            //Handsontable.Dom.addEvent(document, 'mousedown', function (event) {                                         //console.log("HTableSimpleFiltered document mousedown target=",event.target);
+            //    if(event.target.id.indexOf("filter_button_for_")>=0) event.stopPropagation();
+            //    if(event.target.id.indexOf("filter_menu_")<0)/*filter menu closed if filter button focusout*/
+            //        parent.handsonTable.hideFilterMenu();
+            //});
+
             var thisGlobalFilter=this.globalFilter;
-            Handsontable.Dom.addEvent(this.handsonTable.rootElement, 'mouseup', function (event) {                      //console.log("HTableSimpleFiltered mouseup ",event);
+            this.handsonTable.eventListeners.push(this.handsonTable.rootElement, 'mouseup', function (event) {    console.log("mouseup event=",event);                  //console.log("HTableSimpleFiltered mouseup ",event);
                 if(event.target.id.indexOf("filter_button_for_")>=0){
                     var button= event.target;
                     parent.handsonTable.showFilterMenu(button);
                 }
+            //Handsontable.Dom.addEvent(this.handsonTable.rootElement, 'mouseup', function (event) {                      //console.log("HTableSimpleFiltered mouseup ",event);
+            //    if(event.target.id.indexOf("filter_button_for_")>=0){
+            //        var button= event.target;
+            //        parent.handsonTable.showFilterMenu(button);
+            //    }
                 if(event.target.id.indexOf("clearAllFiltersButton")>=0) {
                     thisGlobalFilter.setGlobalFilter(null);
                     parent.clearDataColumnsFilters();
@@ -357,11 +375,14 @@ define(["dojo/_base/declare", "hTableSimple"], function(declare, HTableSimple){
                         }
                         if(globalFilterValue!==null && !rowVisibleByGlobalFilter && itemVisible==true) {
                             var sdataItemVal=(dataItemVal)?dataItemVal.toString():"", sGlobalFilterVal=globalFilterValue.toString();
-                            if(sdataItemVal===sGlobalFilterVal||sdataItemVal.indexOf(" "+sGlobalFilterVal+" ")>=0) rowVisibleByGlobalFilter= true;
+                            //if(sdataItemVal===sGlobalFilterVal||sdataItemVal.indexOf(" "+sGlobalFilterVal+" ")>=0) rowVisibleByGlobalFilter= true;
+                            if(sdataItemVal===sGlobalFilterVal||sdataItemVal.toLowerCase().indexOf(sGlobalFilterVal.toLowerCase().trim())>=0) rowVisibleByGlobalFilter= true;
                         }
                     } else if(globalFilterValue!==null && !rowVisibleByGlobalFilter) {                                  //console.log("HTableSimpleFiltered filterContentData globalFilterValue=",globalFilterValue,dataItemVal);
                         var sdataItemVal=(dataItemVal)?dataItemVal.toString():"", sGlobalFilterVal=globalFilterValue.toString();
-                        if(sdataItemVal===sGlobalFilterVal||sdataItemVal.indexOf(" "+sGlobalFilterVal+" ")>=0) rowVisibleByGlobalFilter= true;
+                      //  if(sdataItemVal===sGlobalFilterVal||sdataItemVal.indexOf(" "+sGlobalFilterVal+" ")>=0) rowVisibleByGlobalFilter= true;
+                        if(sdataItemVal===sGlobalFilterVal||sdataItemVal.toLowerCase().indexOf(sGlobalFilterVal.toLowerCase().trim())>=0) rowVisibleByGlobalFilter= true;
+
                     }
                     rowVisible=rowVisible&&itemVisible;
                 }

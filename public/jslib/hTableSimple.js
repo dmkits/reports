@@ -217,7 +217,11 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane","dojox/widget/Standby",
                 if (addingHeaderElements) this.tableHeaderAddedElements=addingHeaderElements;
                 var hInstance= this.getHandsonTable();
                 hInstance.updateSettings({
+                    columnHeaderHeight:20,
+                    //autoRowSize: true,
+                   // viewportColumnRenderingOffset: 100,
                     afterRender: function () {
+                        hInstance.columnHeaderHeight=20;
                         var theads=hInstance.rootElement.getElementsByTagName('thead');                         //console.log("HTableSimple afterRender theads=",theads);
                         var div= document.createElement("div");
                         for(var theadInd=0;theadInd<theads.length;theadInd++){
@@ -238,7 +242,7 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane","dojox/widget/Standby",
                     }
                 });
             },
-            resizeAll: function(changeSize,resultSize){
+            resizeAll: function(changeSize,resultSize){                 console.log("resizeAll=");            console.log("this 245=",this);
                 if(!changeSize) return;
                 this.resizePane(changeSize,resultSize);
                 var thisMarginTop= (this.domNode.style.marginTop).replace("px",""),
