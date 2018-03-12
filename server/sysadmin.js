@@ -114,19 +114,18 @@ module.exports= function(app) {
         res.send(outData);
     });
     app.post("/sysadmin/sql_queries/get_result_to_request", function (req, res) {
-        var newQuery = req.body;
-        database.getQueryResult(newQuery, req.query,
-            function (err,result) {
-                var outData = {};
-                if (err) {
-                    outData.error = err.message;
-                    res.send(outData);
-                    return;
-                }
-                outData.result = result;
+        var newQuery = req.body.text;
+        database.selectParamsMSSQLQuery(newQuery, req.query,
+        function(err,result){
+            var outData = {};
+            if (err) {
+                outData.error = err.message;
                 res.send(outData);
+                return;
             }
-        );
+            outData.result = result;
+            res.send(outData);
+        });
     });
     app.post("/sysadmin/sql_queries/save_sql_file", function (req, res) {
         var configDirectoryName  = common.getConfigDirectoryName();

@@ -3,7 +3,7 @@ var database=require("./dataBase");
 var path=require('path');
 var fs=require('fs');
 var logger=require('./logger')();
-var ejs = require('ejs');
+require('ejs');
 
 module.exports= function(app) {                        //    /type/repId/action/repName
     app.get("/simpleReport/*", function(req, res){
@@ -80,7 +80,8 @@ module.exports= function(app) {                        //    /type/repId/action/
             var conditions=req.query;
             var doConvertReport=false;
             if(conditions["Stock"]&&conditions["Stock"].indexOf(",">=0))doConvertReport=true;
-            database.getReportTableDataBy(reportFolderName,filename+".sql", conditions,
+            var queryStr = fs.readFileSync('./' + configDirectoryName + '/'+reportFolderName+'/' + filename+'.sql', 'utf8');
+            database.selectParamsMSSQLQuery(queryStr,conditions,
                 function (error,recordset) {
                     if (error){
                         outData.error=error.message;
@@ -95,108 +96,6 @@ module.exports= function(app) {                        //    /type/repId/action/
                 });
         }
     });
-
-    //app.get("/reports/getReportsList", function (req, res) {
-    //    var outData={};
-    //    var configDirectoryName=common.getConfigDirectoryName();
-    //    var pagesConfig;
-    //    try{
-    //        pagesConfig=JSON.parse(common.getJSONWithoutComments(fs.readFileSync(path.join(__dirname,'../'+configDirectoryName+'/pagesConfig.json'),'utf8')));
-    //    }catch(e){
-    //        logger.error("Failed to get reports list file. Reason:"+e);
-    //        outData.error= "Failed to get reports list file. Reason:"+e;
-    //        res.send(outData);
-    //        return;
-    //    }
-    //
-    //    var outData={};
-    //    var configDirectoryName=common.getConfigDirectoryName();
-    //    var repData;
-    //    try{
-    //        repData=JSON.parse(common.getJSONWithoutComments(fs.readFileSync(path.join(__dirname,'../'+configDirectoryName+'/reports_list.json'),'utf8')));
-    //    }catch(e){
-    //        logger.error("Failed to get reports list file. Reason:"+e);
-    //        outData.error= "Failed to get reports list file. Reason:"+e;
-    //        res.send(outData);
-    //        return;
-    //    }
-    //    var reports=repData.reports;
-    //    if(req.userRoleCode=="sysadmin"){
-    //        outData.items=reports;
-    //        res.send(outData);
-    //        return;
-    //    }
-    //    var userRepList=repData.rolesCodes[req.userRoleCode];
-    //    var userReports=[];
-    //    for(var i in userRepList){
-    //        if(userRepList[i].trim().length==0){
-    //            userReports.push({});
-    //            continue;
-    //        }
-    //        for(var j in reports){
-    //            if(!reports[j].id) continue;
-    //            else if(userRepList[i]==reports[j].id){
-    //                userReports.push(reports[j]);
-    //            }
-    //        }
-    //    }
-    //    outData.items=userReports;
-    //    res.send(outData);
-    //});
-    //app.get("/reports/getReportConfigByReportName/*", function(req, res){
-    //    var configDirectoryName=common.getConfigDirectoryName();
-    //    var filename = req.params[0];
-    //    var outData={};
-    //    try{
-    //        var fileContentString=fs.readFileSync(path.join(__dirname,'../'+configDirectoryName+'/'+filename+'.json'), 'utf8');
-    //    }catch(e){
-    //        outData.error=e;
-    //        res.send(outData);
-    //        return;
-    //    }
-    //    var pureJSONTxt=JSON.parse(common.getJSONWithoutComments(fileContentString));
-    //    outData.headers=pureJSONTxt.headers;
-    //    outData.totals=pureJSONTxt.totals;
-    //    res.send(outData);
-    //});
-    //app.get("/reports/getReportDataByReportName/*", function(req, res){
-    //    var outData={};
-    //    var configDirectoryName=common.getConfigDirectoryName();
-    //    var filename = req.params[0];
-    //    try{
-    //        var fileContentString=fs.readFileSync(path.join(__dirname,'../'+configDirectoryName+'/'+filename+'.json'),'utf8');
-    //    }catch(e){
-    //        outData.error= e;
-    //        res.send(outData);
-    //        return;
-    //    }
-    //    var pureJSONTxt=JSON.parse(common.getJSONWithoutComments(fileContentString));
-    //    outData.columns=pureJSONTxt.columns;
-    //    var noConditions=true;
-    //    for (var condition in req.query) {
-    //        noConditions=false;
-    //        break;
-    //    }
-    //    if(noConditions){
-    //        res.send(outData);
-    //        return;
-    //    }
-    //    var conditions=req.query;
-    //    var doConvertReport=false;
-    //    if(conditions["Stock"]&&conditions["Stock"].indexOf(",">=0))doConvertReport=true;
-    //    database.getReportTableDataBy(filename+".sql", conditions,
-    //        function (error,recordset) {
-    //            if (error){
-    //                outData.error=error.message;
-    //                res.send(outData);
-    //                return;
-    //            }
-    //            outData.items=recordset;
-    //            if(doConvertReport)
-    //                convertReport({outData:outData, rowToColumnFieldName:"StockName", rowToColumnKeyField:"StockID", columnDataFieldName:"Qty"});
-    //            res.send(outData);
-    //        });
-    //});
 
     /**
      * params: { outData, rowToColumnFieldName, rowToColumnKeyField, columnDataFieldName }
@@ -267,7 +166,7 @@ module.exports= function(app) {                        //    /type/repId/action/
         res.connection.setTimeout(0);
         var outData={};
         if(req.isAdminUser||req.isSysadmin){
-            database.selectStockNames(function(err, result){
+            selectStockNames(function(err, result){
                 if (err){
                     outData.error=err.message;
                     res.send(outData);
@@ -278,7 +177,7 @@ module.exports= function(app) {                        //    /type/repId/action/
             });
             return;
         }
-        database.selectStockNameByUserID(req.userID, function(err, result){
+        selectStockNameByUserID(req.userID, function(err, result){
             if (err){
                 outData.error=err.message;
                 res.send(outData);
@@ -292,20 +191,19 @@ module.exports= function(app) {                        //    /type/repId/action/
         res.connection.setTimeout(0);
         var outData={};
         if(req.isAdminUser||req.isSysadmin){
-            database.selectStockNames(function(err, result){
+            selectStockNames(function(err, result){
                 if (err){
                     outData.error=err.message;
                     res.send(outData);
                     return;
                 }
-                //result.unshift({StockName:"Все склады",StockID:-1});
                 getAllStocksIdStr(result);
                 outData.items=getResultItemsForSelect(result,{valueField:""});
                 res.send(outData)
             });
             return;
         }
-        database.selectStockNamesForRemByUserID(req.userID, function(err, result){
+        selectStockNamesForRemByUserID(req.userID, function(err, result){
             res.connection.setTimeout(0);
             if (err){
                 outData.error=err.message;
@@ -318,6 +216,45 @@ module.exports= function(app) {                        //    /type/repId/action/
         })
     });
 };
+
+function selectStockNames(callback){
+    database.selectMSSQLQuery(
+        "SELECT s.StockName, CONVERT(varchar,r.StockID) as StockID "+
+        "from   t_Rem r "+
+        "inner join r_Stocks s on s.StockID=r.StockID "+
+        "group by r.StockID,s.StockName "+
+        "having sum(r.Qty)<>0 "+
+        "order by r.StockID ",
+        callback
+    );
+}
+function selectStockNameByUserID(EmpID, callback){
+    database.selectParamsMSSQLQuery("select CONVERT(varchar,st.StockID)  as StockID, st.StockName,\n" +
+        "\te.EmpID, e.EmpName\n" +
+        "\t, op.OperID, op.OperName, opcr.CRID, cr.CRName\n" +
+        "\tfrom r_Emps e\n" +
+        "\tinner join r_Opers op on op.EmpID=e.EmpID\n" +
+        "\tinner join r_OperCRs opcr on opcr.OperID=op.OperID and opcr.CRVisible>0\n" +
+        "\tinner join r_Crs cr on cr.CRID=opcr.CRID\n" +
+        "\tinner join r_Stocks st on st.StockID=cr.StockID\n" +
+        "\twhere e.EmpID=@EmpID\n" +
+        "\torder by st.StockID",{'EmpID':EmpID},
+        callback);
+};
+function selectStockNamesForRemByUserID(EmpID, callback){
+    database.selectParamsMSSQLQuery("select  st.StockName, CONVERT(varchar,st.StockID )  as StockID ,"+
+        "e.EmpID, e.EmpName, op.OperID, op.OperName "+
+        "from r_Emps e "+
+        "inner join r_Opers op on op.EmpID=e.EmpID "+
+        "inner join r_OperCRs opcr on opcr.OperID=op.OperID "+
+        "inner join r_Crs cr on cr.CRID=opcr.CRID "+
+        "inner join r_Stocks st on st.StockID=cr.StockID "+
+        "where e.EmpID=@EmpID "+
+        "group by  st.StockName,st.StockID ,e.EmpID,e.EmpName,op.OperID,op.OperName "+
+        "order by st.StockID;",{'EmpID':EmpID},
+        callback);
+};
+
 
 function getResultItemsForSelect(result){
         var resultItems=result;
@@ -341,73 +278,3 @@ function getAllStocksIdStr(result){
     }
     result.unshift({StockName:"Все склады",StockID:stockStr});
 }
-
-//  function getAllStocksProdBalanceQueryStr(stocksArr){
-//     var queryText="";
-//      var selectSnippetStr="select p.ProdId,p.Article1, p.ProdName, p.UM, ";
-//      var totalQtySnippet=" ,";
-//      var joinSnippetStr='';
-//      var whereSnippetStr=' where NOT(';
-//      for (var i in stocksArr){
-//          selectSnippetStr=selectSnippetStr+' SUM(r'+i+'.Qty) as R'+i+'Qty';
-//          totalQtySnippet=totalQtySnippet+'ISNULL(SUM(r'+i+'.Qty),0)';
-//          joinSnippetStr=joinSnippetStr+	' left join r_Stocks st'+i+' on st'+i+'.StockID= '+stocksArr[i].StockID+
-//          ' left join t_Rem r'+i+' on r'+i+'.ProdID=p.ProdID and r'+i+'.StockID=st'+i+'.StockID and r'+i+'.Qty<>0';
-//          whereSnippetStr=whereSnippetStr+' r'+i+'.Qty is NULL ';
-//          if(i<stocksArr.length-1){
-//              selectSnippetStr=selectSnippetStr+',';
-//              totalQtySnippet=totalQtySnippet+'+';
-//              whereSnippetStr=whereSnippetStr+' and ';
-//          }
-//          if(i==stocksArr.length-1){
-//              whereSnippetStr=whereSnippetStr+')';
-//          }
-//      }
-//      queryText=queryText+selectSnippetStr;
-//      queryText=queryText+totalQtySnippet+' as Qty';
-//      queryText=queryText+" from r_Prods p ";
-//      queryText=queryText+joinSnippetStr;
-//      queryText=queryText+whereSnippetStr;
-//      queryText=queryText+" group by p.ProdId, p.Article1, p.ProdName, p.UM;";
-// return queryText;
-//  };
-
-// function getQtyColumns(stocksArr,columns){
-//     var extendedColumns=[];
-//     var qtyColData;
-//     for(var i in columns){
-//         if(columns[i].data !="Qty")extendedColumns.push(columns[i]);
-//         else qtyColData=columns[i];
-//     }
-//     for(var i in stocksArr){
-//         var newQtyColumn={data:"R"+i+"Qty",name:"Кол-во\n"+stocksArr[i].StockName};
-//         var qtyParams=Object.keys(qtyColData);
-//         for(var param in qtyParams){
-//             if(param=="data" ||param=="name") continue;
-//             newQtyColumn[param]=qtyParams[param];
-//         }
-//         extendedColumns.push(newQtyColumn);
-//     }
-//     qtyColData.name="Итоговое кол-во";
-//     extendedColumns.push(qtyColData);
-//     return extendedColumns;
-// }
-// function getExtendedQtyData(columns,callback){
-//     var extendedQtyObj={};
-//     database.selectStockNames(function(err,stockNamesResult){
-//         if(err){
-//             callback(err.message);
-//             return;
-//         }
-//         extendedQtyObj.columns=getQtyColumns(stockNamesResult,columns);
-//         var queryStr = getAllStocksProdBalanceQueryStr(stockNamesResult);
-//         database.executeQuery(queryStr, function(err, result){
-//             if(err){
-//                 callback(err.message);
-//                 return;
-//             }
-//             extendedQtyObj.items=result;
-//             callback(null,extendedQtyObj);
-//         })
-//     });
-// }

@@ -50,179 +50,7 @@ module.exports.setDatabaseConnection=function(callback){
     });
 };
 
-// module.exports.getDBConnectError= function(){
-//         return dbConnectError;
-//     };
-
-module.exports.getQueryResult=function(newQuery, parameters, callback){ //--->  //
-    var reqSql = new mssql.Request();
-    var newQueryString=newQuery.text;
-    for(var paramName in parameters) reqSql.input(paramName, deleteSpaces(parameters[paramName]));
-    reqSql.query(newQueryString,
-        function (err, result) {
-            if (err) {
-                if(err.name=="ConnectionError")dbConnectError=err.message;
-                callback(err);
-            } else {
-                callback(null,result.recordset);
-            }
-        })
-};
-/**getReportTableDataBy(params, callback) conditions= {bdate,edate,stockId, ... }
- */
-module.exports.getReportTableDataBy=function(folder, filename, conditions, callback ){
-    var configDirectoryName=dbConfig["reports.config"]?dbConfig["reports.config"]:"reportsConfig";
-    var reqSql = new mssql.Request();
-    try {
-        var query_str = fs.readFileSync('./' + configDirectoryName + '/'+folder+'/' + filename, 'utf8');
-    }catch(e){
-        callback(e);
-        return;
-    }
-    for (var conditionName in conditions) {
-        if(conditionName.toLocaleLowerCase().indexOf("date")==conditionName-5){
-            reqSql.input(conditionName,mssql.Date, conditions[conditionName]);
-        }else
-            reqSql.input(conditionName, conditions[conditionName]);
-    }
-    reqSql.query(query_str,
-        function (err, result) {
-            if (err) {
-                if(err.name=="ConnectionError")dbConnectError=err.message;
-                callback(err);
-            } else {
-                callback(null,result.recordset);
-            }
-        });
-};
-
-function deleteSpaces(text){
-    if(text.indexOf(" ")!=-1){
-        text = text.replace(/ /g,"");
-    }
-    return text;
-}
-
-module.exports.getPswdByLogin=function(login, callback ){
-    var reqSql = new mssql.Request();
-    reqSql.input('Login',login);
-    reqSql.query("select LPAss,EmpID from r_Emps where Login=@Login",
-        function (err, result) {
-            if (err) {
-                if(err.name=="ConnectionError")dbConnectError=err.message;
-                callback(err);
-            } else {
-                callback(null,result.recordset[0]);
-            }
-        });
-};
-
-module.exports.setPLIDForUserSession=function(EmpID, callback){
-    var LPID=common.getUIDNumber();
-    var reqSql = new mssql.Request();
-    reqSql.input('EmpID',EmpID);
-    reqSql.input('LPID',LPID);
-    reqSql.query("update r_Emps set LPID=@LPID where EmpID=@EmpID",
-        function (err, result) {
-            if (err) {
-                if(err.name=="ConnectionError")dbConnectError=err.message;
-                callback(err);
-            } else {
-                callback(null,LPID);
-            }
-        });
-};
-
-module.exports.getUserDataByLpid=function(LPID, callback){
-    var reqSql = new mssql.Request();
-    reqSql.input('LPID', LPID);
-    reqSql.query("select Login, EmpName, ShiftPostID, EmpID  from r_Emps where LPID=@LPID",
-        function (err, result) {
-            if (err) {
-                if(err.name=="ConnectionError")dbConnectError=err.message;
-                callback(err.message);
-            } else {
-                callback(null,result.recordset[0]);
-            }
-        });
-};
-module.exports.selectStockNames=function(callback){
-        var reqSql = new mssql.Request();
-        reqSql.query("SELECT s.StockName, CONVERT(varchar,r.StockID) as StockID "+
-            "from   t_Rem r "+
-            "inner join r_Stocks s on s.StockID=r.StockID "+
-            "group by r.StockID,s.StockName "+
-            "having sum(r.Qty)<>0 "+
-            "order by r.StockID ",
-            function (err, result) {
-                if (err) {
-                    if(err.name=="ConnectionError")dbConnectError=err.message;
-                    callback(err);
-                    return;
-                }
-                callback(null,result.recordset);
-            });
-};
-
-module.exports.selectStockNameByUserID=function(EmpID, callback){
-    var reqSql = new mssql.Request();
-    reqSql.input('EmpID',EmpID);
-    reqSql.query("select CONVERT(varchar,st.StockID)  as StockID, st.StockName,\n" +
-        "\te.EmpID, e.EmpName\n" +
-        "\t, op.OperID, op.OperName, opcr.CRID, cr.CRName\n" +
-        "\tfrom r_Emps e\n" +
-        "\tinner join r_Opers op on op.EmpID=e.EmpID\n" +
-        "\tinner join r_OperCRs opcr on opcr.OperID=op.OperID and opcr.CRVisible>0\n" +
-        "\tinner join r_Crs cr on cr.CRID=opcr.CRID\n" +
-        "\tinner join r_Stocks st on st.StockID=cr.StockID\n" +
-        "\twhere e.EmpID=@EmpID\n" +
-        "\torder by st.StockID",
-        function (err, result) {
-            if (err) {
-                if(err.name=="ConnectionError")dbConnectError=err.message;
-                callback(err.message);
-                return;
-            }
-            callback(null,result.recordset);
-        });
-};
-
-module.exports.selectStockNamesForRemByUserID=function(EmpID, callback){
-    var reqSql = new mssql.Request();
-    reqSql.input('EmpID',EmpID);
-    reqSql.query("select  st.StockName, CONVERT(varchar,st.StockID )  as StockID ,"+
-        "e.EmpID, e.EmpName, op.OperID, op.OperName "+
-        "from r_Emps e "+
-        "inner join r_Opers op on op.EmpID=e.EmpID "+
-        "inner join r_OperCRs opcr on opcr.OperID=op.OperID "+
-        "inner join r_Crs cr on cr.CRID=opcr.CRID "+
-        "inner join r_Stocks st on st.StockID=cr.StockID "+
-        "where e.EmpID=@EmpID "+
-        "group by  st.StockName,st.StockID ,e.EmpID,e.EmpName,op.OperID,op.OperName "+
-        "order by st.StockID;",
-        function (err, result) {
-            if (err) {
-                if(err.name=="ConnectionError")dbConnectError=err.message;
-                callback(err.message);
-                return;
-            }
-            callback(null,result.recordset);
-        });
-};
-
-module.exports.executeQuery=function(queryText, callback){   //-->executeMSSQLQuery
-    var reqSql = new mssql.Request();
-    reqSql.query(queryText,
-        function (err, result) {
-            if (err) {
-                if(err.name=="ConnectionError")dbConnectError=err.message;
-                callback(err);
-                return;
-            }
-            callback(null,result.recordset);
-        });
-};
-function selectMSSQLQuery(query, callback) {                                                        logger.debug("database selectMSSQLQuery query:",query);
+function selectMSSQLQuery(query, callback) {                                                    logger.debug("database selectMSSQLQuery query:",query);
     var request = new mssql.Request();
     request.query(query,
         function (err, result) {
@@ -235,6 +63,7 @@ function selectMSSQLQuery(query, callback) {                                    
             callback(null, result.recordset, result.rowsAffected.length);
         });
 }
+module.exports.selectMSSQLQuery=selectMSSQLQuery;
 /**
  * for MS SQL database query insert/update/delete
  * query= <MS SQL queryStr>
@@ -265,6 +94,8 @@ module.exports.executeMSSQLParamsQuery= function(query, paramsObj, callback) {  
 function selectParamsMSSQLQuery(query, paramsObj, callback) {                                      logger.debug("database selectParamsMSSQLQuery query:",query," parameters:",paramsObj,{});
     var request = new mssql.Request();
     for(var param in paramsObj){
+        //if(param.toLocaleLowerCase().indexOf("date")==param-5){
+        //reqSql.input(param,mssql.Date, paramsObj[param]);
         request.input(param,paramsObj[param]);
     }
     request.query(query,

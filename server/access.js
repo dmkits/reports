@@ -66,12 +66,14 @@ module.exports= function(app) {
                 });
                 return;
             }
-            database.getUserDataByLpid(req.cookies.lpid, function (err, result) {
+            database.selectParamsMSSQLQuery("select Login, EmpName, ShiftPostID, EmpID  from r_Emps where LPID=@LPID",
+                {LPID:req.cookies.lpid}, function (err, result) {
                 if (err) {
                     res.send({error: err});
-                    // log.error(err);
+                    logger.error(err);
                     return;
                 }
+                var result=result[0];
                 if (!result || !result.Login) {
                     if (reqIsJSON(req.headers) || reqIsAJAX(req.headers)) {
                         res.send({error: "Failed to get data! Reason: unknown user!", userErrorMsg: "Неизвестный пользователь."});

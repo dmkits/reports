@@ -72,47 +72,52 @@ try {
 app.get("/login", function (req, res) {                        log.info("app.get /login");
     res.sendFile(path.join(__dirname, '../pages', 'login.html'));
 });
-app.post("/login", function (req, res) {                        log.info("app.post /login",req.body.user, userPswrd=req.body.pswrd);
+app.post("/login", function (req, res) {                        log.info("app.post /login",req.body.user, 'userPswrd=',req.body.pswrd);
     var userName=req.body.user, userPswrd=req.body.pswrd;
     if(!userName ||! userPswrd ){
         res.send({error:"Authorisation failed! No login or password!", userErrorMsg:"Пожалуйста введите имя и пароль."});
         return;
     }
     var sysAdminLoginDataArr=common.getSysAdminLoginDataArr();
-    for(var i in sysAdminLoginDataArr){
-        if(sysAdminLoginDataArr[i].login==userName){
-            if(sysAdminLoginDataArr[i].pswrd==userPswrd){
-                var newPLID=common.getUIDNumber();
-                var sysAdminLPIDObj=common.getSysAdminLPIDObj();
-                sysAdminLPIDObj[sysAdminLoginDataArr[i].login]=newPLID;
+    for(var i in sysAdminLoginDataArr) {
+        if (sysAdminLoginDataArr[i].login == userName) {
+            if (sysAdminLoginDataArr[i].pswrd == userPswrd) {
+                var newPLID = common.getUIDNumber();
+                var sysAdminLPIDObj = common.getSysAdminLPIDObj();
+                sysAdminLPIDObj[sysAdminLoginDataArr[i].login] = newPLID;
                 common.writeSysAdminLPIDObj(sysAdminLPIDObj);
                 res.cookie("lpid", newPLID);
-                res.send({result:"success"});
+                res.send({result: "success"});
                 return;
+
             }
         }
     }
-    database.getPswdByLogin(userName, function(err,result){
-        if(err){
-            log.error(err);
-            res.send({error:err.message});
-            return;
-        }
-        if(result&&result.LPAss && result.LPAss==userPswrd){
-            database.setPLIDForUserSession(result.EmpID, function(err,LPID){
-                if(err){
-                    log.error(err);
-                    res.send({error:err.message});
-                    return;
-                }
-                res.cookie("lpid", LPID);
-                res.send({result:"success"});
-            });
-            return;
-        }
-        log.info("Wrong login or password.");
-        res.send({error:"Неправильный логин или пароль"});
-    });
+    database.selectParamsMSSQLQuery("select LPAss,EmpID from r_Emps where Login=@Login", {Login: userName},
+        function (err, result) {
+            if (err) {
+                log.error(err);
+                res.send({error: err.message});
+                return;
+            }
+            var userLoginData=result[0];
+            if (userLoginData && userLoginData.LPAss && userLoginData.LPAss == userPswrd) {
+                var LPID=common.getUIDNumber();
+                database.executeMSSQLParamsQuery("update r_Emps set LPID=@LPID where EmpID=@EmpID",
+                    {EmpID:userLoginData.EmpID, LPID:LPID}, function (err,rowsAffected ) {
+                    if (err) {
+                        log.error(err);
+                        res.send({error: err.message});
+                        return;
+                    }
+                    res.cookie("lpid", LPID);
+                    res.send({result: "success"});
+                });
+                return;
+            }
+            log.info("Wrong login or password.");
+            res.send({error: "Неправильный логин или пароль"});
+        });
 });
 
 require('./sysadmin')(app);
@@ -147,14 +152,6 @@ app.get("/get_main_data", function(req, res){                                   
         outData.error=app.ConfigurationError;                                                         log.error("req.ConfigurationError=",app.ConfigurationError);
     }
     var configDirectoryName=common.getConfigDirectoryName();
-    // if(req.isSysadmin||req.isAdminUser){
-    //     menuBar.push({itemname:"menuBarItemRetailSales",itemtitle:"Отчеты retail",
-    //         action:"open",content:"/reports/reportPage", id:"ReportRetailSales",title:"Отчеты retail", closable:false});
-    // }
-    // if(req.isSysadmin||!req.isAdminUser) {
-    //     menuBar.push({itemname:"menuBarItemRetailCashier",itemtitle:"Отчеты кассира",
-    //         action:"open",content:"/reports/retail_cashier", id:"ReportRetailCashier",title:"Отчеты кассира", closable:false});
-    // }
     var pagesConfig;
     try{
         pagesConfig=JSON.parse(common.getJSONWithoutComments(fs.readFileSync(path.join(__dirname,'../'+configDirectoryName+'/pagesConfig.json'),'utf8')));
