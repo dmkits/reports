@@ -34,7 +34,7 @@ module.exports.tryDBConnect=function (app,postaction) {
    tryToConnectToDBRecursively(0,app,postaction);
 };
 function tryToConnectToDBRecursively(index,app,postaction){
-    database.databaseConnection(function (err) {
+    database.setDatabaseConnection(function (err) {
         if (err) {
             if(index==3) {
                 app.DBConnectError = "Failed to connect to database! Reason:" + err;

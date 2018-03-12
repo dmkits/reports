@@ -26,7 +26,7 @@ module.exports.saveConfig=function(callback) {
         callback(err,success);
     })
 };
-module.exports.databaseConnection=function(callback){
+module.exports.setDatabaseConnection=function(callback){
     mssql.close();
     dbConfig.requestTimeout=300000;
     mssql.connect(dbConfig, function(err){
@@ -54,7 +54,7 @@ module.exports.databaseConnection=function(callback){
 //         return dbConnectError;
 //     };
 
-module.exports.getQueryResult=function(newQuery, parameters, callback){
+module.exports.getQueryResult=function(newQuery, parameters, callback){ //--->  //
     var reqSql = new mssql.Request();
     var newQueryString=newQuery.text;
     for(var paramName in parameters) reqSql.input(paramName, deleteSpaces(parameters[paramName]));
@@ -210,7 +210,7 @@ module.exports.selectStockNamesForRemByUserID=function(EmpID, callback){
         });
 };
 
-module.exports.executeQuery=function(queryText, callback){
+module.exports.executeQuery=function(queryText, callback){   //-->executeMSSQLQuery
     var reqSql = new mssql.Request();
     reqSql.query(queryText,
         function (err, result) {
@@ -238,13 +238,13 @@ function selectMSSQLQuery(query, callback) {                                    
 /**
  * for MS SQL database query insert/update/delete
  * query= <MS SQL queryStr>
- * paramsValueObj = {<paramName>:<paramValue>,...}
+ * paramsObj = {<paramName>:<paramValue>,...}
  * callback = function(err, updateCount)
  */
-module.exports.executeMSSQLParamsQuery= function(query, parameters, callback) {                 logger.debug("database executeMSSQLParamsQuery:",query,parameters);
+module.exports.executeMSSQLParamsQuery= function(query, paramsObj, callback) {               logger.debug("database executeMSSQLParamsQuery:",query,paramsObj);
     var request = new mssql.Request();
-    for(var i in parameters){
-        request.input('p'+i,parameters[i]);
+    for(var param in paramsObj){
+        request.input(param,paramsObj[param]);
     }
     request.query(query,
         function (err, result) {
@@ -259,13 +259,13 @@ module.exports.executeMSSQLParamsQuery= function(query, parameters, callback) { 
 
 /**
  * for MS SQL database query select
- * parameters = [ <value1>, <value2>, ...] - values for replace '@p<Index>' in query
+ * paramsObj={<paramName>:<paramValue>, ... }
  * callback = function(err, recordset, count)
  */
-function selectParamsMSSQLQuery(query, parameters, callback) {                                      logger.debug("database selectParamsMSSQLQuery query:",query," parameters:",parameters,{});
+function selectParamsMSSQLQuery(query, paramsObj, callback) {                                      logger.debug("database selectParamsMSSQLQuery query:",query," parameters:",paramsObj,{});
     var request = new mssql.Request();
-    for(var i in parameters){
-        request.input('p'+i,parameters[i]);
+    for(var param in paramsObj){
+        request.input(param,paramsObj[param]);
     }
     request.query(query,
         function (err, result) {
@@ -531,14 +531,14 @@ function getSelectItemsMSSQL(params, resultCallback){
         }
     }
     selectQuery+=joins;
-    var wConditionQuery, coditionValues=[];
+    var wConditionQuery, conditionsObj={};
     if (params.conditions&&typeof(params.conditions)=="object"&&params.conditions.length===undefined) {//object
         for(var conditionItem in params.conditions) {
             var conditionItemValue=params.conditions[conditionItem];
-            var conditionItemValueQuery= (conditionItemValue===null||conditionItemValue==='null')?conditionItem:conditionItem+"@p"+coditionValues.length;
+            var conditionItemValueQuery= (conditionItemValue===null||conditionItemValue==='null')?conditionItem:conditionItem+"@p"+Object.keys(conditionsObj).length;
             conditionItemValueQuery= conditionItemValueQuery.replace("~","=");
             wConditionQuery= (!wConditionQuery)?conditionItemValueQuery:wConditionQuery+" and "+conditionItemValueQuery;
-            if (conditionItemValue!==null) coditionValues.push(conditionItemValue);
+            if (conditionItemValue!==null)  conditionsObj["p"+Object.keys(conditionsObj).length]=conditionItemValue;
         }
     } else if (params.conditions&&typeof(params.conditions)=="object"&&params.conditions.length>0) {//array
         for(var ind in params.conditions) {
@@ -547,14 +547,14 @@ function getSelectItemsMSSQL(params, resultCallback){
             if(params.fieldsSources&&params.fieldsSources[conditionFieldName])
                 conditionFieldName= params.fieldsSources[conditionFieldName];
             var conditionItemValueQuery=
-                (conditionItem.value===null)?conditionFieldName+conditionItem.condition:conditionFieldName+conditionItem.condition+"@p"+coditionValues.length;
+                (conditionItem.value===null)?conditionFieldName+conditionItem.condition:conditionFieldName+conditionItem.condition+"@p"+Object.keys(conditionsObj).length;
             wConditionQuery= (!wConditionQuery)?conditionItemValueQuery:wConditionQuery+" and "+conditionItemValueQuery;
-            if (conditionItem.value!==null) coditionValues.push(conditionItem.value);
+            if (conditionItem.value!==null) conditionsObj["p"+Object.keys(conditionsObj).length]=conditionItem.value;
         }
     }
     if(wConditionQuery)selectQuery+=" where "+wConditionQuery;
     if (params.order) selectQuery+=" order by "+params.order;
-    if (coditionValues.length==0)
+    if (conditionsObj.length==0)
         selectMSSQLQuery(selectQuery,function(err, recordset){
             if(err) {                                                                                       logger.error("FAILED _getSelectItems selectMSSQLQuery! Reason:",err.message,"!");//test
                 resultCallback(err);
@@ -562,7 +562,7 @@ function getSelectItemsMSSQL(params, resultCallback){
                 resultCallback(null,recordset);
         });
     else
-        selectParamsMSSQLQuery(selectQuery,coditionValues, function(err, recordset){
+        selectParamsMSSQLQuery(selectQuery,conditionsObj, function(err, recordset){
             if(err) {                                                                                       logger.error("FAILED _getSelectItems selectParamsMSSQLQuery! Reason:",err.message,"!");//test
                 resultCallback(err);
             } else
@@ -859,27 +859,27 @@ function updDataItem(params, resultCallback) {
         resultCallback({ error:"Failed update data item! Reason:no update conditions!"});
         return;
     }
-    var queryFields="", fieldsValues=[];
+    var queryFields="", fieldsValuesObj={};
     for(var fieldName in params.updData) {
         if (queryFields!="") queryFields+= ",";
-        queryFields+= fieldName+"=@p"+fieldsValues.length;
+        queryFields+= fieldName+"=@p"+Object.keys(fieldsValuesObj).length;
         var updDataItemValue=params.updData[fieldName];
         if(updDataItemValue&&(updDataItemValue instanceof Date)) {
             updDataItemValue=moment(updDataItemValue).format('YYYY-MM-DD HH:mm:ss');
         }
-        fieldsValues.push(updDataItemValue);
+        fieldsValuesObj["p"+Object.keys(fieldsValuesObj).length]=updDataItemValue;
     }
     var updQuery="update "+params.tableName+" set "+queryFields;
     var queryConditions="";
     for(var fieldNameCondition in params.conditions) {
 
         if (queryConditions!="") queryConditions+= " and ";
-        queryConditions+= fieldNameCondition.replace("~","=")+"@p"+fieldsValues.length;
-        fieldsValues.push(params.conditions[fieldNameCondition]);
+        queryConditions+= fieldNameCondition.replace("~","=")+"@p"+Object.keys(fieldsValuesObj).length;
+        fieldsValuesObj["p"+Object.keys(fieldsValuesObj).length]=params.conditions[fieldNameCondition];
     }
 
     updQuery+= " where "+queryConditions;
-    module.exports.executeMSSQLParamsQuery(updQuery,fieldsValues,function(err, updateCount){
+    module.exports.executeMSSQLParamsQuery(updQuery,fieldsValuesObj,function(err, updateCount){
         var updResult={};
         if(err) {
             updResult.error="Failed update data item! Reason:"+err.message;
