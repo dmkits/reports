@@ -357,11 +357,14 @@ define(["dojo/_base/declare", "hTableSimple"], function(declare, HTableSimple){
                         }
                         if(globalFilterValue!==null && !rowVisibleByGlobalFilter && itemVisible==true) {
                             var sdataItemVal=(dataItemVal)?dataItemVal.toString():"", sGlobalFilterVal=globalFilterValue.toString();
-                            if(sdataItemVal===sGlobalFilterVal||sdataItemVal.indexOf(" "+sGlobalFilterVal+" ")>=0) rowVisibleByGlobalFilter= true;
+                            //if(sdataItemVal===sGlobalFilterVal||sdataItemVal.indexOf(" "+sGlobalFilterVal+" ")>=0) rowVisibleByGlobalFilter= true;
+                            if(sdataItemVal===sGlobalFilterVal||sdataItemVal.toLowerCase().indexOf(sGlobalFilterVal.toLowerCase().trim())>=0) rowVisibleByGlobalFilter= true;
                         }
                     } else if(globalFilterValue!==null && !rowVisibleByGlobalFilter) {                                  //console.log("HTableSimpleFiltered filterContentData globalFilterValue=",globalFilterValue,dataItemVal);
                         var sdataItemVal=(dataItemVal)?dataItemVal.toString():"", sGlobalFilterVal=globalFilterValue.toString();
-                        if(sdataItemVal===sGlobalFilterVal||sdataItemVal.indexOf(" "+sGlobalFilterVal+" ")>=0) rowVisibleByGlobalFilter= true;
+                      //  if(sdataItemVal===sGlobalFilterVal||sdataItemVal.indexOf(" "+sGlobalFilterVal+" ")>=0) rowVisibleByGlobalFilter= true;
+                        if(sdataItemVal===sGlobalFilterVal||sdataItemVal.toLowerCase().indexOf(sGlobalFilterVal.toLowerCase().trim())>=0) rowVisibleByGlobalFilter= true;
+
                     }
                     rowVisible=rowVisible&&itemVisible;
                 }
