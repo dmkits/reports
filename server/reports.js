@@ -90,6 +90,15 @@ module.exports= function(app) {                        //    /type/repId/action/
                         return;
                     }
                     outData.items=recordset;
+                    if(filename=='testFilter'){      // snippet fot test
+                        doConvertReport=false;
+                        outData.items=[{ ProdID: 1,RowNum:1 },{ ProdID: 2,RowNum:1 },{ ProdID: 3,RowNum:1 },{ ProdID: 4,RowNum:1 },
+                            { ProdID: 5,RowNum:1 },{ ProdID: 6,RowNum:1 },{ ProdID: 7,RowNum:1 },{ ProdID: 8,RowNum:1 },
+                            { ProdID: 9,RowNum:1 },{ ProdID: 10,RowNum:1 },
+                            { ProdID: 11,RowNum:1 },{ ProdID: 12,RowNum:1 },{ ProdID: 13,RowNum:1 },{ ProdID: 14,RowNum:1 },
+                            { ProdID: 15,RowNum:1 },{ ProdID: 16,RowNum:1 },{ ProdID: 17,RowNum:1 },{ ProdID: 18,RowNum:1 },
+                            { ProdID: 19,RowNum:1 },{ ProdID: 20,RowNum:1 }];
+                    }
                     if(doConvertReport)
                         convertReport({outData:outData, rowToColumnFieldName:"StockName", rowToColumnKeyField:"StockID", columnDataFieldName:"Qty"});
                     res.send(outData);

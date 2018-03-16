@@ -139,20 +139,45 @@ define(["dojo/_base/declare", "hTableSimple"], function(declare, HTableSimple){
                         } else if(filterMenu.valueType=="numeric") {
                             for(var filterValueItem in filterValues) filterValues[filterValueItem]= null;
                             if(filterMenu.valueEdit.value!="") {
-                                var filterEditValues = filterMenu.valueEdit.value, filterValueNum=1;
+                                var filterEditValues = filterMenu.valueEdit.value,  filterValueNum=1;
                                 while(filterEditValues.length>0){
                                     var posDelimiter = filterEditValues.indexOf(","); if(posDelimiter<0) posDelimiter=filterEditValues.length;
-                                    var filterEditValueItem = filterEditValues.substring(0,posDelimiter);
+                                    var filterEditValueItem = filterEditValues.substring(0,posDelimiter);  console.log("filterEditValueItem=",filterEditValueItem);
                                     var posInterval= filterEditValueItem.indexOf("-");
+                                    filterValues["value_"+filterValueNum] = [];
                                     if(posInterval<0){
-                                        var filterValueItem= parseFloat(filterEditValueItem);
-                                        if(!isNaN(filterValueItem)) filterValues["value_"+filterValueNum] = filterValueItem;
+                                        if(filterEditValueItem.trim().indexOf("<>")==0){   console.log("filterEditValueItem.replace=",filterEditValueItem.replace("<>","")); console.log("filterValues=",filterValues); console.log("filterValueNum=",filterValueNum);
+                                            var filterEditValueItemExclude= parseFloat(filterEditValueItem.replace("<>",""));
+                                            if(!isNaN(filterEditValueItemExclude)) filterValues["value_"+filterValueNum]["exclude"]= filterEditValueItemExclude;
+                                        }else if(filterEditValueItem.trim().indexOf("<=")==0){
+                                            var filterEditValueItemLessOrEqual= parseFloat(filterEditValueItem.replace("<=",""));
+                                            if(!isNaN(filterEditValueItemLessOrEqual)) filterValues["value_"+filterValueNum]["less_or_equal"]= filterEditValueItemLessOrEqual;
+                                        }else if(filterEditValueItem.trim().indexOf(">=")==0){
+                                            var filterEditValueItemMoreOrEqual= parseFloat(filterEditValueItem.replace(">=",""));
+                                            if(!isNaN(filterEditValueItemMoreOrEqual)) filterValues["value_"+filterValueNum]["more_or_equal"]= filterEditValueItemMoreOrEqual;
+                                        }else if(filterEditValueItem.trim().indexOf(">")==0){
+                                            var filterEditValueItemMore= parseFloat(filterEditValueItem.replace(">",""));
+                                            if(!isNaN(filterEditValueItemMore)) filterValues["value_"+filterValueNum]["more"]= filterEditValueItemMore;
+                                        }else if(filterEditValueItem.trim().indexOf("<")==0){
+                                            var filterEditValueItemLess= parseFloat(filterEditValueItem.replace("<",""));
+                                            if(!isNaN(filterEditValueItemLess)) filterValues["value_"+filterValueNum]["less"]= filterEditValueItemLess;
+                                        }else {
+                                            var filterValueItem= parseFloat(filterEditValueItem);
+                                            if(!isNaN(filterValueItem)) filterValues["value_"+filterValueNum]["value_to_include"] = filterValueItem;
+                                        }
                                     } else {
-                                        filterValues["value_"+filterValueNum] = [];
                                         var filterEditValueItemFrom= parseFloat(filterEditValueItem.substring(0,posInterval));
-                                        if(!isNaN(filterEditValueItemFrom)) filterValues["value_"+filterValueNum]["from"] = filterEditValueItemFrom;
+                                        if(!isNaN(filterEditValueItemFrom)){
+                                            filterValues["value_"+filterValueNum]["from"] = filterEditValueItemFrom;
+                                        }
                                         var filterEditValueItemTo= parseFloat(filterEditValueItem.substring(posInterval+1,filterEditValueItem.length));
-                                        if(!isNaN(filterEditValueItemTo)) filterValues["value_"+filterValueNum]["to"] = filterEditValueItemTo;
+                                        if(!isNaN(filterEditValueItemTo)){     console.log("filterValues['value_'+filterValueNum].length=", filterValues["value_"+filterValueNum].length);
+                                            if(filterValues["value_"+filterValueNum]["from"]){
+                                                filterValueNum++;
+                                                filterValues["value_"+filterValueNum]=[];
+                                            }
+                                            filterValues["value_"+filterValueNum]["to"] = filterEditValueItemTo;
+                                        }
                                     }
                                     filterEditValues= filterEditValues.substring(posDelimiter+1,filterEditValues.length);
                                     filterValueNum++;
@@ -256,14 +281,31 @@ define(["dojo/_base/declare", "hTableSimple"], function(declare, HTableSimple){
                     createMenuItem(filterMenu,colProp+"_checkboxlist","checkboxlist",{values:filterItems,isValueChecked:filterValues});
                 } else if(colType=="numeric"){
                     createMenuItem(filterMenu,colProp+"_buttonClear","button",{label:"Очистить значение"});
-                    var filterEditValue = "";
-                    for(var filterMenuItem in filterValues){
-                        var filterValue= filterValues[filterMenuItem];
-                        if(filterMenuItem.indexOf("value_")>=0&&filterValue!=null) {
-                            if(filterEditValue.length>0) filterEditValue=filterEditValue+",";
-                            if(filterValue instanceof Array){
-                                filterEditValue= filterEditValue+filterValue["from"]+"-"+filterValue["to"];
-                            } else filterEditValue= filterEditValue+filterValue;
+                    var filterEditValue = "";    console.log("filterValues 342=",filterValues);
+                    for(var filterMenuItem in filterValues) {
+                        var filterValue = filterValues[filterMenuItem];
+                        if (filterMenuItem.indexOf("value_") >= 0 && filterValue != null) {
+                            if (filterEditValue.length > 0) filterEditValue = filterEditValue + ",";
+
+                            if (filterValue["from"] && filterValue["to"]) {
+                                filterEditValue = filterEditValue + filterValue["from"] + "-" + filterValue["to"];
+                            } else if (filterValue["from"]) {
+                                filterEditValue = filterEditValue + ">=" + filterValue["from"];
+                            } else if (filterValue["to"]) {
+                                filterEditValue = filterEditValue + "<=" + filterValue["to"];
+                            } else if (filterValue["exclude"]) {
+                                filterEditValue = filterEditValue + "<>" + filterValue["exclude"];
+                            } else if (filterValue["more"]) {
+                                filterEditValue = filterEditValue + ">" + filterValue["more"];
+                            } else if (filterValue["less"]) {
+                                filterEditValue = filterEditValue + "<" + filterValue["less"];
+                            } else if (filterValue["more_or_equal"]) {
+                                filterEditValue = filterEditValue + ">=" + filterValue["more_or_equal"];
+                            } else if (filterValue["less_or_equal"]) {
+                                filterEditValue = filterEditValue + "<=" + filterValue["less_or_equal"];
+                            } else if (filterValue["value_to_include"]) {
+                                filterEditValue = filterEditValue + filterValue["value_to_include"];
+                            }
                         }
                     }
                     createMenuItem(filterMenu,colProp+"edit","edit",{label:"Значение: ",value:filterEditValue});
@@ -331,27 +373,77 @@ define(["dojo/_base/declare", "hTableSimple"], function(declare, HTableSimple){
                 for(var colIndex in htVisColumns){
                     var colProps = htVisColumns[colIndex], colPropName = colProps["data"], dataItemVal = rowData[colPropName], itemVisible=true;
                     var colFiltered= colProps["filtered"];
-                    if(colFiltered==true){
-                        itemVisible= false;
-                        if(dataItemVal==null) dataItemVal="";
-                        if(colProps["type"]=="text"&&dataItemVal!==undefined){
-                            if(colProps["filterValue"]&&dataItemVal.toString().indexOf(colProps["filterValue"])>=0) itemVisible=true;
-                            if(colProps["filterValues"]&&colProps["filterValues"][dataItemVal.toString()]===true) itemVisible=true;
-                        } else if(colProps["type"]=="numeric"&&dataItemVal!==undefined&&colProps["filterValues"]) {
-                            var numericFilterValues = colProps["filterValues"];
-                            for(var numericFilterValuesItem in numericFilterValues){
+                    if(colFiltered==true) {
+                        itemVisible = false;
+                        if (dataItemVal == null) dataItemVal = "";
+                        if (colProps["type"] == "text" && dataItemVal !== undefined) {
+                            if (colProps["filterValue"] && dataItemVal.toString().indexOf(colProps["filterValue"]) >= 0) itemVisible = true;
+                            if (colProps["filterValues"] && colProps["filterValues"][dataItemVal.toString()] === true) itemVisible = true;
+                        } else if (colProps["type"] == "numeric" && dataItemVal !== undefined && colProps["filterValues"]) {
+                            var numericFilterValues = colProps["filterValues"];  console.log("numericFilterValues 397=",numericFilterValues);
+                            var excludeObj = null;
+                            var includeObj = null;
+                            var rangeObj = null;
+
+                            for (var numericFilterValuesItem in numericFilterValues) {
+                                if(!numericFilterValues[numericFilterValuesItem]) continue;             // !!!!!!!!!!!!!!!!!!!!!!bug -> need to delete excessive
                                 var numericFilterValue = numericFilterValues[numericFilterValuesItem];
-                                if(numericFilterValue instanceof Array){
-                                    if(numericFilterValue["from"]&&numericFilterValue["to"]
-                                        &&dataItemVal>=numericFilterValue["from"]&&dataItemVal<=numericFilterValue["to"]){
-                                        itemVisible= true; break;
-                                    } else if(numericFilterValue["from"]&&!numericFilterValue["to"]&&dataItemVal>=numericFilterValue["from"]){
-                                        itemVisible= true; break;
-                                    } else if(!numericFilterValue["from"]&&numericFilterValue["to"]&&dataItemVal<=numericFilterValue["to"]){
-                                        itemVisible= true; break;
+                                if (numericFilterValue['exclude']) {
+                                    var excludeObj = excludeObj ? excludeObj : {};
+                                    excludeObj[numericFilterValue['exclude']] = 1;
+                                } else if (numericFilterValue['value_to_include']) {
+                                    var includeObj = includeObj ? includeObj : {};
+                                    includeObj[numericFilterValue['value_to_include']] = 1;
+                                } else if (numericFilterValue['more_or_equal'] || numericFilterValue['from']) {
+                                    var rangeObj = rangeObj ? rangeObj : {};
+                                    rangeObj.moreOrEqual = numericFilterValue['more_or_equal'] || numericFilterValue['from'];
+                                } else if (numericFilterValue['less_or_equal'] || numericFilterValue['to']) {
+                                    var rangeObj = rangeObj ? rangeObj : {};
+                                    rangeObj.lessOrEqual = numericFilterValue['less_or_equal'] || numericFilterValue['to'];
+                                } else if (numericFilterValue['less']) {
+                                    var rangeObj = rangeObj ? rangeObj : {};
+                                    rangeObj.less = numericFilterValue['less'];
+                                } else if (numericFilterValue['more']) {
+                                    var rangeObj = rangeObj ? rangeObj : {};
+                                    rangeObj.more = numericFilterValue['more'];
+                                }
+                            }
+                            if (excludeObj && excludeObj[dataItemVal]) itemVisible = false;
+                            else if (excludeObj&&!excludeObj[dataItemVal] && !rangeObj) itemVisible = true;
+                            if (includeObj && includeObj[dataItemVal]) itemVisible = true;
+
+                            if (rangeObj) {
+                                var itemExcluded=false;
+                                if(excludeObj && excludeObj[dataItemVal])itemExcluded=true;
+
+                                if(rangeObj.moreOrEqual && rangeObj.lessOrEqual){
+                                    if (dataItemVal >= rangeObj.moreOrEqual && dataItemVal <= rangeObj.lessOrEqual
+                                        && !itemExcluded) {
+                                        itemVisible = true;
                                     }
-                                } else if(numericFilterValue==dataItemVal){
-                                    itemVisible= true; break;
+                                } else if (rangeObj.more && rangeObj.less){
+                                    if(dataItemVal > rangeObj.more && dataItemVal < rangeObj.less
+                                        && !itemExcluded) {
+                                        itemVisible = true;
+                                    }
+                                } else if (rangeObj.moreOrEqual && rangeObj.less){
+                                    if (dataItemVal >= rangeObj.moreOrEqual && dataItemVal < rangeObj.less
+                                        && !itemExcluded) {
+                                        itemVisible = true;
+                                    }
+                                } else if (rangeObj.more && rangeObj.lessOrEqual){
+                                    if (dataItemVal > rangeObj.more && dataItemVal <= rangeObj.lessOrEqual
+                                        && !itemExcluded) {
+                                        itemVisible = true;
+                                    }
+                                } else if (rangeObj.moreOrEqual && dataItemVal >= rangeObj.moreOrEqual && !itemExcluded) {
+                                    itemVisible = true;
+                                } else if (rangeObj.more && dataItemVal > rangeObj.more && !itemExcluded) {
+                                    itemVisible = true;
+                                } else if (rangeObj.lessOrEqual && dataItemVal <= rangeObj.lessOrEqual && !itemExcluded) {
+                                    itemVisible = true;
+                                } else if (rangeObj.less && dataItemVal < rangeObj.less && !itemExcluded) {
+                                    itemVisible = true;
                                 }
                             }
                         }

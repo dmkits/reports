@@ -6,7 +6,8 @@
                 {  "id": "salesByProds",   "name": "Реализация по наименованию" },
                 {  "id": "salesByDays", "name": "Реализация по дням"},
                 {},
-                { "id": "prodsBalance", "name": "Остатки товара", "reportFile":""}
+                { "id": "prodsBalance", "name": "Остатки товара", "reportFile":""},
+                { "id": "testFilter", "name": "testFilter"}
             ]
        }
     ],
