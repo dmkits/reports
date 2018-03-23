@@ -89,7 +89,7 @@ define(["dojo/_base/declare", "hTableSimple"], function(declare, HTableSimple){
                     parent.onUpdateContent({filtered:parent.filterContentData()});
                 }
             });
-            this.handsonTable.showFilterMenu= function (button) {                                                       //console.log("HTableSimpleFiltered.handsonTable.showFilterMenu ",this);
+            this.handsonTable.showFilterMenu= function (button) {                                                       console.log("HTableSimpleFiltered.handsonTable.showFilterMenu ",this);
                 var filterMenu = this.filterMenu;
                 //if(filterMenu&&filterMenu.isOpen==true&&filterMenu.colProp==colProp){//close filter menu
                 //    this.hideFilterMenu(); return;
@@ -97,7 +97,7 @@ define(["dojo/_base/declare", "hTableSimple"], function(declare, HTableSimple){
                 var colIndex = button.getAttribute("colindex");
                 var colProp= this.colToProp(colIndex), colData= this.getDataAtCol(colIndex);
                 var colProps = this.getSettings().columns[colIndex];
-                var colType= colProps["type"], filterValue = colProps["filterValue"], filterValues = colProps["filterValues"];
+                var colType= colProps["type"], filterValue = colProps["filterValue"], filterValues = colProps["filterValues"];      console.log("filterValues 100=",filterValues);
                 var filterItemsMap={};
                 for(var i in colData){ var filterItemValue= colData[i]; if(filterItemValue==null)filterItemValue=""; filterItemsMap[filterItemValue]=true; }
                 if(colProps["filtered"]==true&&filterValues){
@@ -394,12 +394,18 @@ define(["dojo/_base/declare", "hTableSimple"], function(declare, HTableSimple){
                                 } else if (numericFilterValue['value_to_include']) {
                                     var includeObj = includeObj ? includeObj : {};
                                     includeObj[numericFilterValue['value_to_include']] = 1;
-                                } else if (numericFilterValue['more_or_equal'] || numericFilterValue['from']) {
+                                } else if (numericFilterValue['more_or_equal']) {
                                     var rangeObj = rangeObj ? rangeObj : {};
-                                    rangeObj.moreOrEqual = numericFilterValue['more_or_equal'] || numericFilterValue['from'];
+                                    rangeObj.moreOrEqual = numericFilterValue['more_or_equal'];
+                                } else if (numericFilterValue['from']) {
+                                    var rangeObj = rangeObj ? rangeObj : {};
+                                    rangeObj.from =numericFilterValue['from'];
                                 } else if (numericFilterValue['less_or_equal'] || numericFilterValue['to']) {
                                     var rangeObj = rangeObj ? rangeObj : {};
-                                    rangeObj.lessOrEqual = numericFilterValue['less_or_equal'] || numericFilterValue['to'];
+                                    rangeObj.to = numericFilterValue['less_or_equal'] || numericFilterValue['to'];
+                                } else if (numericFilterValue['to']) {
+                                    var rangeObj = rangeObj ? rangeObj : {};
+                                    rangeObj.lessOrEqual = numericFilterValue['to'];
                                 } else if (numericFilterValue['less']) {
                                     var rangeObj = rangeObj ? rangeObj : {};
                                     rangeObj.less = numericFilterValue['less'];
@@ -415,9 +421,11 @@ define(["dojo/_base/declare", "hTableSimple"], function(declare, HTableSimple){
                             if (rangeObj) {
                                 var itemExcluded=false;
                                 if(excludeObj && excludeObj[dataItemVal])itemExcluded=true;
+                                var firstRangePos=rangeObj.moreOrEqual||rangeObj.from;
+                                var lastRangePos=rangeObj.lessOrEqual||rangeObj.to;
 
-                                if(rangeObj.moreOrEqual && rangeObj.lessOrEqual){
-                                    if (dataItemVal >= rangeObj.moreOrEqual && dataItemVal <= rangeObj.lessOrEqual
+                                if(firstRangePos && lastRangePos){
+                                    if (dataItemVal >= firstRangePos && dataItemVal <= lastRangePos
                                         && !itemExcluded) {
                                         itemVisible = true;
                                     }
@@ -426,21 +434,21 @@ define(["dojo/_base/declare", "hTableSimple"], function(declare, HTableSimple){
                                         && !itemExcluded) {
                                         itemVisible = true;
                                     }
-                                } else if (rangeObj.moreOrEqual && rangeObj.less){
-                                    if (dataItemVal >= rangeObj.moreOrEqual && dataItemVal < rangeObj.less
+                                } else if (firstRangePos && rangeObj.less){
+                                    if (dataItemVal >= firstRangePos && dataItemVal < rangeObj.less
                                         && !itemExcluded) {
                                         itemVisible = true;
                                     }
-                                } else if (rangeObj.more && rangeObj.lessOrEqual){
-                                    if (dataItemVal > rangeObj.more && dataItemVal <= rangeObj.lessOrEqual
+                                } else if (rangeObj.more && lastRangePos){
+                                    if (dataItemVal > rangeObj.more && dataItemVal <= lastRangePos
                                         && !itemExcluded) {
                                         itemVisible = true;
                                     }
-                                } else if (rangeObj.moreOrEqual && dataItemVal >= rangeObj.moreOrEqual && !itemExcluded) {
+                                } else if (firstRangePos && dataItemVal >= firstRangePos && !itemExcluded) {
                                     itemVisible = true;
                                 } else if (rangeObj.more && dataItemVal > rangeObj.more && !itemExcluded) {
                                     itemVisible = true;
-                                } else if (rangeObj.lessOrEqual && dataItemVal <= rangeObj.lessOrEqual && !itemExcluded) {
+                                } else if (lastRangePos && dataItemVal <= lastRangePos && !itemExcluded) {
                                     itemVisible = true;
                                 } else if (rangeObj.less && dataItemVal < rangeObj.less && !itemExcluded) {
                                     itemVisible = true;
