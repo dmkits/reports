@@ -218,7 +218,12 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane","dojox/widget/Standby",
                 var hInstance= this.getHandsonTable();
                 hInstance.updateSettings({
                     columnHeaderHeight:20,
-                    afterRender: function () {
+                    afterRender: function () {                                            console.log("rootElement=",hInstance.rootElement);
+                        var header=document.getElementsByClassName("ht_clone_top handsontable")[0];  console.log("!!!!!!header=",header); //document.getElementById("myDIV").className = "mystyle";
+                        var bottom=header.cloneNode(true);
+                        bottom.className = "ht_clone_bottom handsontable";  console.log("!!!!!bottom=",bottom);
+                        header.parentNode.insertBefore(bottom,header);
+
                         var theads=hInstance.rootElement.getElementsByTagName('thead');                         //console.log("HTableSimple afterRender theads=",theads);
                         var div= document.createElement("div");
                         for(var theadInd=0;theadInd<theads.length;theadInd++){
@@ -236,6 +241,11 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane","dojox/widget/Standby",
                         }
                         for(var eName in addingHeaderElements)
                             div.appendChild(addingHeaderElements[eName]);
+
+
+
+
+
                     }
                 });
             },
