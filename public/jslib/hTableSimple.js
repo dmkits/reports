@@ -219,11 +219,14 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane","dojox/widget/Standby",
                 hInstance.updateSettings({
                     columnHeaderHeight:20,
                     afterRender: function () {                                            console.log("rootElement=",hInstance.rootElement);
-                        var header=document.getElementsByClassName("ht_clone_top handsontable")[0];  console.log("!!!!!!header=",header); //document.getElementById("myDIV").className = "mystyle";
-                        var bottom=header.cloneNode(true);
-                        bottom.className = "ht_clone_bottom handsontable";  console.log("!!!!!bottom=",bottom);
-                        header.parentNode.insertBefore(bottom,header);
 
+                        if(document.getElementsByClassName("ht_clone_bottom handsontable").length==0){
+                            var header=document.getElementsByClassName("ht_clone_top handsontable")[0];  console.log("!!!!!!header=",header); //document.getElementById("myDIV").className = "mystyle";
+                            var bottom=header.cloneNode(true);
+                            bottom.className = "ht_clone_bottom handsontable";  console.log("!!!!!bottom=",bottom);
+                            //header.parentNode.insertAfter(bottom,header);
+                            insertAfter(bottom,header);
+                        }
                         var theads=hInstance.rootElement.getElementsByTagName('thead');                         //console.log("HTableSimple afterRender theads=",theads);
                         var div= document.createElement("div");
                         for(var theadInd=0;theadInd<theads.length;theadInd++){
@@ -596,3 +599,12 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane","dojox/widget/Standby",
             }
         });
     });
+function insertAfter(elem, refElem) {
+    var parent = refElem.parentNode;
+    var next = refElem.nextSibling;
+    if (next) {
+        return parent.insertBefore(elem, next);
+    } else {
+        return parent.appendChild(elem);
+    }
+}
