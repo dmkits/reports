@@ -1,23 +1,547 @@
-//>>built
-define("dojox/charting/plot2d/Pie","dojo/_base/lang dojo/_base/array dojo/_base/declare dojo/dom-geometry dojo/_base/Color ./Base ./_PlotEvents ./common dojox/gfx dojox/gfx/matrix dojox/lang/functional dojox/lang/utils dojo/has".split(" "),function(J,C,M,U,aa,N,O,ba,E,V,k,K,W){return M("dojox.charting.plot2d.Pie",[N,O],{defaultParams:{labels:!0,ticks:!1,fixed:!0,precision:1,labelOffset:20,labelStyle:"default",htmlLabels:!0,radGrad:"native",fanSize:5,startAngle:0,innerRadius:0,minWidth:0,zeroDataMessage:""},
-optionalParams:{radius:0,omitLabels:!1,stroke:{},outline:{},shadow:{},fill:{},filter:{},styleFunc:null,font:"",fontColor:"",labelWiring:{}},constructor:function(g,a){this.opt=J.clone(this.defaultParams);K.updateWithObject(this.opt,a);K.updateWithPattern(this.opt,a,this.optionalParams);this.axes=[];this.run=null;this.dyn=[];this.runFilter=[];a&&a.hasOwnProperty("innerRadius")&&(this._plotSetInnerRadius=!0)},clear:function(){this.inherited(arguments);this.dyn=[];this.run=null;return this},setAxis:function(g){return this},
-addSeries:function(g){this.run=g;return this},getSeriesStats:function(){return J.delegate(ba.defaultStats)},getRequiredColors:function(){return this.run?this.run.data.length:0},render:function(g,a){if(!this.dirty)return this;this.resetEvents();this.dirty=!1;this._eventSeries={};this.cleanGroup();var f=this.group,e=this.chart.theme;!this._plotSetInnerRadius&&e&&e.pieInnerRadius&&(this.opt.innerRadius=e.pieInnerRadius);var l=(g.width-a.l-a.r)/2,h=(g.height-a.t-a.b)/2,c=Math.min(l,h),H="font"in this.opt?
-this.opt.font:e.axis.tick.titleFont||"",p=H?E.normalizedLength(E.splitFontString(H).size):0,v=this.opt.hasOwnProperty("fontColor")?this.opt.fontColor:e.axis.tick.fontColor,x=V._degToRad(this.opt.startAngle),u=x,n,w,B,P,F=this.run.data,Q=this.events(),G=J.hitch(this,function(){var b=e.clone(),z=k.map(F,function(a){var d=[this.opt,this.run];null!==a&&"number"!=typeof a&&d.push(a);this.opt.styleFunc&&d.push(this.opt.styleFunc(a));return b.next("slice",d,!0)},this);"radius"in this.opt&&(c=this.opt.radius<
-c?this.opt.radius:c);var d={cx:a.l+l,cy:a.t+h,r:c},R=new aa(v);this.opt.innerRadius&&(R.a=.1);var m=this._createRing(f,d).setStroke(R);this.opt.innerRadius&&m.setFill(R);this.opt.zeroDataMessage&&this.renderLabel(f,d.cx,d.cy+p/3,this.opt.zeroDataMessage,{series:{font:H,fontColor:v}},null,"middle");this.dyn=[];C.forEach(F,function(d,b){this.dyn.push({fill:this._plotFill(z[b].series.fill,g,a),stroke:z[b].series.stroke})},this)});if(!this.run&&!this.run.data.ength)return G(),this;if("number"==typeof F[0]){n=
-k.map(F,"x ? Math.max(x, 0) : 0");if(k.every(n,"\x3c\x3d 0"))return G(),this;w=k.map(n,"/this",k.foldl(n,"+",0));this.opt.labels&&(B=C.map(w,function(a){return 0<a?this._getLabel(100*a)+"%":""},this))}else{n=k.map(F,"x ? Math.max(x.y, 0) : 0");if(!n.length||k.every(n,"\x3c\x3d 0"))return G(),this;w=k.map(n,"/this",k.foldl(n,"+",0));this.opt.labels&&(B=C.map(w,function(a,b){if(0>=a)return"";var d=F[b];return d.hasOwnProperty("text")?d.text:this._getLabel(100*a)+"%"},this))}var I=k.map(F,function(a){var b=
-[this.opt,this.run];null!==a&&"number"!=typeof a&&b.push(a);this.opt.styleFunc&&b.push(this.opt.styleFunc(a));return e.next("slice",b,!0)},this);this.opt.labels&&(n=k.foldl1(k.map(B,function(a,b){return E._base._getTextBox(a,{font:I[b].series.font}).w},this),"Math.max(a, b)")/2,0>this.opt.labelOffset&&(c=Math.min(l-2*n,h-p)+this.opt.labelOffset));this.opt.hasOwnProperty("radius")&&(c=this.opt.radius<.9*c?this.opt.radius:.9*c);this.opt.labels&&"columns"==this.opt.labelStyle?(c/=2,l>h&&l>2*c&&(c*=l/
-(2*c)),c>=.8*h&&(c=.8*h)):c>=.9*h&&(c=.9*h);P=c-this.opt.labelOffset;var b={cx:a.l+l,cy:a.t+h,r:c};this.dyn=[];var L=Array(w.length),q=[],r=u,S=this.opt.minWidth;C.forEach(w,function(a,b){if(0===a)q[b]={step:0,end:r,start:r,weak:!1};else{var d=r+2*a*Math.PI;b===w.length-1&&(d=x+2*Math.PI);var f=d-r;q[b]={step:f,start:r,end:d,weak:f*c<S};r=d}});if(0<S){n=0;var y=S/c,G=0,m;for(m=q.length-1;0<=m;m--)q[m].weak&&(++n,G+=q[m].step,q[m].step=y);y*=n;if(y>Math.PI){y=Math.PI/n;for(m=0;m<q.length;++m)q[m].weak&&
-(q[m].step=y);y=Math.PI}if(0<n)for(y=1-(y-G)/2/Math.PI,m=0;m<q.length;++m)q[m].weak||(q[m].step*=y);for(m=0;m<q.length;++m)q[m].start=m?q[m].end:r,q[m].end=q[m].start+q[m].step;for(m=q.length-1;0<=m;--m)if(0!==q[m].step){q[m].end=r+2*Math.PI;break}}var r=u,D,t;C.some(w,function(m,z){var d,A=F[z],e=I[z];if(1<=m){t=this._plotFill(e.series.fill,g,a);t=this._shapeFill(t,{x:b.cx-b.r,y:b.cy-b.r,width:2*b.r,height:2*b.r});t=this._pseudoRadialFill(t,{x:b.cx,y:b.cy},b.r);d=this._createRing(f,b).setFill(t).setStroke(e.series.stroke);
-this.dyn.push({fill:t,stroke:e.series.stroke});Q&&(D={element:"slice",index:z,run:this.run,shape:d,x:z,y:"number"==typeof A?A:A.y,cx:b.cx,cy:b.cy,cr:c},this._connectEvents(D),L[z]=D);for(A=z+1;A<w.length;A++)e=I[A],this.dyn.push({fill:e.series.fill,stroke:e.series.stroke});return!0}if(0===q[z].step)return this.dyn.push({fill:e.series.fill,stroke:e.series.stroke}),!1;var h=q[z].step;d=b.cx+c*Math.cos(r);var l=b.cy+c*Math.sin(r),n=b.cx+c*Math.cos(r+h),H=b.cy+c*Math.sin(r+h),p=V._degToRad(this.opt.fanSize);
-if(e.series.fill&&"radial"===e.series.fill.type&&"fan"===this.opt.radGrad&&h>p){var v=f.createGroup(),p=Math.ceil(h/p),u=h/p;t=this._shapeFill(e.series.fill,{x:b.cx-b.r,y:b.cy-b.r,width:2*b.r,height:2*b.r});var k,y,x,B,C,G;for(k=0;k<p;++k)y=r+(k-.2)*u,x=r+(k+1+.2)*u,B=0==k?d:b.cx+c*Math.cos(y),C=0==k?l:b.cy+c*Math.sin(y),G=k==p-1?n:b.cx+c*Math.cos(x),x=k==p-1?H:b.cy+c*Math.sin(x),this._createSlice(v,b,c,B,C,G,x,y,u).setFill(this._pseudoRadialFill(t,{x:b.cx,y:b.cy},c,r+(k+.5)*u,r+(k+.5)*u));p=e.series.stroke;
-this._createSlice(v,b,c,d,l,n,H,r,h).setStroke(p);d=v}else{p=e.series.stroke;d=this._createSlice(f,b,c,d,l,n,H,r,h).setStroke(p);if((t=e.series.fill)&&"radial"===t.type)t=this._shapeFill(t,{x:b.cx-b.r,y:b.cy-b.r,width:2*b.r,height:2*b.r}),"linear"===this.opt.radGrad&&(t=this._pseudoRadialFill(t,{x:b.cx,y:b.cy},c,r,r+h));else if(t&&"linear"===t.type){l=J.clone(d.getBoundingBox());if("svg"===E.renderer){n={w:0,h:0};try{n=U.position(d.rawNode)}catch(ca){}n.h>l.height&&(l.height=n.h);n.w>l.width&&(l.width=
-n.w)}t=this._plotFill(t,g,a);t=this._shapeFill(t,l)}d.setFill(t)}this.dyn.push({fill:t,stroke:e.series.stroke});Q&&(D={element:"slice",index:z,run:this.run,shape:d,x:z,y:"number"==typeof A?A:A.y,cx:b.cx,cy:b.cy,cr:c},this._connectEvents(D),L[z]=D);r+=h;return!1},this);if(this.opt.labels){var K=W("dojo-bidi")&&this.chart.isRightToLeft();if("default"==this.opt.labelStyle)r=u=x,C.some(w,function(a,c){if(0>=a&&!this.opt.minWidth)return!1;var d=I[c];if(1<=a)return this.renderLabel(f,b.cx,b.cy+p/2,B[c],
-d,0<this.opt.labelOffset),!0;var e=u+2*a*Math.PI;c+1==w.length&&(e=x+2*Math.PI);if(this.opt.omitLabels&&.001>e-u)return!1;var A=r+q[c].step/2,h=b.cx+P*Math.cos(A);this.renderLabel(f,K?g.width-h:h,b.cy+P*Math.sin(A)+p/2,B[c],d,0<this.opt.labelOffset);r+=q[c].step;u=e;return!1},this);else if("columns"==this.opt.labelStyle){var M=this.opt.omitLabels,r=u=x,T=[],X=0;for(n=w.length-1;0<=n;--n)w[n]&&++X;C.forEach(w,function(a,b){var d=u+2*a*Math.PI;b+1==w.length&&(d=x+2*Math.PI);if(0===this.minWidth?.001<=
-d-u:0!==a){var c=r+q[b].step/2;1!==X||this.opt.minWidth||(c=(u+d)/2);T.push({angle:c,left:0>Math.cos(c),theme:I[b],index:b,omit:M?.001>d-u:!1})}u=d;r+=q[b].step},this);var Y=E._base._getTextBox("a",{font:H,whiteSpace:"nowrap"}).h;this._getProperLabelRadius(T,Y,1.1*b.r);var Z=b.cx-2*b.r,N=b.cx+2*b.r;C.forEach(T,function(a){if(!a.omit){var c=I[a.index],d=0;c&&c.axis&&c.axis.tick&&c.axis.tick.labelGap&&(d=c.axis.tick.labelGap);var e=E._base._getTextBox(B[a.index],{font:c.series.font,whiteSpace:"nowrap",
-paddingLeft:d+"px"}).w,h=b.cx+a.labelR*Math.cos(a.angle),g=b.cy+a.labelR*Math.sin(a.angle),m=a.left?Z+e:N-e,d=a.left?Z:m+d,l=b.r,l=f.createPath().moveTo(b.cx+l*Math.cos(a.angle),b.cy+l*Math.sin(a.angle));Math.abs(a.labelR*Math.cos(a.angle))<2*b.r-e&&l.lineTo(h,g);l.lineTo(m,g).setStroke(a.theme.series.labelWiring);l.moveToBack();h=this.renderLabel(f,d,Y/3+g||0,B[a.index],c,!1,"left");Q&&!this.opt.htmlLabels&&(c=E._base._getTextBox(B[a.index],{font:a.theme.series.font}).w||0,e=E.normalizedLength(E.splitFontString(a.theme.series.font).size),
-D={element:"labels",index:a.index,run:this.run,shape:h,x:d,y:g,label:B[a.index]},d=h.getShape(),g=U.position(this.chart.node,!0),d=J.mixin({type:"rect"},{x:d.x,y:d.y-2*e}),d.x+=g.x,d.y+=g.y,d.x=Math.round(d.x),d.y=Math.round(d.y),d.width=Math.ceil(c),d.height=Math.ceil(e),D.aroundRect=d,this._connectEvents(D),L[w.length+a.index]=D)}},this)}}var O=0;this._eventSeries[this.run.name]=k.map(F,function(a){return 0>=a?null:L[O++]});W("dojo-bidi")&&this._checkOrientation(this.group,g,a);return this},_getProperLabelRadius:function(g,
-a,f){if(1==g.length)g[0].labelR=f;else{var e={},l={},h=2,c=2,k,p;for(k=0;k<g.length;++k)p=Math.abs(Math.sin(g[k].angle)),g[k].left?h>p&&(h=p,e=g[k]):c>p&&(c=p,l=g[k]);e.labelR=l.labelR=f;this._caculateLabelR(e,g,a);this._caculateLabelR(l,g,a)}},_caculateLabelR:function(g,a,f){var e,l,h=a.length,c=g.labelR,k=a[g.index].left?-f:f;l=0;f=g.index;for(e=(f+1)%h;l<h&&a[f].left===a[e].left;++l)c=(Math.sin(a[f].angle)*c+k)/Math.sin(a[e].angle),c=Math.max(g.labelR,c),a[e].labelR=c,f=(f+1)%h,e=(e+1)%h;l>=h&&
-(a[0].labelR=g.labelR);l=0;f=g.index;for(e=(f||h)-1;l<h&&a[f].left===a[e].left;++l)c=(Math.sin(a[f].angle)*c-k)/Math.sin(a[e].angle),c=Math.max(g.labelR,c),a[e].labelR=c,f=(f||h)-1,e=(e||h)-1},_createRing:function(g,a){var f=this.opt.innerRadius;0<f?f=f/100*a.r:0>f&&(f=-f);return f?g.createPath({}).setAbsoluteMode(!0).moveTo(a.cx,a.cy-a.r).arcTo(a.r,a.r,0,!1,!0,a.cx+a.r,a.cy).arcTo(a.r,a.r,0,!0,!0,a.cx,a.cy-a.r).closePath().moveTo(a.cx,a.cy-f).arcTo(f,f,0,!1,!0,a.cx+f,a.cy).arcTo(f,f,0,!0,!0,a.cx,
-a.cy-f).closePath():g.createCircle(a)},_createSlice:function(g,a,f,e,l,h,c,k,p){var v=this.opt.innerRadius;0<v?v=v/100*a.r:0>v&&(v=-v);if(v){var x=a.cx+v*Math.cos(k),u=a.cy+v*Math.sin(k),n=a.cx+v*Math.cos(k+p);a=a.cy+v*Math.sin(k+p);return g.createPath({}).setAbsoluteMode(!0).moveTo(x,u).lineTo(e,l).arcTo(f,f,0,p>Math.PI,!0,h,c).lineTo(n,a).arcTo(v,v,0,p>Math.PI,!1,x,u).closePath()}return g.createPath({}).setAbsoluteMode(!0).moveTo(a.cx,a.cy).lineTo(e,l).arcTo(f,f,0,p>Math.PI,!0,h,c).lineTo(a.cx,
-a.cy).closePath()}})});
-//# sourceMappingURL=Pie.js.map
+define(["dojo/_base/lang", "dojo/_base/array" ,"dojo/_base/declare", 
+		"./Base", "./_PlotEvents", "./common",
+		"dojox/gfx", "dojox/gfx/matrix", "dojox/lang/functional", "dojox/lang/utils","dojo/has"],
+	function(lang, arr, declare, Base, PlotEvents, dc, g, m, df, du, has){
+
+	/*=====
+	declare("dojox.charting.plot2d.__PieCtorArgs", dojox.charting.plot2d.__DefaultCtorArgs, {
+		// summary:
+		//		Specialized keyword arguments object for use in defining parameters on a Pie chart.
+	
+		// labels: Boolean?
+		//		Whether or not to draw labels for each pie slice.  Default is true.
+		labels:			true,
+	
+		// ticks: Boolean?
+		//		Whether or not to draw ticks to labels within each slice. Default is false.
+		ticks:			false,
+	
+		// fixed: Boolean?
+		//		Whether a fixed precision must be applied to data values for display. Default is true.
+		fixed:			true,
+	
+		// precision: Number?
+		//		The precision at which to round data values for display. Default is 0.
+		precision:		1,
+	
+		// labelOffset: Number?
+		//		The amount in pixels by which to offset labels.  Default is 20.
+		labelOffset:	20,
+	
+		// labelStyle: String?
+		//		Options as to where to draw labels.  Values include "default", and "columns".	Default is "default".
+		labelStyle:		"default",	// default/columns
+		
+		// omitLabels: Boolean?
+		//		Whether labels of slices small to the point of not being visible are omitted.	Default false.
+		omitLabels: false,
+		
+		// htmlLabels: Boolean?
+		//		Whether or not to use HTML to render slice labels. Default is true.
+		htmlLabels:		true,
+	
+		// radGrad: String?
+		//		The type of radial gradient to use in rendering.  Default is "native".
+		radGrad:        "native",
+	
+		// fanSize: Number?
+		//		The amount for a radial gradient.  Default is 5.
+		fanSize:		5,
+	
+		// startAngle: Number?
+		//		Where to being rendering gradients in slices, in degrees.  Default is 0.
+		startAngle:     0,
+	
+		// radius: Number?
+		//		The size of the radial gradient.  Default is 0.
+		radius:		0,
+
+		// shadow: dojox.gfx.Stroke?
+		//		An optional stroke to use to draw any shadows for a series on a plot.
+		shadow:		{},
+
+		// fill: dojox.gfx.Fill?
+		//		Any fill to be used for elements on the plot.
+		fill:		{},
+
+		// filter: dojox.gfx.Filter?
+		//		An SVG filter to be used for elements on the plot. gfx SVG renderer must be used and dojox/gfx/svgext must
+		//		be required for this to work.
+		filter:		{},
+
+		// styleFunc: Function?
+		//		A function that returns a styling object for the a given data item.
+		styleFunc:	null
+	});
+	=====*/
+
+	var FUDGE_FACTOR = 0.2; // use to overlap fans
+
+	return declare("dojox.charting.plot2d.Pie", [Base, PlotEvents], {
+		// summary:
+		//		The plot that represents a typical pie chart.
+		defaultParams: {
+			labels:			true,
+			ticks:			false,
+			fixed:			true,
+			precision:		1,
+			labelOffset:	20,
+			labelStyle:		"default",	// default/columns
+			htmlLabels:		true,		// use HTML to draw labels
+			radGrad:        "native",	// or "linear", or "fan"
+			fanSize:		5,			// maximum fan size in degrees
+			startAngle:     0			// start angle for slices in degrees
+		},
+		optionalParams: {
+			radius:		0,
+			omitLabels: false,
+			// theme components
+			stroke:		{},
+			outline:	{},
+			shadow:		{},
+			fill:		{},
+			filter:     {},
+			styleFunc:	null,
+			font:		"",
+			fontColor:	"",
+			labelWiring: {}
+		},
+
+		constructor: function(chart, kwArgs){
+			// summary:
+			//		Create a pie plot.
+			this.opt = lang.clone(this.defaultParams);
+			du.updateWithObject(this.opt, kwArgs);
+			du.updateWithPattern(this.opt, kwArgs, this.optionalParams);
+			this.axes = [];
+			this.run = null;
+			this.dyn = [];
+			this.runFilter = []; 
+		},
+		clear: function(){
+			// summary:
+			//		Clear out all of the information tied to this plot.
+			// returns: dojox/charting/plot2d/Pie
+			//		A reference to this plot for functional chaining.
+			this.inherited(arguments);
+			this.dyn = [];
+			this.run = null;
+			return this;	//	dojox/charting/plot2d/Pie
+		},
+		setAxis: function(axis){
+			// summary:
+			//		Dummy method, since axes are irrelevant with a Pie chart.
+			// returns: dojox/charting/plot2d/Pie
+			//		The reference to this plot for functional chaining.
+			return this;	//	dojox/charting/plot2d/Pie
+		},
+		addSeries: function(run){
+			// summary:
+			//		Add a series of data to this plot.
+			// returns: dojox/charting/plot2d/Pie
+			//		The reference to this plot for functional chaining.
+			this.run = run;
+			return this;	//	dojox/charting/plot2d/Pie
+		},
+		getSeriesStats: function(){
+			// summary:
+			//		Returns default stats (irrelevant for this type of plot).
+			// returns: Object
+			//		{hmin, hmax, vmin, vmax} min/max in both directions.
+			return lang.delegate(dc.defaultStats); // Object
+		},
+		getRequiredColors: function(){
+			// summary:
+			//		Return the number of colors needed to draw this plot.
+			return this.run ? this.run.data.length : 0;
+		},
+		render: function(dim, offsets){
+			// summary:
+			//		Render the plot on the chart.
+			// dim: Object
+			//		An object of the form { width, height }.
+			// offsets: Object
+			//		An object of the form { l, r, t, b }.
+			// returns: dojox/charting/plot2d/Pie
+			//		A reference to this plot for functional chaining.
+			if(!this.dirty){ return this; }
+			this.resetEvents();
+			this.dirty = false;
+			this._eventSeries = {};
+			this.cleanGroup();
+			var s = this.group, t = this.chart.theme;
+
+			if(!this.run || !this.run.data.length){
+				return this;
+			}
+
+			// calculate the geometry
+			var rx = (dim.width  - offsets.l - offsets.r) / 2,
+				ry = (dim.height - offsets.t - offsets.b) / 2,
+				r  = Math.min(rx, ry),
+				labelFont = "font" in this.opt ? this.opt.font : t.series.font,
+				size,
+				startAngle = m._degToRad(this.opt.startAngle),
+				start = startAngle, filteredRun, slices, labels, shift, labelR,
+				events = this.events();
+
+			var run = arr.map(this.run.data, function(item, i){
+				if(typeof item != "number" && item.hidden){ 
+					this.runFilter.push(i); 
+					item.hidden = false; 
+				} 
+				if(arr.some(this.runFilter, function(filter){return filter == i;})){ 
+					if(typeof item == "number"){ 
+						return 0; 
+					}else{ 
+						return {y: 0, text: item.text}; 
+					} 
+				}else{ 
+					return item; 
+				} 
+			}, this);
+
+			this.dyn = [];
+
+			if("radius" in this.opt){
+				r = this.opt.radius;
+				labelR = r - this.opt.labelOffset;
+			}
+			var	circle = {
+				cx: offsets.l + rx,
+				cy: offsets.t + ry,
+				r:  r
+			};
+
+			// draw shadow
+			if(this.opt.shadow || t.shadow){
+				var shadow = this.opt.shadow || t.shadow;
+				var scircle = lang.clone(circle);
+				scircle.cx += shadow.dx;
+				scircle.cy += shadow.dy;
+				s.createCircle(scircle).setFill(shadow.color).setStroke(shadow);
+			}
+			if(s.setFilter && (this.opt.filter || t.filter)){
+				s.createCircle(circle).setFill(t.series.stroke).setFilter(this.opt.filter || t.filter);
+			}
+
+			if(typeof run[0] == "number"){
+				filteredRun = df.map(run, "x ? Math.max(x, 0) : 0");
+				if(df.every(filteredRun, "<= 0")){
+					s.createCircle(circle).setStroke(t.series.stroke);
+					this.dyn = arr.map(filteredRun, function(){
+						return {  };
+					});
+					return this;
+				}else{
+					slices = df.map(filteredRun, "/this", df.foldl(filteredRun, "+", 0));
+				 	if(this.opt.labels){
+				 		labels = arr.map(slices, function(x){
+							return x > 0 ? this._getLabel(x * 100) + "%" : "";
+						}, this);
+					}
+				}
+			}else{
+				filteredRun = df.map(run, "x ? Math.max(x.y, 0) : 0");
+				if(df.every(filteredRun, "<= 0")){
+					s.createCircle(circle).setStroke(t.series.stroke);
+					this.dyn = arr.map(filteredRun, function(){
+						return {  };
+					});
+					return this;
+				}else{
+					slices = df.map(filteredRun, "/this", df.foldl(filteredRun, "+", 0));
+					if(this.opt.labels){
+						labels = arr.map(slices, function(x, i){
+							if(x < 0){ return ""; }
+							var v = run[i];
+							return "text" in v ? v.text : this._getLabel(x * 100) + "%";
+						}, this);
+					}
+				}
+			}
+			var themes = df.map(run, function(v, i){
+				var tMixin = [this.opt, this.run];
+				if(v !== null && typeof v != "number"){
+					tMixin.push(v);
+				}
+				if(this.opt.styleFunc){
+					tMixin.push(this.opt.styleFunc(v));
+				}
+				return t.next("slice", tMixin, true);
+			}, this);
+
+			if(this.opt.labels){
+				size = labelFont ? g.normalizedLength(g.splitFontString(labelFont).size) : 0;
+				shift = df.foldl1(df.map(labels, function(label, i){
+					var font = themes[i].series.font;
+					return g._base._getTextBox(label, {font: font}).w;
+				}, this), "Math.max(a, b)") / 2;
+				if(this.opt.labelOffset < 0){
+					r = Math.min(rx - 2 * shift, ry - size) + this.opt.labelOffset;
+				}
+				labelR = r - this.opt.labelOffset;
+			}
+
+			// draw slices
+			var eventSeries = new Array(slices.length);
+			arr.some(slices, function(slice, i){
+				if(slice < 0){
+					// degenerated slice
+					return false;	// continue
+				}
+				var v = run[i], theme = themes[i], specialFill, o;
+				if(slice == 0){
+					this.dyn.push({fill: theme.series.fill, stroke: theme.series.stroke});
+					return false;
+				}
+				
+				if(slice >= 1){
+					// whole pie
+					specialFill = this._plotFill(theme.series.fill, dim, offsets);
+					specialFill = this._shapeFill(specialFill,
+						{
+							x: circle.cx - circle.r, y: circle.cy - circle.r,
+							width: 2 * circle.r, height: 2 * circle.r
+						});
+					specialFill = this._pseudoRadialFill(specialFill, {x: circle.cx, y: circle.cy}, circle.r);
+					var shape = s.createCircle(circle).setFill(specialFill).setStroke(theme.series.stroke);
+					this.dyn.push({fill: specialFill, stroke: theme.series.stroke});
+
+					if(events){
+						o = {
+							element: "slice",
+							index:   i,
+							run:     this.run,
+							shape:   shape,
+							x:       i,
+							y:       typeof v == "number" ? v : v.y,
+							cx:      circle.cx,
+							cy:      circle.cy,
+							cr:      r
+						};
+						this._connectEvents(o);
+						eventSeries[i] = o;
+					}
+
+					return false;	// we continue because we want to collect null data points for legend
+				}
+				// calculate the geometry of the slice
+				var end = start + slice * 2 * Math.PI;
+				if(i + 1 == slices.length){
+					end = startAngle + 2 * Math.PI;
+				}
+				var	step = end - start,
+					x1 = circle.cx + r * Math.cos(start),
+					y1 = circle.cy + r * Math.sin(start),
+					x2 = circle.cx + r * Math.cos(end),
+					y2 = circle.cy + r * Math.sin(end);
+				// draw the slice
+				var fanSize = m._degToRad(this.opt.fanSize);
+				if(theme.series.fill && theme.series.fill.type === "radial" && this.opt.radGrad === "fan" && step > fanSize){
+					var group = s.createGroup(), nfans = Math.ceil(step / fanSize), delta = step / nfans;
+					specialFill = this._shapeFill(theme.series.fill,
+						{x: circle.cx - circle.r, y: circle.cy - circle.r, width: 2 * circle.r, height: 2 * circle.r});
+					for(var j = 0; j < nfans; ++j){
+						var fansx = j == 0 ? x1 : circle.cx + r * Math.cos(start + (j - FUDGE_FACTOR) * delta),
+							fansy = j == 0 ? y1 : circle.cy + r * Math.sin(start + (j - FUDGE_FACTOR) * delta),
+							fanex = j == nfans - 1 ? x2 : circle.cx + r * Math.cos(start + (j + 1 + FUDGE_FACTOR) * delta),
+							faney = j == nfans - 1 ? y2 : circle.cy + r * Math.sin(start + (j + 1 + FUDGE_FACTOR) * delta);
+						group.createPath().
+								moveTo(circle.cx, circle.cy).
+								lineTo(fansx, fansy).
+								arcTo(r, r, 0, delta > Math.PI, true, fanex, faney).
+								lineTo(circle.cx, circle.cy).
+								closePath().
+								setFill(this._pseudoRadialFill(specialFill, {x: circle.cx, y: circle.cy}, r, start + (j + 0.5) * delta, start + (j + 0.5) * delta));
+					}
+					group.createPath().
+						moveTo(circle.cx, circle.cy).
+						lineTo(x1, y1).
+						arcTo(r, r, 0, step > Math.PI, true, x2, y2).
+						lineTo(circle.cx, circle.cy).
+						closePath().
+						setStroke(theme.series.stroke);
+					shape = group;
+				}else{
+					shape = s.createPath().
+						moveTo(circle.cx, circle.cy).
+						lineTo(x1, y1).
+						arcTo(r, r, 0, step > Math.PI, true, x2, y2).
+						lineTo(circle.cx, circle.cy).
+						closePath().
+						setStroke(theme.series.stroke);
+					specialFill = theme.series.fill;
+					if(specialFill && specialFill.type === "radial"){
+						specialFill = this._shapeFill(specialFill, {x: circle.cx - circle.r, y: circle.cy - circle.r, width: 2 * circle.r, height: 2 * circle.r});
+						if(this.opt.radGrad === "linear"){
+							specialFill = this._pseudoRadialFill(specialFill, {x: circle.cx, y: circle.cy}, r, start, end);
+						}
+					}else if(specialFill && specialFill.type === "linear"){
+						specialFill = this._plotFill(specialFill, dim, offsets);
+						specialFill = this._shapeFill(specialFill, shape.getBoundingBox());
+					}
+					shape.setFill(specialFill);
+				}
+				this.dyn.push({fill: specialFill, stroke: theme.series.stroke});
+
+				if(events){
+					o = {
+						element: "slice",
+						index:   i,
+						run:     this.run,
+						shape:   shape,
+						x:       i,
+						y:       typeof v == "number" ? v : v.y,
+						cx:      circle.cx,
+						cy:      circle.cy,
+						cr:      r
+					};
+					this._connectEvents(o);
+					eventSeries[i] = o;
+				}
+
+				start = end;
+
+				return false;	// continue
+			}, this);
+			// draw labels
+			if(this.opt.labels){
+				var isRtl = has("dojo-bidi") && this.chart.isRightToLeft(); 
+				if(this.opt.labelStyle == "default"){ // inside or outside based on labelOffset
+					start = startAngle;
+					arr.some(slices, function(slice, i){
+						if(slice <= 0){
+							// degenerated slice
+							return false;	// continue
+						}
+						var theme = themes[i];
+						if(slice >= 1){
+							// whole pie
+							this.renderLabel(s, circle.cx, circle.cy + size / 2, labels[i], theme, this.opt.labelOffset > 0);
+							return true;	// stop iteration
+						}
+						// calculate the geometry of the slice
+						var end = start + slice * 2 * Math.PI;
+						if(i + 1 == slices.length){
+							end = startAngle + 2 * Math.PI;
+						}
+						if(this.opt.omitLabels && end-start < 0.001){
+							return false;	// continue
+						}
+						var	labelAngle = (start + end) / 2,
+							x = circle.cx + labelR * Math.cos(labelAngle),
+							y = circle.cy + labelR * Math.sin(labelAngle) + size / 2;
+						// draw the label
+						this.renderLabel(s, isRtl ? dim.width - x : x, y, labels[i], theme, this.opt.labelOffset > 0);
+						start = end;
+						return false;	// continue
+					}, this);
+				}else if(this.opt.labelStyle == "columns"){
+					start = startAngle;
+					var omitLabels = this.opt.omitLabels;
+					//calculate label angles
+					var labeledSlices = [];
+					arr.forEach(slices, function(slice, i){
+						var end = start + slice * 2 * Math.PI;
+						if(i + 1 == slices.length){
+							end = startAngle + 2 * Math.PI;
+						}
+						var labelAngle = (start + end) / 2;
+						labeledSlices.push({
+							angle: labelAngle,
+							left: Math.cos(labelAngle) < 0,
+							theme: themes[i],
+							index: i,
+							omit: omitLabels?end - start < 0.001:false
+						});
+						start = end;
+					});
+					//calculate label radius to each slice
+					var labelHeight = g._base._getTextBox("a",{ font: labelFont }).h;
+					this._getProperLabelRadius(labeledSlices, labelHeight, circle.r * 1.1);
+					//draw label and wiring
+					arr.forEach(labeledSlices, function(slice, i){
+						if(!slice.omit){
+							var leftColumn = circle.cx - circle.r * 2,
+								rightColumn = circle.cx + circle.r * 2,
+								labelWidth = g._base._getTextBox(labels[i], {font: slice.theme.series.font}).w,
+								x = circle.cx + slice.labelR * Math.cos(slice.angle),
+								y = circle.cy + slice.labelR * Math.sin(slice.angle),
+								jointX = (slice.left) ? (leftColumn + labelWidth) : (rightColumn - labelWidth),
+								labelX = (slice.left) ? leftColumn : jointX;
+							var wiring = s.createPath().moveTo(circle.cx + circle.r * Math.cos(slice.angle), circle.cy + circle.r * Math.sin(slice.angle));
+							if(Math.abs(slice.labelR * Math.cos(slice.angle)) < circle.r * 2 - labelWidth){
+								wiring.lineTo(x, y);
+							}
+							wiring.lineTo(jointX, y).setStroke(slice.theme.series.labelWiring);
+							this.renderLabel(s, isRtl ? dim.width - labelWidth - labelX : labelX, y, labels[i], slice.theme, false, "left");
+						}
+					},this);
+				}
+			}
+			// post-process events to restore the original indexing
+			var esi = 0;
+			this._eventSeries[this.run.name] = df.map(run, function(v){
+				return v <= 0 ? null : eventSeries[esi++];
+			});
+			// chart mirroring starts
+			if(has("dojo-bidi")){
+				this._checkOrientation(this.group, dim, offsets);
+			}
+			// chart mirroring ends
+			return this;	//	dojox/charting/plot2d/Pie
+		},
+		_getProperLabelRadius: function(slices, labelHeight, minRidius){
+			var leftCenterSlice, rightCenterSlice,
+				leftMinSIN = 1, rightMinSIN = 1;
+			if(slices.length == 1){
+				slices[0].labelR = minRidius;
+				return;
+			}
+			for(var i = 0; i < slices.length; i++){
+				var tempSIN = Math.abs(Math.sin(slices[i].angle));
+				if(slices[i].left){
+					if(leftMinSIN >= tempSIN){
+						leftMinSIN = tempSIN;
+						leftCenterSlice = slices[i];
+					}
+				}else{
+					if(rightMinSIN >= tempSIN){
+						rightMinSIN = tempSIN;
+						rightCenterSlice = slices[i];
+					}
+				}
+			}
+			leftCenterSlice.labelR = rightCenterSlice.labelR = minRidius;
+			this._calculateLabelR(leftCenterSlice, slices, labelHeight);
+			this._calculateLabelR(rightCenterSlice, slices, labelHeight);
+		},
+		_calculateLabelR: function(firstSlice, slices, labelHeight){
+			var i = firstSlice.index,length = slices.length,
+				currentLabelR = firstSlice.labelR, nextLabelR;
+			while(!(slices[i%length].left ^ slices[(i+1)%length].left)){
+				if(!slices[(i + 1) % length].omit){
+					nextLabelR = (Math.sin(slices[i % length].angle) * currentLabelR + ((slices[i % length].left) ? (-labelHeight) : labelHeight)) /
+					Math.sin(slices[(i + 1) % length].angle);
+					currentLabelR = (nextLabelR < firstSlice.labelR) ? firstSlice.labelR : nextLabelR;
+					slices[(i + 1) % length].labelR = currentLabelR;
+				}
+				i++;
+			}
+			i = firstSlice.index;
+			var j = (i == 0)?length-1 : i - 1;
+			while(!(slices[i].left ^ slices[j].left)){
+				if(!slices[j].omit){
+					nextLabelR = (Math.sin(slices[i].angle) * currentLabelR + ((slices[i].left) ? labelHeight : (-labelHeight))) /
+					Math.sin(slices[j].angle);
+					currentLabelR = (nextLabelR < firstSlice.labelR) ? firstSlice.labelR : nextLabelR;
+					slices[j].labelR = currentLabelR;
+				}
+				i--;j--;
+				i = (i < 0)?i+slices.length:i;
+				j = (j < 0)?j+slices.length:j;
+			}
+		}
+	});
+});
