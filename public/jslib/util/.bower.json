@@ -1,0 +1,45 @@
+{
+  "name": "dojo-util",
+  "main": "",
+  "moduleType": [
+    "amd"
+  ],
+  "licenses": [
+    "BSD-3-Clause",
+    "AFL-2.1"
+  ],
+  "ignore": [
+    ".*"
+  ],
+  "keywords": [
+    "JavaScript",
+    "Dojo",
+    "Toolkit",
+    "Util",
+    "Build System"
+  ],
+  "authors": [],
+  "homepage": "http://dojotoolkit.org/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dojo/util.git"
+  },
+  "dependencies": {
+    "dojo": "1.12.2",
+    "dijit": "1.12.2",
+    "dojox": "1.12.2",
+    "dojo-themes": "1.12.2"
+  },
+  "devDependencies": {},
+  "version": "1.12.2",
+  "_release": "1.12.2",
+  "_resolution": {
+    "type": "version",
+    "tag": "1.12.2",
+    "commit": "cd0870cd5a49f88b3e8e1437703d58c2ef88468b"
+  },
+  "_source": "https://github.com/dojo/util.git",
+  "_target": "1.12.2",
+  "_originalSource": "dojo/util",
+  "_direct": true
+}
