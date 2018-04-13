@@ -1,0 +1,16 @@
+{"headers":[
+  {"type":"selectBox","label":"Склад:", "params":{"contentTableCondition":"Stock","valueItemName":"StockID", "labelItemName":"StockName", "loadDropDownURL":"/reports/getStocksForRem"}}
+],
+  "columns":[
+    { "data":"StockName", "name":"Склад", "width":150, "type":"text", "visible":false },
+    { "data": "ProdID", "name": "Код товара", "type": "numeric", "language": "ru-RU", "width": "55", "align":"center" },
+    { "data":"ProdName", "name":"Наименование товара", "width":350, "type":"text"},
+    { "data":"Article1", "name":"Артикул", "width":80, "type":"text"},
+    { "data":"UM", "name":"Ед. изм", "width":50, "type":"text", "align":"center" },
+    { "data":"Qty", "name":"Кол-во", "width":65, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.[#########]", "align":"center", "necessary":true }
+  ],
+  "totals":[
+    {"type":"rowCount", "label":"ИТОГО строк:"},
+    {"type":"sum", "label":"ИТОГО кол-во:", "width":410, "dataField":"Qty", "format":"#,###,###,##0.#########", "inputWidth":80 }
+  ]
+}

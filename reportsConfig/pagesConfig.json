@@ -8,14 +8,18 @@
                 {},
                 { "id": "prodsBalance", "name": "Остатки товара", "reportFile":""}
             ]
-       }
+       },
+      { "id":"reportsCashier", "title":"Отчеты кассира",  "type":"simpleReport",
+        "buttons":[
+          {},
+          { "id": "prodsBalance", "name": "Остатки товара", "reportFile":""}
+        ]
+      }
     ],
-    "autorun":["reportsRetail"],
-
   "rolesCodes":{
-    "0":["reportsRetail"],
-    "1":["reportsRetail"],
-    "2":["reportsRetail"],
-    "sysadmin":[/*all reports are avaliable*/]
+    "0":{"reportsCashier":true},
+    "1":{"reportsRetail":true},
+    "2":{"reportsRetail":true},
+    "sysadmin":[/*all reports are avaliable. Autorun - first page in pages*/]
   }
 }

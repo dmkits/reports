@@ -19,8 +19,8 @@ module.exports= function(app) {                        //    /type/repId/action/
             try{
                 pagesConfig=JSON.parse(common.getJSONWithoutComments(fs.readFileSync(path.join(__dirname,'../'+configDirectoryName+'/pagesConfig.json'),'utf8')));
             }catch(e){
-                logger.error("Failed to get reports list file. Reason:"+e);
-                outData.error= "Failed to get reports list file. Reason:"+e;
+                logger.error("Failed to get reports list file. Reason:"+JSON.stringify(e));
+                outData.error= "Не удалось получить метаданные для отчетов.";
                 res.send(outData);
                 return;
             }
@@ -43,8 +43,8 @@ module.exports= function(app) {                        //    /type/repId/action/
             try{
                 var fileContentString=fs.readFileSync(path.join(__dirname,'../'+configDirectoryName+'/'+reportFolderName+'/'+filename+'.json'), 'utf8');
             }catch(e){
-                outData.error=e;
-                logger.error(e);
+                outData.error="Не удалось получить метаданные для отчета";
+                logger.error(JSON.stringify(e));
                 res.send(outData);
                 return;
             }
@@ -61,8 +61,8 @@ module.exports= function(app) {                        //    /type/repId/action/
             try{
                 var fileContentString=fs.readFileSync(path.join(__dirname,'../'+configDirectoryName+'/'+reportFolderName+'/'+filename+'.json'),'utf8');
             }catch(e){
-                outData.error= e;
-                logger.error(e);
+                outData.error= "Не удалось получить данные для отчета";
+                logger.error(JSON.stringify(e));
                 res.send(outData);
                 return;
             }

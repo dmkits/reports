@@ -163,15 +163,21 @@ app.get("/get_main_data", function(req, res){                                   
     }
     var pages=pagesConfig.pages;
     var userPages=[];
+    var autorunPagesArr= [];
     if(req.userRoleCode=="sysadmin"){
         userPages=pages;
+        autorunPagesArr.push(userPages[0]['id']);  // TODO default autorun
     }else{
-        var userConfigPagesList=pagesConfig.rolesCodes[req.userRoleCode];
+        var userConfigPagesObject=pagesConfig.rolesCodes[req.userRoleCode];
+        var userConfigPagesList=Object.keys(userConfigPagesObject);
         for(var userPage in userConfigPagesList){
             for(var i in pages){
                 var page=pages[i];
                 if(page.id==userConfigPagesList[userPage]){
                     userPages.push(page);
+                    if(userConfigPagesObject[userConfigPagesList[userPage]]==true){
+                        autorunPagesArr.push(userConfigPagesList[userPage]);
+                    }
                 }
             }
         }
@@ -185,7 +191,7 @@ app.get("/get_main_data", function(req, res){                                   
     menuBar.push({itemname:"menuBarAbout",itemtitle:"О программе",action:"help_about"});
     outData.menuBar= menuBar;
     outData.autorun= [];
-    outData.autorun.push({menuitem: pagesConfig.autorun, runaction:1});
+    outData.autorun.push({menuitem: autorunPagesArr, runaction:1});
     res.send(outData);
 });
 
