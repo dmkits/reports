@@ -89,7 +89,10 @@ app.post("/login", function (req, res) {                        log.info("app.po
                 res.cookie("lpid", newPLID);
                 res.send({result: "success"});
                 return;
-
+            }else{
+                log.info("Wrong password.");
+                res.send({error: "Неверные учетные данные"});
+                return;
             }
         }
     }
@@ -101,6 +104,11 @@ app.post("/login", function (req, res) {                        log.info("app.po
                 return;
             }
             var userLoginData=result[0];
+            if(!userLoginData || !userLoginData.EmpID){
+                log.info("Wrong login.");
+                res.send({error:"Неверный логин"});
+                return;
+            }
             if (userLoginData && userLoginData.LPAss && userLoginData.LPAss == userPswrd) {
                 var LPID=common.getUIDNumber();
                 database.executeMSSQLParamsQuery("update r_Emps set LPID=@LPID where EmpID=@EmpID",
@@ -115,8 +123,8 @@ app.post("/login", function (req, res) {                        log.info("app.po
                 });
                 return;
             }
-            log.info("Wrong login or password.");
-            res.send({error: "Неправильный логин или пароль"});
+            log.info("Wrong password.");
+            res.send({error: "Неверные учетные данные"});
         });
 });
 

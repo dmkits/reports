@@ -62,7 +62,7 @@ module.exports= function(app) {
                     title: title,
                     bigImg: img,
                     icon: icon32x32,
-                    errorReason: "Не удалось подключиться к базе данных!"
+                    errorReason: "Не удалось обратиться к базе данных!"
                 });
                 return;
             }
@@ -106,7 +106,7 @@ module.exports= function(app) {
                 title: title,
                 bigImg: img,
                 icon: icon32x32,
-                errorReason: "Не удалось подключиться к базе данных!"
+                errorReason: "Не удалось обратиться к базе данных!"
             });
             return;
         }

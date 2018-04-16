@@ -37,7 +37,7 @@
                     var user=document.getElementById("user_name").value.trim(), pswrd=document.getElementById("user_password").value.trim();
                     Request.postJSONData({url:  "/login", data: {user:user, pswrd:pswrd}, consoleLog: true},
                             function (result) {
-                                if(result) {
+                                if(result && !result.error) {
                                     if(window.location.href.indexOf("/login")>=0)window.location.replace("/");
                                        else window.location.replace(window.location.href);
                                 }
