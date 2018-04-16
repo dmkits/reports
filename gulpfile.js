@@ -9,6 +9,7 @@ var runSequence = require('run-sequence');
 var zip = require('gulp-zip');
 var gnf = require('gulp-npm-files');
 var debug=require('gulp-debug');
+var del = require('del');
 
 
 var zipFileName='';
@@ -107,27 +108,7 @@ gulp.task('node_modules',function(){
     return gulp.src('node_modules/**/*')
         .pipe(gulp.dest('reports/node_modules'));
 });
-//gulp.task('packageJson',function(){
-//    return gulp.src('package.json')
-//        .pipe(gulp.dest('reports/'));
-//});
-//
-//gulp.task('node_modules',function(cd){
-//   exec('cd ./reports', function(error, stdout, stderr){
-//       if(error){
-//           console.log('projectJson error=', error);
-//           return;
-//       }
-//       console.log('!!!!!after cd ./reports');
-//       exec(/*'npm install --only=prod'*/'pwd',function(error, stdout, stderr){
-//           if(error){
-//               console.log('projectJson error=', error);
-//               return;
-//           }
-//           cd();
-//       });
-//   })
-//});
+
 
 gulp.task('server',function(){
     return gulp.src('server/**/*')
@@ -150,60 +131,39 @@ gulp.task('cleanGulpDir', function () {
         .pipe(clean());
 });
 
-//gulp.task('zipRelease', function () {
-//    return gulp.src('./reports/**/*')
-//        .pipe(zip('reports.zip'))
-//        .pipe(gulp.dest('./'))
-//});
-
 gulp.task('zipRelease', function (cb) {
     exec('git rev-parse --abbrev-ref HEAD', function(error, stdout, stderr) {
         if (error) {
-            console.error("realiseZip=",error);
+            console.error("realiseZip error=",error);
             return;
         }
         var branch=stdout.replace(/\./g, '_').trim();
         zipFileName='reports_v'+branch+'.zip';
         console.log('zipFileName=', zipFileName);
-        return gulp.src('./reports/**/*')
+        return gulp.src('release/reports/**/*', {base:'release/reports'})
             .pipe(zip(zipFileName))
-            .pipe(debug({title_zipFileName:zipFileName}))
-            .pipe(gulp.dest('./'))
-            .pipe(debug({title_End:"alldone"}))
+            .pipe(debug({title:'170'+zipFileName}))
+            .pipe(gulp.dest('release'))
     });
 
 });
 
 gulp.task('build',["rootFiles",'node_modules','pages','installNode','server','public','reportsConfig']);
 
-gulp.task('releaseReportsFolder',function(cd){
+gulp.task('realiseFolder',function(cd){
+    console.log('realiseFolder');
     return gulp.src('./reports/**/*')
         .pipe(gulp.dest('release/reports'));
-}); 
-gulp.task('releaseZipFile',function(cd){
-    return gulp.src('./'+zipFileName)
-        .pipe(gulp.dest('release'));
 });
 
-//gulp.task('realiseFolder',function(cd){
-//    return gulp.src(['./'+zipFileName,'./reports/**/*'])
-//        .pipe(gulp.dest('release/reports'));
-//});
-
-gulp.task('deleteTempFiles', function(cd){
-    return gulp.src([/*'./reports/',*/ zipFileName], { read: false })
-        .pipe(clean());
+gulp.task('deleteTempFiles',['realiseFolder'], function(cd){
+    console.log('deleteTempFiles');
+    return del('reports');
 });
-
-gulp.task('generateReportsFolder',['releaseReportsFolder','releaseZipFile']);
 
 gulp.task('default', function(done) {
-    runSequence('cleanGulpDir','generateDojoDir', 'build','cleanDojoDir','zipRelease'/*,'generateReportsFolder', 'deleteTempFiles'*/, function() {
+    runSequence(/*'cleanGulpDir',*/'generateDojoDir', 'build','cleanDojoDir','deleteTempFiles', 'zipRelease', function() {
         console.log('callback all done');
         done();
     });
 });
-
-//gulp.task('copyNpmDependenciesOnly', function() {
-//    gulp.src(gnf(), {base:'./'}).pipe(gulp.dest('./build'));
-//});
