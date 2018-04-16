@@ -24,7 +24,7 @@ Handsontable.cellTypes['text'].editor.prototype.getValue = function() {
     return this.TEXTAREA.value;
 };
 
-define(["dojo/_base/declare", "dijit/layout/ContentPane","dojox/widget/Standby", "dijit/Dialog","dijit/ProgressBar", "dijit/registry", "myDojoModules/request"],
+define(["dojo/_base/declare", "dijit/layout/ContentPane","dojox/widget/Standby", "dijit/Dialog","dijit/ProgressBar", "dijit/registry", "dojo.app/request"],
     function(declare, ContentPane, Standby, Dialog, ProgressBar, Registry, Request){
         return declare("HTableSimple", [ContentPane], {
             handsonTable: null,
@@ -219,58 +219,60 @@ define(["dojo/_base/declare", "dijit/layout/ContentPane","dojox/widget/Standby",
                 hInstance.updateSettings({
                     columnHeaderHeight:20,
                     afterRender: function () {     // console.log("*****************hInstance=",hInstance); console.log("*********Handsontable.Dom=",Handsontable.Dom);   console.log("rootElement=",hInstance.rootElement);
-                        var topHeadersArr=document.getElementsByClassName("ht_clone_top handsontable");
-                        var contentPaneWidth=hInstance.rootElement.parentNode.style.width;
-                        for(var k=0; k<topHeadersArr.length; k++){
-                            var headerTop = topHeadersArr[k];
-                            var bottomClone=headerTop.cloneNode(true);
-                            bottomClone.className = "ht_clone_bottom handsontable";
-                            if(headerTop.style.top)bottomClone.style.top=null;
-                            if(headerTop.style.height)bottomClone.style.height='23px';
-                            if(headerTop.style.left)bottomClone.style.left='0px';
 
-                            if(headerTop.getElementsByClassName("wtSpreader")[0].style.left){
-                                bottomClone.getElementsByClassName("wtSpreader")[0].style.left='0px';    // TODO fix when scroll is work !!!!!!!!!!!!!
-                            }
+                       ////---
+                       // var topHeadersArr=document.getElementsByClassName("ht_clone_top handsontable");
+                       // var contentPaneWidth=hInstance.rootElement.parentNode.style.width;
+                       // for(var k=0; k<topHeadersArr.length; k++){
+                       //     var headerTop = topHeadersArr[k];
+                       //     var bottomClone=headerTop.cloneNode(true);
+                       //     bottomClone.className = "ht_clone_bottom handsontable";
+                       //     if(headerTop.style.top)bottomClone.style.top=null;
+                       //     if(headerTop.style.height)bottomClone.style.height='23px';
+                       //     if(headerTop.style.left)bottomClone.style.left='0px';
+                       //     if(headerTop.getElementsByClassName("wtSpreader")[0].style.left){
+                       //         bottomClone.getElementsByClassName("wtSpreader")[0].style.left='0px';    // TODO fix when scroll is work !!!!!!!!!!!!!
+                       //     }
+                       //     if(headerTop.getElementsByClassName("wtHider")[0].style.width){
+                       //         var hotWidth=headerTop.getElementsByClassName("wtHider")[0].style.width;
+                       //         if(parseInt(contentPaneWidth.replace('px',""))<parseInt(hotWidth.replace('px',""))){
+                       //             bottomClone.style.bottom='15px';
+                       //         }else bottomClone.style.bottom='0px';
+                       //     }
+                       //     var thArr=bottomClone.getElementsByTagName("TH");
+                       //     var firstTh=thArr[0];
+                       //     //var TBODY=bottomClone.getElementsByTagName("TBODY")[0];
+                       //     //var trTbody = document.createElement('tr');
+                       //     //TBODY.appendChild(trTbody);
+                       //     if(firstTh){
+                       //         firstTh.removeAttribute("colSpan");
+                       //         for(var h in thArr) {
+                       //             thArr[h].innerHTML="";
+                       //             thArr[h].border="5px";
+                       //             //var tdTbody = document.createElement('TD');
+                       //             //trTbody.appendChild(tdTbody);
+                       //         }
+                       //         //var bottomTheader = bottomClone.getElementsByTagName("THEAD")[0];       //remove headers
+                       //         //if(bottomTheader) {
+                       //         //    var bottomTheadetTr=bottomTheader.getElementsByTagName("TR")[0];
+                       //         //    while (bottomTheadetTr.firstChild) {
+                       //         //        bottomTheadetTr.removeChild(bottomTheadetTr.firstChild);
+                       //         //    }
+                       //         //}
+                       //     }
+                       //     //var scrollDiv=hInstance.rootElement.getElementsByClassName("ht_clone_top handsontable")[0].getElementsByClassName("wtHolder")[0];
+                       //     //scrollDiv.onscroll=function(){
+                       //     //    bottomClone.style.left=-(hInstance.view.wt.wtOverlays.leftOverlay.getScrollPosition())+"px";
+                       //     //};
+                       //
+                       //     var nextHeaderSibling=headerTop.nextElementSibling/*.innerHTML*/;
+                       //     if(nextHeaderSibling.className=="ht_clone_bottom handsontable"){
+                       //         nextHeaderSibling.parentNode.removeChild(nextHeaderSibling);
+                       //     }
+                       //     insertAfter(bottomClone,headerTop);
+                       // }
+                       // //---
 
-                            if(headerTop.getElementsByClassName("wtHider")[0].style.width){
-                                var hotWidth=headerTop.getElementsByClassName("wtHider")[0].style.width;
-                                if(parseInt(contentPaneWidth.replace('px',""))<parseInt(hotWidth.replace('px',""))){
-                                    bottomClone.style.bottom='15px';
-                                }else bottomClone.style.bottom='0px';
-                            }
-                            var thArr=bottomClone.getElementsByTagName("TH");
-                            var firstTh=thArr[0];
-                            //var TBODY=bottomClone.getElementsByTagName("TBODY")[0];
-                            //var trTbody = document.createElement('tr');
-                            //TBODY.appendChild(trTbody);
-                            if(firstTh){
-                                firstTh.removeAttribute("colSpan");
-                                for(var h in thArr) {
-                                    thArr[h].innerHTML="";
-                                    thArr[h].border="5px";
-                                    //var tdTbody = document.createElement('TD');
-                                    //trTbody.appendChild(tdTbody);
-                                }
-                                //var bottomTheader = bottomClone.getElementsByTagName("THEAD")[0];       //remove headers
-                                //if(bottomTheader) {
-                                //    var bottomTheadetTr=bottomTheader.getElementsByTagName("TR")[0];
-                                //    while (bottomTheadetTr.firstChild) {
-                                //        bottomTheadetTr.removeChild(bottomTheadetTr.firstChild);
-                                //    }
-                                //}
-                            }
-                            //var scrollDiv=hInstance.rootElement.getElementsByClassName("ht_clone_top handsontable")[0].getElementsByClassName("wtHolder")[0];
-                            //scrollDiv.onscroll=function(){
-                            //    bottomClone.style.left=-(hInstance.view.wt.wtOverlays.leftOverlay.getScrollPosition())+"px";
-                            //};
-
-                            var nextHeaderSibling=headerTop.nextElementSibling/*.innerHTML*/;
-                            if(nextHeaderSibling.className=="ht_clone_bottom handsontable"){
-                                nextHeaderSibling.parentNode.removeChild(nextHeaderSibling);
-                            }
-                            insertAfter(bottomClone,headerTop);
-                        }
                         var theads=hInstance.rootElement.getElementsByTagName('thead');
                         var div= document.createElement("div");
                         for(var theadInd=0;theadInd<theads.length;theadInd++){

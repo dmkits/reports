@@ -14,58 +14,8 @@ var profile = (function(){
             { name: "dojo", location: "public/jslib/dojo" },
             { name: "dijit", location: "public/jslib/dijit" },
             { name: "dojox", location: "public/jslib/dojox" },
-            { name: "myDojoModules", location: "public/jslib/myDojoModules" }
+            { name: "dojo.app", location: "public/jslib/dojo.app" }
         ],
-        //layers: {
-        //    "dojo/dojo": {
-        //        include: [
-        //            "dojo/dojo",
-        //            "dojo/_base/declare,",
-        //            "dojo/data/ItemFileReadStore",
-        //            "dojo/dom-style",
-        //            "dojo/domReady",
-        //            "dojo/i18n",
-        //            "dojo/keys",
-        //            "dijit/ConfirmDialog",
-        //            "dijit/Dialog",
-        //            "dijit/Menu",
-        //            "dijit/MenuItem",
-        //            "dijit/MenuBar",//
-        //            "dijit/MenuBarItem",//
-        //            "dijit/PopupMenuBarItem",//
-        //            "dijit/ProgressBar",
-        //            "dijit/TitlePane",
-        //            "dijit/form/Button",
-        //            "dijit/form/Button",
-        //            "dijit/form/ComboButton",
-        //            "dijit/form/DateTextBox",
-        //            "dijit/form/NumberTextBox",
-        //            "dijit/form/Select",
-        //            "dijit/form/TextBox",
-        //            "dijit/form/ToggleButton",
-        //            "dijit/layout/BorderContainer",
-        //            "dijit/layout/ContentPane",
-        //            "dijit/layout/LayoutContainer",
-        //            "dijit/layout/StackContainer",
-        //            "dijit/layout/TabContainer",//
-        //            "dijit/registry",
-        //            "dojox/widget/DialogSimple",
-        //            "dojox/widget/Standby",
-        //
-        //            "myDojoModules/app",
-        //            "myDojoModules/dialogs",
-        //            "myDojoModules/hTableSimple",
-        //            "myDojoModules/hTableEditable",
-        //
-        //            "myDojoModules/hTableSimpleFiltered",
-        //            "myDojoModules/request",
-        //            "myDojoModules/tDocumentBase",
-        //            "myDojoModules/tDocumentSimpleTable",
-        //            "myDojoModules/tDocumentSimpleTableEditable"],
-        //        customBase: true,
-        //        boot: true
-        //    }
-        //},
         layers: {
             "dojo/dojo": {
                 include: [
@@ -80,15 +30,15 @@ var profile = (function(){
                     "dijit/PopupMenuBarItem",
                     "dijit/layout/StackContainer",
                     "dijit/layout/TabContainer",
-                    "myDojoModules/app",
-                    "myDojoModules/dialogs",
-                    "myDojoModules/request",
-                    "myDojoModules/hTableSimple",
-                    "myDojoModules/hTableEditable",
-                    "myDojoModules/hTableSimpleFiltered",
-                    "myDojoModules/tDocumentBase",
-                    "myDojoModules/tDocumentSimpleTable",
-                    "myDojoModules/tDocumentSimpleTableEditable"],
+                    "dojo.app/app",
+                    "dojo.app/dialogs",
+                    "dojo.app/request",
+                    "dojo.app/hTableSimple",
+                    "dojo.app/hTableEditable",
+                    "dojo.app/hTableSimpleFiltered",
+                    "dojo.app/tDocumentBase",
+                    "dojo.app/tDocumentSimpleTable",
+                    "dojo.app/tDocumentSimpleTableEditable"],
                 customBase: true,
                 boot: true
             }

@@ -43,8 +43,8 @@
 </div>
 </body>
 <script type="text/javascript">
-    require(["myDojoModules/app", "dijit/layout/BorderContainer", "dijit/layout/StackContainer", "dijit/layout/ContentPane",
-                "dijit/form/ToggleButton", "dojox/layout/ContentPane", "dijit/form/Button",  "myDojoModules/request", "dojo/domReady!"],
+    require(["dojo.app/app", "dijit/layout/BorderContainer", "dijit/layout/StackContainer", "dijit/layout/ContentPane",
+                "dijit/form/ToggleButton", "dojox/layout/ContentPane", "dijit/form/Button",  "dojo.app/request", "dojo/domReady!"],
             function (APP, BorderContainer, StackContainer, ContentPane, ToggleButton, XContentPane, Button, Request) {                    console.log("STARTING SYSADMIN PAGE...");//!!!IT'S FOR TESTING!!!
                moment.locale("uk");
                 var sysadmin_MainContainer = APP.instanceForID("sysadmin_MainContainer", BorderContainer, {design: "headline"});
