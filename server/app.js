@@ -47,7 +47,7 @@ app.use(bodyParser.text({limit: '50mb'}));
 app.use('/',express.static('public'));
 app.use(favicon(path.join(__dirname, '../public/icons', 'profits16x16.ico')));
 
-var database = require('./dataBase');               console.log("module ./dataBase",new Date().getTime() - startTime);
+var database = require('./databaseMSSQL');               console.log("module ./databaseMSSQL",new Date().getTime() - startTime);
 app.ConfigurationError, app.DBConnectError="No connection";
 
 require('./access')(app);

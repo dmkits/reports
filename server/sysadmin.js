@@ -1,7 +1,7 @@
 var fs = require('fs'), path=require ('path');
 
 var common=require('./common');
-var database=require('./dataBase');
+var database=require('./databaseMSSQL');
 var logger=require('./logger')();
 
 module.exports= function(app) {
@@ -37,7 +37,20 @@ module.exports= function(app) {
         }
         var appConfig=database.getDBConfig();
         if(!appConfig["reports.config"])appConfig["reports.config"]=common.getConfigDirectoryName();
-        res.send(appConfig);
+        database.selectMSSQLQuery("select	name "+
+        "from	sys.databases "+
+        "where	name not in ('master','tempdb','model','msdb') "+
+        "and is_distributor = 0 "+
+        "and source_database_id is null", function(err,recordset){
+            if(err){
+                res.send({error:err.message});
+                return;
+            }
+            console.log('recordset 45=', recordset);
+            appConfig.dbList=recordset;
+            res.send(appConfig);
+        });
+
     });
     app.get("/sysadmin/startup_parameters/load_app_config", function (req, res) {
         common.tryLoadConfiguration(app);
@@ -66,6 +79,86 @@ module.exports= function(app) {
     app.get("/sysadmin/pages_config", function (req, res) {
         res.sendFile(path.join(__dirname, '../pages/sysadmin', 'sql_queries.html'));
     });
+    //app.post("/sysadmin/create_new_db", function (req, res) {
+    //    var host=req.body.host;
+    //    var newDBName=req.body.newDatabase;
+    //    var newUserName=req.body.newUser;
+    //    var newUserPassword=req.body.newPassword;
+    //
+    //    var connParams={
+    //        server: host,
+    //        user: req.body.adminName,
+    //        password: req.body.adminPassword
+    //    };
+    //    var outData={};
+    //
+    //    database.mySQLAdminConnection(connParams,function(err){
+    //        if (err) {                                                                                      logger.error("mySQLAdminConnection err=", err);
+    //            outData.error=err.message;
+    //            res.send(outData);
+    //            return;
+    //        }
+    //        database.checkIfDBExists(newDBName, function(err, result){
+    //            if (err) {                                                                                  logger.error("checkIfDBExists err=", err);
+    //                outData.error=err.message;
+    //                res.send(outData);
+    //                return;
+    //            }if(result.length>0){
+    //                outData.error="Impossible to create DB! Database "+newDBName+" is already exists!";
+    //                res.send(outData);
+    //                return;
+    //            }
+    //            database.createNewDB(newDBName,function(err, ok){
+    //                if(err){                                                                                logger.error("createNewDB err=", err);
+    //                    outData.error=err.message;
+    //                    res.send(outData);
+    //                    return;
+    //                }
+    //                outData.DBCreated=ok;
+    //                database.checkIfUserExists(newUserName,function(err,result){
+    //                    if(err){                                                                            logger.error("checkIfUserExists err=", err);
+    //                        outData.error=err.message;
+    //                        res.send(outData);
+    //                        return;
+    //                    }
+    //                    if(result.length>0){
+    //                        outData.userExists="User "+newUserName+" is already exists!";
+    //                        database.grantUserAccess(host,newUserName,newDBName, function(err, ok){
+    //                            if(err){                                                                    logger.error("createNewUser err=", err);
+    //                                outData.error=err.message;
+    //                                res.send(outData);
+    //                                return;
+    //                            }
+    //                            outData.accessAdded=ok;
+    //                            res.send(outData);
+    //                        })
+    //                    }else{
+    //                        database.createNewUser(host,newUserName,newUserPassword, function(err, ok){
+    //                            if(err){                                                                    logger.error("createNewUser err=", err);
+    //                                outData.error=err.message;
+    //                                res.send(outData);
+    //                                return;
+    //                            }
+    //                            outData.userCreated=ok;
+    //                            database.grantUserAccess(host,newUserName,newDBName, function(err, ok){
+    //                                if(err){                                                                logger.error("createNewUser err=", err);
+    //                                    outData.error=err.message;
+    //                                    res.send(outData);
+    //                                    return;
+    //                                }
+    //                                outData.accessAdded=ok;
+    //                                res.send(outData);
+    //                            })
+    //                        });
+    //                    }
+    //                });
+    //            });
+    //        });
+    //    });
+    //});
+
+
+
     app.get("/sysadmin/sql_queries/get_reports_list", function (req, res) {
         var outData={};
         var configDirectoryName=common.getConfigDirectoryName();

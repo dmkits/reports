@@ -1,7 +1,7 @@
 
-var fs = require('fs');       console.log('module for dataBase.js  fs');
-var mssql = require('mssql');   console.log('module for dataBase.js mssql');
-var app = require('./app');   console.log('module for dataBase.js ./app');
+var fs = require('fs');       console.log('module for databaseMSSQL.js  fs');
+var mssql = require('mssql');   console.log('module for databaseMSSQL.js mssql');
+var app = require('./app');   console.log('module for databaseMSSQL.js ./app');
 var common=require('./common');
 var logger=require('./logger')();
 
@@ -49,6 +49,100 @@ module.exports.setDatabaseConnection=function(callback){
             });
     });
 };
+module.exports.mySQLAdminConnection = function (connParams, callback) {                                     logger.info("database mySQLAdminConnection connParams=",connParams);
+    if(!connParams){
+        callback({message:"Failed connect to database! Reason: no parameters!"});
+        return;
+    }
+    if(!connParams.server||connParams.server.trim()==""){
+        callback({message:"Failed connect to database! Reason: no host!"});
+        return;
+    }
+    if(!connParams.user||connParams.user.trim==""){
+        callback({message:"Failed connect to database! Reason: no user!"});
+        return;
+    }
+    mssql.close();
+    connParams.requestTimeout=300000;
+    mssql.connect(connParams, function(err){
+        if(err){
+            dbConnectError=err.message;
+            logger.error("FAILED to connect to DB. Reason: "+dbConnectError);
+            callback(err.message);
+            return;
+        }
+        var request = new mssql.Request();
+        request.query('select 1',
+            function(err,res) {
+                if (err) {
+                    dbConnectError = err.message;
+                    callback(dbConnectError);
+                    return;
+                }
+                dbConnectError=null;
+                callback();
+            });
+    });
+};
+
+//module.exports.checkIfDBExists = function (DBName, callback) {  console.log('checkIfDBExists');
+//    var request = new mssql.Request();
+//    request.query("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '" +DBName + "'",
+//        function (err, recordset) {
+//            if (err) {
+//                callback(err);
+//                return;
+//            }
+//            callback(null, recordset);
+//        });
+//};
+//
+//module.exports.createNewDB= function(DBName,callback) {   console.log('createNewDB');
+//    var request = new mssql.Request();
+//    request.query('CREATE SCHEMA '+DBName,
+//        function (err) {
+//            if (err) {
+//                callback(err);
+//                return;
+//            }
+//            callback(null, DBName+" Database created!");
+//        });
+//};
+//module.exports.checkIfUserExists= function(newUserName,callback) {  console.log('checkIfUserExists');
+//    var request = new mssql.Request();
+//    request.query("select * from sys.database_principals where name='"+newUserName+"'",
+//        function (err, recordset) {
+//            if (err) {
+//                callback(err);
+//                return;
+//            }
+//            callback(null,recordset);
+//        });
+//};
+//module.exports.createNewUser= function(host,newUserName,newUserPassword,callback) {    console.log('createNewUser');
+//    var request = new mssql.Request();
+//    request.query("CREATE USER '"+newUserName+"'@'"+host+"' IDENTIFIED BY '"+newUserPassword+"'",
+//        function (err) {
+//            if (err) {
+//                callback(err);
+//                return;
+//            }
+//            callback(null,"User "+ newUserName+" created!");
+//        });
+//};
+//
+//module.exports.grantUserAccess= function(host,userName,newDBName,callback) {  console.log('grantUserAccess');
+//    var request = new mssql.Request();
+//    var strQuery="GRANT ALL PRIVILEGES ON "+newDBName+".* TO '"+userName+"'@'"+host+"' WITH GRANT OPTION";
+//    request.query(strQuery,
+//        function (err) {
+//            if (err) {
+//                callback(err);
+//                return;
+//            }
+//            callback(null,userName+" granted privileges!");
+//        });
+//};
 
 function selectMSSQLQuery(query, callback) {                                                    logger.debug("database selectMSSQLQuery query:",query);
     var request = new mssql.Request();
@@ -254,18 +348,18 @@ function getTableColumnsDataForHTable(tableColumns){
  */
 function getDataItemsForTable(params, resultCallback){
     var tableData={};
-    if(!params){                                                                                        log.error("FAILED _getDataItemsForTable! Reason: no function parameters!");//test
+    if(!params){                                                                                        logger.error("FAILED _getDataItemsForTable! Reason: no function parameters!");//test
         tableData.error="FAILED _getDataItemsForTable! Reason: no function parameters!";
         resultCallback(tableData);
         return;
     }
     if(params.tableData) tableData=params.tableData;
-    if(!params.tableColumns){                                                                           log.error("FAILED _getDataItemsForTable! Reason: no table columns!");//test
+    if(!params.tableColumns){                                                                           logger.error("FAILED _getDataItemsForTable! Reason: no table columns!");//test
         tableData.error="FAILED _getDataItemsForTable! Reason: no table columns!";
         resultCallback(tableData);
         return;
     }
-    if(!params.source){                                                                                 log.error("FAILED _getDataItemsForTable! Reason: no table source!");//test
+    if(!params.source){                                                                                 logger.error("FAILED _getDataItemsForTable! Reason: no table source!");//test
         tableData.error="FAILED _getDataItemsForTable! Reason: no table source!";
         resultCallback(tableData);
         return;
@@ -430,11 +524,11 @@ function getDataItemForTable(params, resultCallback){
  * resultCallback = function(result = { items:[ {<tableComboboxFieldName>:<value>, ... }, ... ], error, errorCode } )
  */
 function getDataItemsForTableCombobox(params, resultCallback){
-    if(!params) {                                                                                       log.error("FAILED _getDataItemsForTableCombobox! Reason: no function parameters!");//test
+    if(!params) {                                                                                       logger.error("FAILED _getDataItemsForTableCombobox! Reason: no function parameters!");//test
         resultCallback("FAILED _getDataItemsForTableCombobox! Reason: no function parameters!");
         return;
     }
-    if(!params.comboboxFields) {                                                                        log.error("FAILED _getDataItemsForTableCombobox! Reason: no comboboxFields!");//test
+    if(!params.comboboxFields) {                                                                        logger.error("FAILED _getDataItemsForTableCombobox! Reason: no comboboxFields!");//test
         resultCallback("FAILED _getDataItemsForTableCombobox! Reason: no comboboxFields!");
         return;
     }
@@ -489,11 +583,11 @@ module.exports.getDataItemsForTableCombobox=getDataItemsForTableCombobox;
  * }
  * resultCallback = function(result = { items:[ {<tableFieldName>:<value>,...}, ... ], error, errorCode } )
  */
-function getDataItems(params, resultCallback){                                                             //log.debug('_getDataItems: params:',params,{});//test
+function getDataItems(params, resultCallback){                                                             //logger.debug('_getDataItems: params:',params,{});//test
     if(!params) params={};
     if(!params.source)resultCallback("FAILED getDataItems! Reason: no source table!");
     if(!params.fields) resultCallback("FAILED getDataItems! Reason: no source fields!");
-    if(!params.conditions){                                                                                 log.error("FAILED _getDataItems from source:"+params.source+"! Reason: no conditions!");//test
+    if(!params.conditions){                                                                                 logger.error("FAILED _getDataItems from source:"+params.source+"! Reason: no conditions!");//test
         resultCallback({error:"FAILED _getDataItems from source:"+params.source+"! Reason: no conditions!"});
         return;
     }
@@ -505,7 +599,7 @@ function getDataItems(params, resultCallback){                                  
             hasCondition= true;
         }
     }
-    if(!hasCondition){                                                                                 log.error("FAILED _getDataItems from source:"+params.source+"! Reason: no data conditions!");//test
+    if(!hasCondition){                                                                                 logger.error("FAILED _getDataItems from source:"+params.source+"! Reason: no data conditions!");//test
         resultCallback({error:"FAILED _getDataItems from source:"+params.source+"! Reason: no data conditions!"});
         return;
     }
@@ -515,7 +609,7 @@ function getDataItems(params, resultCallback){                                  
             selectResult.error="Failed get data items! Reason:"+err.message;
             selectResult.errorCode=err.code;
         }
-        if (recordset) selectResult.items= recordset;                                                       //log.debug('_getDataItems: _getSelectItems: result:',selectResult,{});//test
+        if (recordset) selectResult.items= recordset;                                                       //logger.debug('_getDataItems: _getSelectItems: result:',selectResult,{});//test
         resultCallback(selectResult);
     });
 }
@@ -620,21 +714,21 @@ function insTableDataWithNewID(params, resultCallback) {
  * resultCallback = function(result = { updateCount, resultItem:{<tableFieldName>:<value>,...}, error })
  */
 function updTableDataItem(params, resultCallback) {
-    if (!params) {                                                                                      log.error("FAILED _updTableDataItem! Reason: no parameters!");//test
+    if (!params) {                                                                                      logger.error("FAILED _updTableDataItem! Reason: no parameters!");//test
         resultCallback({ error:"Failed update table data item! Reason:no function parameters!"});
         return;
     }
     if(!params.tableName&&this.source) params.tableName=this.source;
-    if (!params.tableName) {                                                                            log.error("FAILED _updTableDataItem! Reason: no table name!");//test
+    if (!params.tableName) {                                                                            logger.error("FAILED _updTableDataItem! Reason: no table name!");//test
         resultCallback({ error:"Failed update table data item! Reason:no table name!"});
         return;
     }
-    if (!params.updTableData) {                                                                         log.error("FAILED _updTableDataItem "+params.tableName+"! Reason: no data for update!");//test
+    if (!params.updTableData) {                                                                         logger.error("FAILED _updTableDataItem "+params.tableName+"! Reason: no data for update!");//test
         resultCallback({ error:"Failed update table data item! Reason:no data for update!"});
         return;
     }
     var idFieldName= params.idFieldName;
-    if (!idFieldName) {                                                                                 log.error("FAILED _updTableDataItem "+params.tableName+"! Reason: no id field!");//test
+    if (!idFieldName) {                                                                                 logger.error("FAILED _updTableDataItem "+params.tableName+"! Reason: no id field!");//test
         resultCallback({ error:"Failed update table data item! Reason:no id field name!"});
         return;
     }
@@ -673,20 +767,20 @@ function updTableDataItem(params, resultCallback) {
  * resultCallback = function(result = { updateCount, error })
  */
 function updDataItem(params, resultCallback) {
-    if (!params) {                                                                                      log.error("FAILED _updDataItem! Reason: no parameters!");//test
+    if (!params) {                                                                                      logger.error("FAILED _updDataItem! Reason: no parameters!");//test
         resultCallback({ error:"Failed update data item! Reason:no function parameters!"});
         return;
     }
     if(!params.tableName&&this.source) params.tableName=this.source;
-    if (!params.tableName) {                                                                            log.error("FAILED _updDataItem! Reason: no table name!");//test
+    if (!params.tableName) {                                                                            logger.error("FAILED _updDataItem! Reason: no table name!");//test
         resultCallback({ error:"Failed update data item! Reason:no table name for update!"});
         return;
     }
-    if (!params.updData) {                                                                              log.error("FAILED _updDataItem "+params.tableName+"! Reason: no data for update!");//test
+    if (!params.updData) {                                                                              logger.error("FAILED _updDataItem "+params.tableName+"! Reason: no data for update!");//test
         resultCallback({ error:"Failed update data item! Reason:no data for update!"});
         return;
     }
-    if (!params.conditions) {                                                                           log.error("FAILED _updDataItem "+params.tableName+"! Reason: no conditions!");//test
+    if (!params.conditions) {                                                                           logger.error("FAILED _updDataItem "+params.tableName+"! Reason: no conditions!");//test
         resultCallback({ error:"Failed update data item! Reason:no update conditions!"});
         return;
     }
