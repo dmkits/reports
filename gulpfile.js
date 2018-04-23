@@ -127,7 +127,7 @@ gulp.task('pages',function(){
 gulp.task('public',['jslib','css','icons','img']);
 
 gulp.task('cleanGulpDir', function () {
-    return gulp.src('reports/', { read: false })
+    return gulp.src('release/', { read: false })
         .pipe(clean());
 });
 
@@ -162,7 +162,7 @@ gulp.task('deleteTempFiles',['realiseFolder'], function(cd){
 });
 
 gulp.task('default', function(done) {
-    runSequence(/*'cleanGulpDir',*/'generateDojoDir', 'build','cleanDojoDir','deleteTempFiles', 'zipRelease', function() {
+    runSequence('cleanGulpDir','generateDojoDir', 'build','cleanDojoDir','deleteTempFiles', 'zipRelease', function() {
         console.log('callback all done');
         done();
     });

@@ -306,7 +306,7 @@
                                 authParams.adminPassword = result.adminPassword;
                                 var now = moment().format('DD.MM.YYYY HH:mm:ss');
                                 Request.postJSONData({url: "/sysadmin/auth_as_sysadmin", data: authParams, consoleLog: true},
-                                        function (result, error) {      console.log("result=",result,"error=",error);
+                                        function (result, error) {
                                             if (!result) {
                                                 configState.innerHTML = "<div><b style='color:red'>No connection!</b></div>";
                                                 return;

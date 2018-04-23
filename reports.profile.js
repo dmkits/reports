@@ -38,7 +38,8 @@ var profile = (function(){
                     "dojo.app/hTableSimpleFiltered",
                     "dojo.app/tDocumentBase",
                     "dojo.app/tDocumentSimpleTable",
-                    "dojo.app/tDocumentSimpleTableEditable"],
+                    "dojo.app/tDocumentSimpleTableEditable",
+                    "dojo.app/sysadminDialogs"],
                 customBase: true,
                 boot: true
             }
