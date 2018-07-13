@@ -142,13 +142,13 @@
                     };
                 };
                 startupBtn.onClick=function() {
-                   sysadmin_MainContainer.runSysadminContentPage("startup_parameters", "Startup parameters", false, "/sysadmin/startup_parameters");
+                   sysadmin_MainContainer.runSysadminContentPage("startupParameters", "Startup parameters", false, "/sysadmin/startupParameters");
                 };
                 sqlBtn.onClick=function(){
-                    sysadmin_MainContainer.runSysadminContentPage("reports_config", "Pages config", false, "/sysadmin/pages_config");
+                    sysadmin_MainContainer.runSysadminContentPage("reports_config", "Pages config", false, "/sysadmin/repsPagesConfig");
                 };
                 employeeLoginBtn.onClick=function(){
-                    sysadmin_MainContainer.runSysadminContentPage("employee_login", "Employees", false, "/sysadmin/employees_login");
+                    sysadmin_MainContainer.runSysadminContentPage("employee_login", "Employees", false, "/sysadmin/employeesLogin");
                 };
                 sysAdminExitBtn.onClick=function(){
                     Request.postJSONData({url:"/",data:{action:"exit"},consoleLog:true},

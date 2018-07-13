@@ -1,0 +1,1 @@
+   select * from iz_DataImport where dbo.zf_GetDate(CreateDate) = @CDATE and ObjName<>'AKCIYA' and ObjName<>'DocDiscountsGroupsDTL' and ObjName<>'DocProductSalePriceDTL' and ObjName<>'DocStockDTL' and ObjName<>'DocProductMove' and ObjName<>'DocProductMoveDTL'

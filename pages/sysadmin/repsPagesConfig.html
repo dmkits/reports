@@ -5,21 +5,21 @@
     <title></title>
 </head>
 <body id="body">
-<div id="sql_queries_PageContent" style="width:100%;height:100%;">
-    <div id="sql_queries_TopContent" style="width:100%;height:50px; margin:0;padding:0; display: inline-block ">
+<div id="repsPagesConfig_PageContent" style="width:100%;height:100%;">
+    <div id="repsPagesConfig_TopContent" style="width:100%;height:50px; margin:0;padding:0; display: inline-block ">
         <table width="100%">
             <tr>
                 <td width="200px;">
                     <div id="filename"></div>
                 </td>
                 <td align="center">
-                    <table id="sql_params_table"></table>
+                    <table id="sqlParamsTable"></table>
                 </td>
                 <td width="40px;">
-                    <button id="sql_runBtn">Run</button>
+                    <button id="sqlRunBtn">Run</button>
                 </td>
                 <td width="100px;">
-                    <button id="sql_saveBtn">Save</button>
+                    <button id="sqlSaveBtn">Save</button>
                 </td>
                 <td width="440px;"></td>
             </tr>
@@ -27,30 +27,30 @@
         <table>
             <tr>
                 <td width="100%;">
-                    <div id="saved_files_info"></div>
+                    <div id="savedFilesInfo"></div>
                 </td>
             </tr>
         </table>
     </div>
-    <div id="sql_queries_LeftContent" style="width:185px;height:100%; margin:0;padding:0; ">
+    <div id="repsPagesConfig_LeftContent" style="width:185px;height:100%; margin:0;padding:0; ">
     </div>
-    <div id="sql_queries_DetailContent" style="width:100%;height:100%; margin:0;padding:0;">
+    <div id="repsPagesConfig_DetailContent" style="width:100%;height:100%; margin:0;padding:0;">
         <table width='100%' height='100%'>
             <tr>
                 <td style="padding-top:3px;padding-left:2px;padding-right:6px;border-bottom:1px solid darkgrey;margin: 0px">
-                    <textarea id="json_display_content" style="border:none;width:100%;height:100%;"></textarea>
+                    <textarea id="jsonDisplayContent" style="border:none;width:100%;height:100%;"></textarea>
                 </td>
             </tr>
             <tr>
                 <td style="padding-top:3px;padding-left:2px;padding-right:6px; border-top:1px solid darkgrey; margin: 0px">
-                    <textarea id="sql_display_content" style="border:none;width:100%;height:100%;"></textarea>
+                    <textarea id="sqlDisplayContent" style="border:none;width:100%;height:100%;"></textarea>
                 </td>
             </tr>
 
         </table>
     </div>
-    <div id="sql_queries_RightContent" style="width:500px;height:100%; margin:0;padding:0;">
-        <div id="sql_display_result">
+    <div id="repsPagesConfig_RightContent" style="width:500px;height:100%; margin:0;padding:0;">
+        <div id="sqlDisplayResult">
         </div>
     </div>
 </div>
@@ -61,17 +61,17 @@
                 "dojo.app/request"],
             function (APP, BorderContainer, LayoutContainer, ContentPane, ItemFileReadStore, TextBox, DateTextBox, Button, ConfirmDialog,Dialog,
                       Request) {
-                var borderContainer = APP.instanceForID("sql_queries_PageContent", BorderContainer, {});
-                var topContentSQL = APP.instanceForID("sql_queries_TopContent", ContentPane, {region: "top"});
-                var leftContentSQL = APP.instanceForID("sql_queries_LeftContent", ContentPane, {region: "left"});
-                var detailContentSQL = APP.instanceForID("sql_queries_DetailContent", ContentPane, {region: "center"});
-                var rightContentSQL = APP.instanceForID("sql_queries_RightContent", ContentPane, {
+                var borderContainer = APP.instanceForID("repsPagesConfig_PageContent", BorderContainer, {});
+                var topContentSQL = APP.instanceForID("repsPagesConfig_TopContent", ContentPane, {region: "top"});
+                var leftContentSQL = APP.instanceForID("repsPagesConfig_LeftContent", ContentPane, {region: "left"});
+                var detailContentSQL = APP.instanceForID("repsPagesConfig_DetailContent", ContentPane, {region: "center"});
+                var rightContentSQL = APP.instanceForID("repsPagesConfig_RightContent", ContentPane, {
                     region: "right",
                     splitter: true
                 });
-                var displayFileContentSQL = document.getElementById("sql_display_content");
-                var displayFileContentJSON = document.getElementById("json_display_content");
-                var displayQueryResultSQl = document.getElementById("sql_display_result");
+                var displayFileContentSQL = document.getElementById("sqlDisplayContent");
+                var displayFileContentJSON = document.getElementById("jsonDisplayContent");
+                var displayQueryResultSQl = document.getElementById("sqlDisplayResult");
 
                 detailContentSQL.addButtonTo = function (parent, htmlId, fileName) {
                     var button = APP.childFor(parent, htmlId, Button, {filename: fileName, label: htmlId});
@@ -81,28 +81,28 @@
                     button.domNode.firstChild.setAttribute("style", "width:170px;");
                 };
 
-                var reportsListBtn = APP.childFor(leftContentSQL, "pages_list", Button, {label: "pages_list"});
-                reportsListBtn.domNode.firstChild.setAttribute("style", "width:170px;");
-                reportsListBtn.startup();
-                reportsListBtn.onClick = function () {
+                var pagesConfigBtn = APP.childFor(leftContentSQL, "pagesConfig", Button, {label: "pagesConfig"});
+                pagesConfigBtn.domNode.firstChild.setAttribute("style", "width:170px;");
+                pagesConfigBtn.startup();
+                pagesConfigBtn.onClick = function () {
                     displayFileContentSQL.value ="" ;
                     displayFileContentJSON.value ="" ;
                     var childrenList=leftContentSQL.getChildren();
                     if (childrenList.length > 1) {
                         for(var i in childrenList){
-                            if(childrenList[i].id!=="pages_list"){
+                            if(childrenList[i].id!=="pagesConfig"){
                                 childrenList[i].destroy(false);
                             }
                         }
                     }
 
-                    var paramsList=document.getElementById('sql_params_table');
+                    var paramsList=document.getElementById('sqlParamsTable');
                     while (paramsList.firstChild) {
                         paramsList.removeChild(paramsList.firstChild);
                     }
-                    Request.getJSONData({url: "/sysadmin/sql_queries/get_reports_list"},
+                    Request.getJSONData({url: "/sysadmin/repsPagesConfig/getReportsConfig"},
                         function (result) {
-                            document.getElementById("filename").innerHTML = "pages_list";
+                            document.getElementById("filename").innerHTML = "pagesConfig";
                             displayFileContentJSON.value = result.fileContent;
                             var items=result.items;
                             for (var i in items) {
@@ -113,8 +113,8 @@
                             }
                         });
                 };
-                var btnRunSQL = APP.instanceForID("sql_runBtn", Button, {});
-                var btnSaveSQl = APP.instanceForID("sql_saveBtn", Button, {});
+                var btnRunSQL = APP.instanceForID("sqlRunBtn", Button, {});
+                var btnSaveSQl = APP.instanceForID("sqlSaveBtn", Button, {});
                 var sql_params = document.getElementById("sql_params");
                 borderContainer.startup();
                 var confirmDialog = new ConfirmDialog({content: "Сохранить изменеия в файл?"});
@@ -123,7 +123,7 @@
                 detailContentSQL.showRequestSqlText = function (filename) {
                     displayFileContentSQL.value ="" ;
                     displayFileContentJSON.value ="" ;
-                    Request.getJSONData({url: "/sysadmin/sql_queries/get_script", condition: "filename=" + filename},
+                    Request.getJSONData({url: "/sysadmin/repsPagesConfig/getReportConfig", condition: "filename=" + filename},
                         function (data) {
                             if(data.sqlText) displayFileContentSQL.value = data.sqlText;
                             if(data.jsonText)displayFileContentJSON.value = data.jsonText;
@@ -168,7 +168,7 @@
                     inputParamsList = [];
                     tr = document.createElement('tr');
                     tr.setAttribute("id", "sql_params_tr");
-                    document.getElementById("sql_params_table").appendChild(tr);
+                    document.getElementById("sqlParamsTable").appendChild(tr);
                     for (var i = 0; i < paramNamesMap.length; i++) {
                         td = document.createElement('td');
                         tr.appendChild(td);
@@ -186,8 +186,8 @@
                     }
                 };
                 topContentSQL.setParamsDefaultValues = function () {
-                    var bdate = document.getElementById("BDATE");
-                    var edate = document.getElementById("EDATE");
+                    var bdate = document.getElementById("BDATE"),
+                            edate = document.getElementById("EDATE");
                     var stocksList = document.getElementById("StocksList");
                     if (bdate) {
                         var BeginDate = moment().startOf('month').format('YYYY-MM-DD');
@@ -200,10 +200,7 @@
                     if (stocksList) stocksList.setAttribute("value", "1");
                 };
                 btnRunSQL.onClick = function () {
-                    var bdate = "0";
-                    var edate = "0";
-                    var stocksList = "0";
-                    var newQueryText = document.getElementById("sql_display_content").value;
+                    var newQueryText = document.getElementById("sqlDisplayContent").value;
                     displayQueryResultSQl.innerHTML = "";
                     var condition = "";
                     for (var i = 0; i < inputParamsList.length; i++) {
@@ -212,21 +209,21 @@
                         condition += input.id + "=" + input.value;
 
                     }
-                    Request.postJSONData({url: "/sysadmin/sql_queries/get_result_to_request", condition: condition, data: {text: newQueryText}},
+                    Request.postJSONData({url: "/sysadmin/repsPagesConfig/get_result_to_request", condition: condition, data: {text: newQueryText}},
                         function (data) {
                             displayQueryResultSQl.innerHTML = JSON.stringify(data.result);
                         });
                 };
                 btnSaveSQl.onClick = function () {
-                    var savedInfo = document.getElementById("saved_files_info");
+                    var savedInfo = document.getElementById("savedFilesInfo");
                     savedInfo.innerHTML="";
-                    var newQueryText = document.getElementById("sql_display_content").value;
-                    var newJSONText = document.getElementById("json_display_content").value;
+                    var newQueryText = document.getElementById("sqlDisplayContent").value;
+                    var newJSONText = document.getElementById("jsonDisplayContent").value;
                     confirmDialog.show();
                     confirmDialog.onExecute = function () {
                         confirmDialog.hide();
                         var filename = document.getElementById("filename").innerText;
-                        Request.postJSONData({url: "/sysadmin/sql_queries/save_sql_file", condition: "filename=" + filename, data: {textSQL: newQueryText, textJSON:newJSONText}},
+                        Request.postJSONData({url: "/sysadmin/repsPagesConfig/saveReportConfig", condition: "filename=" + filename, data: {textSQL: newQueryText, textJSON:newJSONText}},
                             function (data) {
                                 var nowSrt=moment().format('DD.MM.YYYY HH:mm:ss') +" ";
                                 var ReportIDstr= "<b> ReportID: </b>"+ filename+" ";
@@ -259,7 +256,7 @@
                     borderContainer.dialog.addChild(borderContainer.btn);
                     borderContainer.dialog.show();
                 };
-                reportsListBtn.onClick();
+                pagesConfigBtn.onClick();
             });
 </script>
 </html>

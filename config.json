@@ -1,8 +1,6 @@
 {
   "sysAdmins":[
     { "login":"dmkits","pswrd":"56123"},
-    { "login":"Яна", "pswrd":"123" },
-    { "login":"Катя","pswrd":"123"},
-    { "login":"Вася","pswrd":"123"}
+    { "login":"Яна", "pswrd":"123" }
   ]
 }

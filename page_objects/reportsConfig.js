@@ -15,22 +15,22 @@ module.exports = {
     commands:[reportsConfigParams],
     elements: {
         topFileName: "#filename",
-        topRunBtn: "#sql_runBtn",
-        topSaveBtn: "#sql_saveBtn",
-        topParams:"#sql_params_table",
+        topRunBtn: "#sqlRunBtn",
+        topSaveBtn: "#sqlSaveBtn",
+        topParams:"#sqlParamsTable",
         topBdateLabel:'label[for="BDATE"]',
         topEdateLabel:'label[for="EDATE"]',
         topBdateInput:'input[id="BDATE"]',
         topEdateInput:'input[id="EDATE"]',
-        topSavedFilesInfo:'#saved_files_info',
+        topSavedFilesInfo:'#savedFilesInfo',
 
         leftBtnList:"#reports_list",
         leftBtnPcats:"#sales_by_pcats",
         leftBtnProds:"#sales_by_prods",
         leftBtnDays:"#sales_by_days",
 
-        JSONContent:"#json_display_content",
-        SQLContent:"#sql_display_content",
+        JSONContent:"#jsonDisplayContent",
+        SQLContent:"#sqlDisplayContent",
 
         queryResultContent:"#sql_queries_RightContent",
 

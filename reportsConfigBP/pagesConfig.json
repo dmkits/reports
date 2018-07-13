@@ -1,0 +1,19 @@
+{
+   "pages":[
+       { "id":"pageImpData", "title":"Данные импорта из 1С", "type":"simpleReport",
+           "buttons":[
+               { "id": "impDataDirs",    "name": "Справочники" },
+               { "id": "impDataDiscsGrs",    "name": "Ценовые группы" },
+               { "id": "impDataDiscs",    "name": "Акции" },
+               {},
+               { "id": "prodsDiscs",    "name": "Акции" }
+           ]
+       }
+   ], 
+   "rolesCodes":{
+       "0":{"pageImpData":true},
+       "1":{"pageImpData":true},
+       "2":{"pageImpData":true},
+       "sysadmin":[/*all reports are avaliable. Autorun - first page in pages*/]
+   }
+}
