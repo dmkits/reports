@@ -13,7 +13,7 @@
   ],
   "selectedRowInfo":{
     "sql":"select * from iz_DataImportValues where CHID=@CHID order by DataName",
-    "sqlParamFieldName":"CHID"
+    "sqlParamFieldName":"CHID", "resultType":"items"
   },
   "totals":[
     {"type":"rowCount", "label":"ИТОГО строк:"}

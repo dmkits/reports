@@ -61,17 +61,19 @@
                                     TDocumentSimpleTable, {titleText:instance.label, dataURL:reportBaseURL+'/getReportDataByReportName/'+instance.id,
                                             rightPane:{ width:350 }});
                             Request.getJSONData({url:reportBaseURL+'/getReportConfigByReportName/'+instance.id}, function(result){
-                                if(result.headers){
-                                    for (var i = 0; i < result.headers.length; i++) {
-                                        var headerConditionInstance = result.headers[i];
-                                        if(headerConditionInstance.type=="selectBox")
-                                            button.document.addSelectBox(headerConditionInstance.label,headerConditionInstance.params);
-                                        if(headerConditionInstance.type=="dateBox")
-                                            button.document.addHeaderDateBox(headerConditionInstance.label,headerConditionInstance.params)
+                                var reportConfigHeaders=result.headers, reportConfigTotals=result.totals,
+                                        reportConfigSelectedRowInfo=result.selectedRowInfo;
+                                if(reportConfigHeaders){
+                                    for (var i = 0; i < reportConfigHeaders.length; i++) {
+                                        var reportConfigHeaderData = reportConfigHeaders[i];
+                                        if(reportConfigHeaderData.type=="selectBox")
+                                            button.document.addSelectBox(reportConfigHeaderData.label,reportConfigHeaderData.params);
+                                        if(reportConfigHeaderData.type=="dateBox")
+                                            button.document.addHeaderDateBox(reportConfigHeaderData.label,reportConfigHeaderData.params)
                                     }
                                 }
-                                if(result.selectedRowInfo){
-                                    if(!result.selectedRowInfo.sqlParamFieldName) return;
+                                if(reportConfigSelectedRowInfo){
+                                    if(!reportConfigSelectedRowInfo.sqlParamFieldName) return;
                                     button.document.addToolPane({title:"Detail info",
                                         contentTableAction:function(params){
                                             if(!params.contentTableSelectedRow){
@@ -79,30 +81,37 @@
                                                 return;
                                             }
                                             var condition={};
-                                            condition[result.selectedRowInfo.sqlParamFieldName]=
-                                                    params.contentTableSelectedRow[result.selectedRowInfo.sqlParamFieldName];
+                                            condition[reportConfigSelectedRowInfo.sqlParamFieldName]=
+                                                    params.contentTableSelectedRow[reportConfigSelectedRowInfo.sqlParamFieldName];
+                                            if(!reportConfigSelectedRowInfo.resultType) reportConfigSelectedRowInfo.resultType="item";
                                             Request.getJSONData({url:reportBaseURL+"/getReportRowDataByReportName/"+instance.id,
-                                                        condition:condition, resultItemName:"items"},
+                                                        condition:condition, resultItemName:reportConfigSelectedRowInfo.resultType},
                                                     function(resultItems){
                                                         if(!resultItems)return;
                                                         var innerCont="";
-                                                        for (var i = 0; i < resultItems.length; i++) {
-                                                            var elem = resultItems[i];
-                                                            innerCont+="<b>"+elem["DataName"]+"</b>: "+elem["DataVal"]+"<br>";
+                                                        if(reportConfigSelectedRowInfo.resultType=="items"){
+                                                            for (var i = 0; i < resultItems.length; i++) {
+                                                                var resultItem = resultItems[i];
+                                                                innerCont+="<b>"+resultItem["DataName"]+"</b>: "+resultItem["DataVal"]+"<br>";
+                                                            }
+                                                        } else {
+                                                            for(var itemName in resultItems){
+                                                                innerCont+="<b>"+itemName+"</b>: "+resultItems[itemName]+"<br>";
+                                                            }
                                                         }
                                                         params.thisToolPane.set("content",innerCont);
                                                     });
                                         }
                                     })
                                 }
-                                if(result.totals){
-                                    for(var k = 0; k < result.totals.length; k++){
-                                        var totalsItem=result.totals[k];
-                                        if(totalsItem.type=="rowCount"){
-                                            button.document.addTotalCountNumberBox(totalsItem.label, 140, {style:"font-weight:bold;",inputWidth:totalsItem.inputWidth/*inputStyle:"width:40px;"*/})
-                                        }else if(totalsItem.type=="sum"){
-                                            button.document.addTotalSumNumberTextBox(totalsItem.label,totalsItem.width, totalsItem.dataField,
-                                                {pattern:totalsItem.format,style:"font-weight:bold;", inputWidth:totalsItem.inputWidth})
+                                if(reportConfigTotals){
+                                    for(var k = 0; k < reportConfigTotals.length; k++){
+                                        var reportConfigTotalData=reportConfigTotals[k];
+                                        if(reportConfigTotalData.type=="rowCount"){
+                                            button.document.addTotalCountNumberBox(reportConfigTotalData.label, 140, {style:"font-weight:bold;",inputWidth:reportConfigTotalData.inputWidth/*inputStyle:"width:40px;"*/})
+                                        }else if(reportConfigTotalData.type=="sum"){
+                                            button.document.addTotalSumNumberTextBox(reportConfigTotalData.label,reportConfigTotalData.width, reportConfigTotalData.dataField,
+                                                {pattern:reportConfigTotalData.format,style:"font-weight:bold;", inputWidth:reportConfigTotalData.inputWidth})
                                         }
                                     }
                                 }

@@ -22,8 +22,8 @@
     "columnKeyFieldName":"DPDID", "columnNameFieldName":"DPDName", "dataFieldName":"DPDDiscount"
   },
   "selectedRowInfo":{
-    "sql":"select * from r_Prods where ProdID=@ProdID",
-    "sqlParamFieldName":"ProdID"
+    "sql":"select p.ProdID,p.ProdName,p.UM,p.InRems,p.Notes,p.Article1,p.Article2,p.Article3,p.Note3,p.PGrID3,pg3.PGrName3 from r_Prods p,r_ProdG3 pg3 where pg3.PGrId3=p.PGrID3 and p.ProdID=@ProdID",
+    "sqlParamFieldName":"ProdID", "resultType":"item"
   },
   "totals":[
     {"type":"rowCount", "label":"ИТОГО строк:"}

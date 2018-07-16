@@ -143,7 +143,8 @@ module.exports= function(app) {                        //    /type/repId/action/
                         res.send(outData);
                         return;
                     }
-                    outData.items=recordset;
+                    if(pureJSONTxt.selectedRowInfo.resultType=="items") outData.items=recordset;
+                    else if(recordset[0]) outData.item=recordset[0];
                     res.send(outData);
                 });
             return;
