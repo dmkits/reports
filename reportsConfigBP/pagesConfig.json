@@ -2,9 +2,9 @@
    "pages":[
        { "id":"pageImpData", "title":"Данные импорта из 1С", "type":"simpleReport",
            "buttons":[
-               { "id": "impDataDirs",    "name": "Справочники" },
-               { "id": "impDataDiscsGrs",    "name": "Ценовые группы" },
-               { "id": "impDataDiscs",    "name": "Акции" },
+               { "id": "impDataDirs",    "name": "Импорт справочников" },
+               { "id": "impDataDiscsGrs",    "name": "Импорт ценовых групп" },
+               { "id": "impDataDiscs",    "name": "Импорт акций" },
                {},
                { "id": "prodsDiscs",    "name": "Акции" }
            ]

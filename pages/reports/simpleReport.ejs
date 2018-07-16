@@ -5,64 +5,62 @@
     <title></title>
 </head>
 <body>
-<div id="reports_retail_PageContainer" style="width:100%;height:100%;">
-    <div id="reports_retail_ContentPaneLeft" style="width:177px;height:100%; margin:0;padding:0;">
+<div id="simpleReport_PageContainer" style="width:100%;height:100%;">
+    <div id="simpleReport_ContentPaneLeft" style="width:177px;height:100%; margin:0;padding:0;">
         <table>
             <tr><th>Отчеты</th></tr>
-            <tr><td id="reports_button_list"></td></tr>
+            <tr><td id="simpleReport_buttonList"></td></tr>
         </table>
     </div>
-    <div id="reports_retail_ContentPaneDetailContainer" style="width:100%;height:100%; margin:0;padding:0;"></div>
+    <div id="simpleReport_ContentPaneDetailContainer" style="width:100%;height:100%; margin:0;padding:0;"></div>
 </div>
 </body>
 <script type="text/javascript">
     require(["dojo.app/app", "dojo/dom-style", "dijit/layout/BorderContainer", "dijit/layout/StackContainer", "dijit/layout/ContentPane",
                 "dijit/form/Button", "dojo.app/tDocumentSimpleTable","dojo.app/request"],
             function (APP, domStyle, BorderContainer, StackContainer, ContentPane, Button, TDocumentSimpleTable, Request) {
-                var reports_retail_PageContainer=
-                        APP.instanceForID("reports_retail_PageContainer", BorderContainer, {});
-                APP.instanceForID("reports_retail_ContentPaneLeft", ContentPane, {region:'left', splitter:true});
-
-                var reports_retail_ContentPaneDetailContainer=
-                        APP.instanceForID("reports_retail_ContentPaneDetailContainer", StackContainer, {region:'center'});
-
-                var  reports_button_list=document.getElementById("reports_button_list");
+                var pageContainer= APP.instanceForID("simpleReport_PageContainer", BorderContainer, {});
+                APP.instanceForID("simpleReport_ContentPaneLeft", ContentPane, {region:'left', splitter:true});
+                var detailContainer= APP.instanceForID("simpleReport_ContentPaneDetailContainer", StackContainer, {region:'center'});
+                var buttonList=document.getElementById("simpleReport_buttonList");
                 var firstButton;
-                var reportId="<%-baseReportUrl%>";
-                reports_retail_PageContainer.createReportButtons=function(){
-                    Request.getJSONData({url: "/simpleReport/"+reportId+"/getReportsList",consoleLog: true},
-                            function (data) {       console.log("data=",data);
+                var pageID="<%-pageID%>";
+                pageContainer.createReportButtons=function(){
+                    Request.getJSONData({url: "/simpleReport/"+pageID+"/getReportsList",consoleLog: true},
+                            function (data) {
                                 if (data===undefined) {
-                                    reports_retail_ContentPaneDetailContainer.innerHTML = "<div><b style='color:red'>No connection!</b></div>";
+                                    detailContainer.innerHTML = "<div><b style='color:red'>No connection!</b></div>";
                                     return;
                                 }
                                 var items=data.items;
                                 if(items.length==0){
-                                    reports_button_list.innerHTML="<br><b style=\"color:red\">Нет доступных отчетов</b>"
+                                    buttonList.innerHTML="<br><b style=\"color:red\">Нет доступных отчетов</b>"
                                     return;
                                 }
                                 for (var i in items) {
                                     if(items[i]['id']==undefined){
                                         var div = document.createElement('div');
                                         div.innerHTML='<br>';
-                                        document.getElementById('reports_button_list').appendChild(div);
+                                        document.getElementById('simpleReport_buttonList').appendChild(div);
                                         continue;
                                     }
-                                    reports_retail_PageContainer.addButtonTo(reports_button_list, items[i].id, items[i].name);
+                                    pageContainer.addButtonTo(buttonList, items[i].id, items[i].name);
                                 }
                                firstButton.onClick();
                             });
                 };
 
-                reports_retail_PageContainer.addButtonTo = function (parent, id, name) {
+                pageContainer.addButtonTo = function (parent, id, name) {
                     var button = new Button({id:id, label:name});
                     button.onClick= function(){
                         var instance=this;
                         if (!button.document){
+                            var reportBaseURL='/simpleReport/'+pageID;
                             button.document =
-                                APP.childFor(reports_retail_ContentPaneDetailContainer, "reports_retail_Table"+instance.id,
-                                    TDocumentSimpleTable, {titleText:instance.label, dataURL:'/simpleReport/'+reportId+'/getReportDataByReportName/'+instance.id});
-                            Request.getJSONData({url:'/simpleReport/'+reportId+'/getReportConfigByReportName/'+instance.id}, function(result){
+                                APP.childFor(detailContainer, "simpleReport_Table"+instance.id,
+                                    TDocumentSimpleTable, {titleText:instance.label, dataURL:reportBaseURL+'/getReportDataByReportName/'+instance.id,
+                                            rightPane:{ width:350 }});
+                            Request.getJSONData({url:reportBaseURL+'/getReportConfigByReportName/'+instance.id}, function(result){
                                 if(result.headers){
                                     for (var i = 0; i < result.headers.length; i++) {
                                         var headerConditionInstance = result.headers[i];
@@ -71,6 +69,31 @@
                                         if(headerConditionInstance.type=="dateBox")
                                             button.document.addHeaderDateBox(headerConditionInstance.label,headerConditionInstance.params)
                                     }
+                                }
+                                if(result.selectedRowInfo){
+                                    if(!result.selectedRowInfo.sqlParamFieldName) return;
+                                    button.document.addToolPane({title:"Detail info",
+                                        contentTableAction:function(params){
+                                            if(!params.contentTableSelectedRow){
+                                                params.thisToolPane.set("content","");
+                                                return;
+                                            }
+                                            var condition={};
+                                            condition[result.selectedRowInfo.sqlParamFieldName]=
+                                                    params.contentTableSelectedRow[result.selectedRowInfo.sqlParamFieldName];
+                                            Request.getJSONData({url:reportBaseURL+"/getReportRowDataByReportName/"+instance.id,
+                                                        condition:condition, resultItemName:"items"},
+                                                    function(resultItems){
+                                                        if(!resultItems)return;
+                                                        var innerCont="";
+                                                        for (var i = 0; i < resultItems.length; i++) {
+                                                            var elem = resultItems[i];
+                                                            innerCont+="<b>"+elem["DataName"]+"</b>: "+elem["DataVal"]+"<br>";
+                                                        }
+                                                        params.thisToolPane.set("content",innerCont);
+                                                    });
+                                        }
+                                    })
                                 }
                                 if(result.totals){
                                     for(var k = 0; k < result.totals.length; k++){
@@ -86,15 +109,15 @@
                                 button.document.startUp();
                             });
                         }
-                        reports_retail_ContentPaneDetailContainer.selectChild(button.document);
+                        detailContainer.selectChild(button.document);
                     };
                     button.domNode.firstChild.setAttribute("style", "width:160px;");
                     button.startup();
-                    reports_button_list.appendChild(button.domNode);
+                    buttonList.appendChild(button.domNode);
                     if(!firstButton)firstButton=button;
                 };
-                reports_retail_PageContainer.createReportButtons();
-                reports_retail_PageContainer.layout();
+                pageContainer.createReportButtons();
+                pageContainer.layout();
         });
 </script>
 </html>

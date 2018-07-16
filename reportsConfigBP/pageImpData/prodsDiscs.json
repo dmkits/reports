@@ -1,0 +1,28 @@
+{
+  "headers":[
+    {"type":"dateBox", "label":"date", "params":{"contentTableCondition":"CDATE" }}
+  ],
+  "columns":[
+    { "data": "ProdID", "name": "ProdID", "type": "numeric", "language": "ru-RU", "width": 65, "align":"right" },
+    { "data": "ProdName", "name": "ProdName", "type": "text", "width": 300 },
+    { "data": "UM", "name": "UM", "type": "text", "width": 50, "align":"center" },
+    { "data": "Article1", "name": "Article1", "type": "text", "width": 100, "align":"center" },
+/*    { "data": "Notes", "name": "Notes", "type": "text", "width": 310 }, */
+    { "data": "UID", "name": "UID", "type": "text", "width": 120, "align":"center" },
+    { "data": "BarCode", "name": "BarCode", "type": "text", "width": 100, "align":"center" },
+    { "data": "BCUM", "name": "BCUM", "type": "text", "width": 50, "align":"center" },
+    { "data": "PriceMC", "name": "Price", "type": "numeric", "width": 50, "align":"right" },
+    { "data": "PriceMC1", "name": "Price 1", "type": "numeric", "width": 50, "align":"right" },
+    { "data": "DiscName", "name": "DiscName", "type": "text", "width": 100, "align":"center" },
+    { "data": "DPDDocID", "name": "DPD DocID", "type": "text", "width": 50, "align":"center" },
+    { "data": "DPDDiscount", "name": "DPD Discount", "type": "text", "width": 50, "align":"center" },
+    { "data": "DPDParamL", "name": "DPD ParamL", "type": "text", "width": 50, "align":"center" }
+  ],
+  "selectedRowInfo":{
+    "sql":"select * from r_Prods where ProdID=@ProdID",
+    "sqlParamFieldName":"ProdID"
+  },
+  "totals":[
+    {"type":"rowCount", "label":"ИТОГО строк:"}
+  ]
+}

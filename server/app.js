@@ -149,7 +149,7 @@ app.post("/", function(req, res){                                               
     res.send(outData);
 });
 
-app.get("/get_main_data", function(req, res){                                                        log.info("app.get /get_main_data");
+app.get("/getMainData", function(req, res){                                                        log.info("app.get /getMainData");
     var outData = {};//main data
     var menuBar= [];//menu bar list
     outData.title= "REPORTS";

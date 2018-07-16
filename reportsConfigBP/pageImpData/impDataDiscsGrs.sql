@@ -1,1 +1,1 @@
-   select * from iz_DataImport where dbo.zf_GetDate(CreateDate) = @CDATE and ObjName='DocDiscountsGroupsDTL'
+   select * from iz_DataImport where CreateDate between convert(datetime, @CDATE+' 00:00:00') and convert(datetime, @CDATE+' 23:59:59') and ObjName='DocDiscountsGroupsDTL'

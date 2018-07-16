@@ -7,12 +7,18 @@ require('ejs');
 
 module.exports= function(app) {                        //    /type/repId/action/repName
     app.get("/simpleReport/*", function(req, res){
-        var paramsArray=req.params[0].split('/');
+        var paramsArray=req.params[0].split('/'), pageID;
+        if(paramsArray.length>0) pageID=paramsArray[0];
         if(paramsArray.length==1){
-            res.render(path.join(__dirname, '../pages/reports', 'simpleReport.ejs'),{baseReportUrl:paramsArray[0]});
+            res.render(path.join(__dirname, '../pages/reports', 'simpleReport.ejs'),{pageID:pageID});
             return;
         }
-        if(paramsArray[1]=="getReportsList"){
+        if(paramsArray<2){
+            res.send({error:"Unknown request!"});
+            return;
+        }
+        var action=paramsArray[1];
+        if(action=="getReportsList"){
             var outData={};
             var configDirectoryName=common.getConfigDirectoryName();
             var pagesConfig;
@@ -35,13 +41,16 @@ module.exports= function(app) {                        //    /type/repId/action/
             res.send(outData);
             return;
         }
-        if(paramsArray[1]=="getReportConfigByReportName"){
+        if(paramsArray<3){
+            res.send({error:"Unknown request!"});
+            return;
+        }
+        var reportID=paramsArray[2];
+        if(action=="getReportConfigByReportName"){
             var configDirectoryName=common.getConfigDirectoryName();
-            var reportFolderName=paramsArray[0];
-            var filename = paramsArray[2];
             var outData={};
             try{
-                var fileContentString=fs.readFileSync(path.join(__dirname,'../'+configDirectoryName+'/'+reportFolderName+'/'+filename+'.json'), 'utf8');
+                var fileContentString=fs.readFileSync(path.join(__dirname,'../'+configDirectoryName+'/'+pageID+'/'+reportID+'.json'), 'utf8');
             }catch(e){
                 outData.error="Не удалось получить метаданные для отчета";
                 logger.error(JSON.stringify(e));
@@ -50,16 +59,15 @@ module.exports= function(app) {                        //    /type/repId/action/
             }
             var pureJSONTxt=JSON.parse(common.getJSONWithoutComments(fileContentString));
             outData.headers=pureJSONTxt.headers;
+            outData.selectedRowInfo=pureJSONTxt.selectedRowInfo;
             outData.totals=pureJSONTxt.totals;
             res.send(outData);
-        }
-        if(paramsArray[1]=="getReportDataByReportName"){
+            return;
+        } else if(action=="getReportDataByReportName"){
             var outData={};
             var configDirectoryName=common.getConfigDirectoryName();
-            var reportFolderName=paramsArray[0];
-            var filename = paramsArray[2];
             try{
-                var fileContentString=fs.readFileSync(path.join(__dirname,'../'+configDirectoryName+'/'+reportFolderName+'/'+filename+'.json'),'utf8');
+                var fileContentString=fs.readFileSync(path.join(__dirname,'../'+configDirectoryName+'/'+pageID+'/'+reportID+'.json'),'utf8');
             }catch(e){
                 outData.error= "Не удалось получить данные для отчета";
                 logger.error(JSON.stringify(e));
@@ -80,7 +88,7 @@ module.exports= function(app) {                        //    /type/repId/action/
             var conditions=req.query;
             var doConvertReport=false;
             if(conditions["Stock"]&&conditions["Stock"].indexOf(",">=0))doConvertReport=true;
-            var queryStr = fs.readFileSync('./' + configDirectoryName + '/'+reportFolderName+'/' + filename+'.sql', 'utf8');
+            var queryStr = fs.readFileSync('./' + configDirectoryName + '/'+pageID+'/' + reportID+'.sql', 'utf8');
             database.selectParamsMSSQLQuery(queryStr,conditions,
                 function (error,recordset) {
                     if (error){
@@ -94,7 +102,48 @@ module.exports= function(app) {                        //    /type/repId/action/
                         convertReport({outData:outData, rowToColumnFieldName:"StockName", rowToColumnKeyField:"StockID", columnDataFieldName:"Qty"});
                     res.send(outData);
                 });
+            return;
+        } else if(action=="getReportRowDataByReportName"){
+            var outData={};
+            var configDirectoryName=common.getConfigDirectoryName();
+            try{
+                var fileContentString=fs.readFileSync(path.join(__dirname,'../'+configDirectoryName+'/'+pageID+'/'+reportID+'.json'),'utf8');
+            }catch(e){
+                outData.error= "Не удалось получить данные для отчета";
+                logger.error(JSON.stringify(e));
+                res.send(outData);
+                return;
+            }
+            var pureJSONTxt=JSON.parse(common.getJSONWithoutComments(fileContentString));
+            if(!pureJSONTxt.selectedRowInfo||!pureJSONTxt.selectedRowInfo.sql||!pureJSONTxt.selectedRowInfo.sqlParamFieldName){
+                res.send(outData);
+                return;
+            }
+            var noConditions=true;
+            for (var condition in req.query) {
+                noConditions=false;
+                break;
+            }
+            if(noConditions){
+                res.send(outData);
+                return;
+            }
+            var conditions=req.query;
+
+            database.selectParamsMSSQLQuery(pureJSONTxt.selectedRowInfo.sql,conditions,
+                function (error,recordset) {
+                    if (error){
+                        outData.error=error.message;
+                        logger.error(error.message);
+                        res.send(outData);
+                        return;
+                    }
+                    outData.items=recordset;
+                    res.send(outData);
+                });
+            return;
         }
+        res.send({error:"Unknown request!"});
     });
 
     /**

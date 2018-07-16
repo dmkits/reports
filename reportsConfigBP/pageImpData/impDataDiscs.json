@@ -6,11 +6,16 @@
     { "data": "CHID", "name": "CHID", "type": "numeric", "language": "ru-RU", "width": 70, "align":"right" },
     { "data":"CreateDate", "name":"CreateDate", "width":70, "type":"text", "datetimeFormat":"DD.MM.YYYY", "align":"center" },
     { "data":"LastUpdateDate", "name":"LastUpdateDate", "width":70, "type":"text", "datetimeFormat":"DD.MM.YYYY", "align":"center" },
-    { "data": "ObjName", "name": "ObjName", "type": "text", "width": 200 },
-    { "data":"State", "name":"State", "width":70, "type":"numeric", "language":"ru-RU", "align":"center" },
+    { "data": "ObjName", "name": "ObjName", "type": "text", "width": 100 },
+    { "data":"State", "name":"State", "width":50, "type":"text", "align":"center" },
     { "data":"AppliedDate", "name":"AppliedDate", "width":70, "type":"text", "datetimeFormat":"DD.MM.YYYY", "align":"center" },
-    { "data": "Msg", "name": "Msg", "type": "text", "width": 500 }
+    { "data": "Msg", "name": "Msg", "type": "text", "width": 500 },
+    { "data": "NameAkc", "name": "NameAkc", "type": "text", "width": 150 }
   ],
+  "selectedRowInfo":{
+    "sql":"select * from iz_DataImportValues where CHID=@CHID order by DataName",
+    "sqlParamFieldName":"CHID"
+  },
   "totals":[
     {"type":"rowCount", "label":"ИТОГО строк:"}
   ]
