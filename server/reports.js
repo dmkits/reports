@@ -87,7 +87,8 @@ module.exports= function(app) {                        //    /type/repId/action/
             }
             var conditions=req.query;
             var doConvertReport=false;
-            if(conditions["Stock"]&&conditions["Stock"].indexOf(",">=0))doConvertReport=true;
+            if(conditions["Stock"]&&conditions["Stock"].indexOf(",">=0))doConvertReport=true;//!!!FOR 3510!!!
+            var groupRowsConfig=pureJSONTxt.groupRows;
             var queryStr = fs.readFileSync('./' + configDirectoryName + '/'+pageID+'/' + reportID+'.sql', 'utf8');
             database.selectParamsMSSQLQuery(queryStr,conditions,
                 function (error,recordset) {
@@ -98,8 +99,12 @@ module.exports= function(app) {                        //    /type/repId/action/
                         return;
                     }
                     outData.items=recordset;
-                    if(doConvertReport)
-                        convertReport({outData:outData, rowToColumnFieldName:"StockName", rowToColumnKeyField:"StockID", columnDataFieldName:"Qty"});
+                    if(doConvertReport||groupRowsConfig)
+                        convertReport({outData:outData,
+                            rowToColumnKeyField:groupRowsConfig.columnKeyFieldName,
+                            rowToColumnFieldName:groupRowsConfig.columnNameFieldName,
+                            columnDataFieldName:groupRowsConfig.dataFieldName});
+                        //convertReport({outData:outData, rowToColumnFieldName:"StockName", rowToColumnKeyField:"StockID", columnDataFieldName:"Qty"});
                     res.send(outData);
                 });
             return;
@@ -147,7 +152,7 @@ module.exports= function(app) {                        //    /type/repId/action/
     });
 
     /**
-     * params: { outData, rowToColumnFieldName, rowToColumnKeyField, columnDataFieldName }
+     * params: { outData, rowToColumnFieldName, rowToColumnKeyField, columnDataFieldName, exludeNULLs }
      */
     function convertReport(params){
         var repData= params.outData.items, repColumns= params.outData.columns;
@@ -163,46 +168,43 @@ module.exports= function(app) {                        //    /type/repId/action/
 
         for (var row = 0; row < repData.length; row++) {
             var rowData = repData[row];
-
-            if(rowData[params.rowToColumnFieldName]&&rowData[params.columnDataFieldName]!=undefined){
-                var newRowData={}, newRowDataKeyValue="";
-                for (var rdKey in rowData) {
-                    if(rdKey==params.rowToColumnFieldName||rdKey==params.rowToColumnKeyField||rdKey==params.columnDataFieldName) continue;
-                    var rowDataValue=rowData[rdKey]
-                    newRowData[rdKey]= rowDataValue;
-                    newRowDataKeyValue+=rowDataValue;
-                }
-
-                if(newRepDataRows[newRowDataKeyValue]) newRowData=newRepDataRows[newRowDataKeyValue];
-
-                var dynamicColumnKeyValue= rowData[params.rowToColumnKeyField];
-                var newDynamicColumnName=params.columnDataFieldName+"_"+dynamicColumnKeyValue;
-
-                if(!newRepDataRows[newRowDataKeyValue]) {
-                    // newRowData[newDynamicColumnName]=rowData[params.columnDataFieldName];
-                    newRepData.push(newRowData);
-                    newRepDataRows[newRowDataKeyValue]=newRowData;
-                } else {
-                    newRowData=newRepDataRows[newRowDataKeyValue];
-                    // newRowData[newDynamicColumnName]=rowData[params.columnDataFieldName];
-                }
-                newRowData[newDynamicColumnName]=rowData[params.columnDataFieldName];
-                if(dynamicColumnData.necessary) {
-                    if(newRowData[params.columnDataFieldName]==undefined) newRowData[params.columnDataFieldName]=0;
-                    newRowData[params.columnDataFieldName]+=rowData[params.columnDataFieldName];
-                }
-
-                if(!dynamicRepColumns[newDynamicColumnName]){
-                    var newDynamicColumnNameValue=dynamicColumnData.name+" "+rowData[params.rowToColumnFieldName];
-                    var newDynamicColumnData={};
-                    for (var cKey in colData) newDynamicColumnData[cKey]=dynamicColumnData[cKey];
-                    newDynamicColumnData.data=newDynamicColumnName;
-                    newDynamicColumnData.name=newDynamicColumnNameValue;
-                    newRepColumns.push(newDynamicColumnData);
-                    dynamicRepColumns[newDynamicColumnName]= true;
-                }
+            if(params.exludeNULLs&&(!rowData[params.rowToColumnFieldName]||rowData[params.columnDataFieldName]==undefined)) continue;
+            var newRowData={}, newRowDataKeyValue="";
+            for (var rdKey in rowData) {
+                if(rdKey==params.rowToColumnFieldName||rdKey==params.rowToColumnKeyField||rdKey==params.columnDataFieldName) continue;
+                var rowDataValue=rowData[rdKey]
+                newRowData[rdKey]= rowDataValue;
+                newRowDataKeyValue+=rowDataValue;
             }
 
+            if(newRepDataRows[newRowDataKeyValue]) newRowData=newRepDataRows[newRowDataKeyValue];
+
+            var dynamicColumnKeyValue= rowData[params.rowToColumnKeyField];
+            var newDynamicColumnName=params.columnDataFieldName+"_"+dynamicColumnKeyValue;
+
+            if(!newRepDataRows[newRowDataKeyValue]) {
+                // newRowData[newDynamicColumnName]=rowData[params.columnDataFieldName];
+                newRepData.push(newRowData);
+                newRepDataRows[newRowDataKeyValue]=newRowData;
+            } else {
+                newRowData=newRepDataRows[newRowDataKeyValue];
+                // newRowData[newDynamicColumnName]=rowData[params.columnDataFieldName];
+            }
+            newRowData[newDynamicColumnName]=rowData[params.columnDataFieldName];
+            if(dynamicColumnData.necessary) {
+                if(newRowData[params.columnDataFieldName]===undefined) newRowData[params.columnDataFieldName]=0;
+                newRowData[params.columnDataFieldName]+=rowData[params.columnDataFieldName];
+            }
+
+            if(!dynamicRepColumns[newDynamicColumnName]&&rowData[params.rowToColumnFieldName]!==null){
+                var newDynamicColumnNameValue=dynamicColumnData.name+" "+rowData[params.rowToColumnFieldName];
+                var newDynamicColumnData={};
+                for (var cKey in colData) newDynamicColumnData[cKey]=dynamicColumnData[cKey];
+                newDynamicColumnData.data=newDynamicColumnName;
+                newDynamicColumnData.name=newDynamicColumnNameValue;
+                newRepColumns.push(newDynamicColumnData);
+                dynamicRepColumns[newDynamicColumnName]= true;
+            }
         }
         if(dynamicColumnData.necessary) {
             newRepColumns.push(dynamicColumnData);

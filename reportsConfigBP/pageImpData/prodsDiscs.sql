@@ -5,8 +5,10 @@ select --p.ChID,
 		--,p.InRems, p.IsDecQty,p.InStopList,p.CstProdCode,p.TaxTypeID
 		,pmq.BarCode,pmq.UM BCUM	--, pip.PPID, pip.ProdDate
 		, PriceMC=pmp1.PriceMC, /*pmp1.CurrID, pmp1.Notes,*/ PriceMC1=pmp2.PriceMC/*, pmp2.CurrID, pmp2.Notes*/
-		,dpd.DiscCode,dss.DiscName, dpd.DocID DPDDocID, dpd.Discount DPDDiscount, dpd.ParamL DPDParamL, dpd.PLID DPDPLID--, dpd3.BDate DPD3BDate, dpd3.EDate DPD3EDate
-		,convert(varchar(20),dpd.DiscCode)+'_'+ISNULL(convert(varchar(20),dpd.DocID),'_')+'_'+ISNULL(convert(varchar(20),dpd.PLID),'_') DPDID
+		--,dpd.DiscCode,dss.DiscName, dpd.DocID DPDDocID, dpd.Discount DPDDiscount, dpd.ParamL DPDParamL, dpd.PLID DPDPLID--, dpd3.BDate DPD3BDate, dpd3.EDate DPD3EDate
+		,ISNULL(convert(varchar(20),dpd.DiscCode),'_')+'_'+ISNULL(convert(varchar(20),dpd.DocID),'_')+'_'+ISNULL(convert(varchar(20),dpd.PLID),'_') DPDID
+                ,REPLACE(dss.DiscName,'_',' ')+' '+ISNULL(convert(varchar(20),dpd.DocID),'_')+' '+ISNULL(convert(varchar(20),dpd.PLID),'_') DPDName
+                ,dpd.Discount DPDDiscount
 		--,dpd.ChID
 	from r_Prods p
 	inner join r_ProdG3 pg3 on pg3.PGrID3=p.PGrID3	--select * from r_ProdG3

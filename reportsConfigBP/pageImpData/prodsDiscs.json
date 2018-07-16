@@ -13,11 +13,14 @@
     { "data": "BCUM", "name": "BCUM", "type": "text", "width": 50, "align":"center" },
     { "data": "PriceMC", "name": "Price", "type": "numeric", "width": 50, "align":"right" },
     { "data": "PriceMC1", "name": "Price 1", "type": "numeric", "width": 50, "align":"right" },
-    { "data": "DiscName", "name": "DiscName", "type": "text", "width": 100, "align":"center" },
-    { "data": "DPDDocID", "name": "DPD DocID", "type": "text", "width": 50, "align":"center" },
-    { "data": "DPDDiscount", "name": "DPD Discount", "type": "text", "width": 50, "align":"center" },
-    { "data": "DPDParamL", "name": "DPD ParamL", "type": "text", "width": 50, "align":"center" }
+/*    { "data": "DiscName", "name": "DiscName", "type": "text", "width": 100, "align":"center" },*/
+/*    { "data": "DPDDocID", "name": "DPD DocID", "type": "text", "width": 50, "align":"center" },*/
+    { "data": "DPDDiscount", "name": "DPD Discount", "type": "text", "width": 85, "align":"center" }
+/*    { "data": "DPDParamL", "name": "DPD ParamL", "type": "text", "width": 50, "align":"center" }*/
   ],
+  "groupRows":{
+    "columnKeyFieldName":"DPDID", "columnNameFieldName":"DPDName", "dataFieldName":"DPDDiscount"
+  },
   "selectedRowInfo":{
     "sql":"select * from r_Prods where ProdID=@ProdID",
     "sqlParamFieldName":"ProdID"
