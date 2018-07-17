@@ -16,7 +16,7 @@
     { "data": "PriceMC1", "name": "Price 1", "type": "numeric", "width": 50, "align":"right" },
 /*    { "data": "DiscName", "name": "DiscName", "type": "text", "width": 100, "align":"center" },*/
 /*    { "data": "DPDDocID", "name": "DPD DocID", "type": "text", "width": 50, "align":"center" },*/
-    { "data": "DPDDiscount", "name": "DPD Discount", "type": "text", "width": 85, "align":"center" }
+    { "data": "DPDDiscount", "name": "Disc", "type": "text", "width": 55, "align":"center" }
 /*    { "data": "DPDParamL", "name": "DPD ParamL", "type": "text", "width": 50, "align":"center" }*/
   ],
   "groupRows":{
