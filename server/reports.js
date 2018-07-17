@@ -32,11 +32,10 @@ module.exports= function(app) {                        //    /type/repId/action/
             }
             var pageId=paramsArray[0];
             var pages=pagesConfig.pages;
-                for(var i in pages){
-                    if(pages[i].id==pageId){
-                        outData.items=pages[i].buttons;
-                        break;
-                    }
+            for(var i in pages)
+                if(pages[i].id==pageId){
+                    outData.items=pages[i].buttons;
+                    break;
                 }
             res.send(outData);
             return;
@@ -134,7 +133,6 @@ module.exports= function(app) {                        //    /type/repId/action/
                 return;
             }
             var conditions=req.query;
-
             database.selectParamsMSSQLQuery(pureJSONTxt.selectedRowInfo.sql,conditions,
                 function (error,recordset) {
                     if (error){

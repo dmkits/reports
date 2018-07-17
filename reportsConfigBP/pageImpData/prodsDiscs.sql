@@ -18,7 +18,5 @@ select --p.ChID,
 	left join r_ProdMP pmp2 on pmp2.ProdID=p.ProdID and pmp2.PLID=1
 	left join it_DiscPlanD dpd on dpd.ProdID=p.ProdID and GETDATE()<=dpd.EDate+' 23:59:59'
 	left join r_Discs dss on dss.DiscCode=dpd.DiscCode
-	where p.prodID>0
-		--and (dpd3.ProdID is Not NULL or dpd6.ProdID is Not NULL or dpd9.ProdID is Not NULL)	--and p.ProdID in (1023,1051,1052,1071)
-		--p.Note3='983d2d11-34c0-11e4-a5db-003048d4490b'
+	where p.prodID>0 and @OnlyWithDiscount=0 or (@OnlyWithDiscount=1 and dpd.ChID is not NULL)
 	order by p.ProdID, pmq.Barcode

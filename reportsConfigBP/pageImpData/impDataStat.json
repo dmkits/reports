@@ -1,0 +1,18 @@
+{
+  "headers":[
+    {"type":"dateBox", "label":"date", "params":{"contentTableCondition":"CDATE" }}
+  ],
+  "columns":[
+    { "data": "ObjName", "name": "ObjName", "type": "text", "width": 200 },
+    { "data": "ErrCount", "name": "Errors", "type": "numeric", "language": "ru-RU", "width": 70, "align":"center" },
+    { "data": "ZCount", "name": "Not applied", "type": "numeric", "language": "ru-RU", "width": 70, "align":"center" },
+    { "data": "ACount", "name": "Applied", "type": "numeric", "language": "ru-RU", "width": 70, "align":"center" }
+  ],
+  "selectedRowInfo":{ "width":600,
+    "sql":"select ObjName, State, count(1) Count, MIN(CreateDate) MINCreateDate,MAX(CreateDate) MAXCreateDate, CASE State When -1 Then 'ERRORS' When 0 Then 'Not Applied' When 1 Then 'Applied' Else 'UNKNOWN' END StateName from iz_DataImport where ObjName=@ObjName /*and CreateDate between CONVERT(datetime,@CDATE+' 00:00:00') and CONVERT(datetime,@CDATE+' 23:59:59')*/ group by ObjName, State order by ObjName, State",
+    "sqlParamFieldName":"ObjName", "resultType":"items", "resultColumns":["ObjName","StateName","Count","MINCreateDate","MAXCreateDate"]
+  },
+  "totals":[
+    {"type":"rowCount", "label":"ИТОГО строк:"}
+  ]
+}

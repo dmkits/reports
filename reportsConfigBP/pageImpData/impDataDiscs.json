@@ -1,6 +1,10 @@
 {
   "headers":[
-    {"type":"dateBox", "label":"date", "params":{"contentTableCondition":"CDATE" }}
+    {"type":"dateBox", "label":"date", "params":{"contentTableCondition":"CDATE" }},
+    { "type":"checkButton", "label":"All data", "params":{"contentTableConditions":{"State":"all"}} },
+    { "type":"checkButton", "label":"Error data", "params":{"contentTableConditions":{"State":"-1"}} },
+    { "type":"checkButton", "label":"Not applied data", "params":{"contentTableConditions":{"State":"0"}} },
+    { "type":"checkButton", "label":"Applied data", "params":{"contentTableConditions":{"State":"1"}} }
   ],
   "columns":[
     { "data": "CHID", "name": "CHID", "type": "numeric", "language": "ru-RU", "width": 70, "align":"right" },
@@ -12,9 +16,9 @@
     { "data": "Msg", "name": "Msg", "type": "text", "width": 500 },
     { "data": "NameAkc", "name": "NameAkc", "type": "text", "width": 150 }
   ],
-  "selectedRowInfo":{
+  "selectedRowInfo":{ "width":500,
     "sql":"select * from iz_DataImportValues where CHID=@CHID order by DataName",
-    "sqlParamFieldName":"CHID", "resultType":"items"
+    "sqlParamFieldName":"CHID", "resultType":"items", "resultColumns":["DataName","DataVal"]
   },
   "totals":[
     {"type":"rowCount", "label":"ИТОГО строк:"}

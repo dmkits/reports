@@ -1,0 +1,27 @@
+{
+   "headers":[
+    { "type":"checkButton", "label":"Only with persons", "params":{"contentTableConditions":{"OnlyWithPersons":1}} },
+    { "type":"checkButton", "label":"All DCards", "params":{"contentTableConditions":{"OnlyWithPersons":0}} },
+    { "type":"checkButton", "label":"Without persons", "params":{"contentTableConditions":{"OnlyWithPersons":-1}} }
+   ],
+   "columns":[
+       { "data": "DCardID", "name":"DCard barcode", "type": "text", "width": 100, "align":"center" },
+       { "data": "Notes", "name": "DC Notes", "type": "text", "width": 100, "align":"center"  },
+       { "data": "DCUID", "name": "DC UID", "type": "text", "width": 120, "align":"center"  },
+       { "data": "PersonName", "name": "Person Name", "type": "text", "width": 200 },
+       { "data": "PhoneHome", "name": "Phone Home", "type": "text", "width": 150, "align":"center"  },
+       { "data": "PersonUID", "name": "Person UID", "type": "text", "width": 120, "align":"center"  },
+       { "data": "PLName", "name": "PL Name", "type": "text", "width": 100, "align":"center"  },
+       { "data": "PersonDiscountTypeName", "name": "Person Discount Type Name", "type": "text", "width": 100, "align":"center"  }
+       /*{ "data":"date", "name":"Date", "width":70, "type":"text", "datetimeFormat":"DD.MM.YYYY", "align":"center" },
+       { "data":"qty", "name":"Qty", "width":70, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.0[########]", "align":"center" },
+       { "data":"sum1", "name":"SUM1", "width":95, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.00[#######]", "align":"right" }*/
+   ],
+  "selectedRowInfo":{ "width":600,
+    "sql":"select pd.PersonDiscountTypeID,pdt.PersonDiscountTypeName as 'Discount Type',pd.PGrID3,pg3.PGrName3,pg3.PGOrder,pg3.lottery from ir_PersonsDiscounts pd,ir_PersonDiscountTypes pdt,r_ProdG3 pg3 where pdt.PersonDiscountTypeID=pd.PersonDiscountTypeID and pd.PGrID3=pg3.PGrID3",
+    "sqlParamFieldName":"PersonDiscountTypeID", "resultType":"items", "resultColumns":["Discount Type","PGrID3","PGrName3","PGOrder","lottery"]
+  },
+   "totals":[
+       {"type":"rowCount", "label":"ИТОГО строк:"}
+   ]
+}

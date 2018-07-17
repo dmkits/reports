@@ -62,11 +62,11 @@ define(["dojo/_base/declare", "dijit/layout/BorderContainer", "dijit/layout/Layo
             //createTopContentPane: function(){
             //
             //},
-
-            addTableTo: function(node, style){
+            addTableTo: function(node, style, styleClass){
                 var table = document.createElement("table");
                 if (!style) style="";
                 table.setAttribute("style","width:100%;height:100%;"+style);
+                if(styleClass)table.setAttribute("class",styleClass);
                 node.appendChild(table);
                 var tableBody = document.createElement("tbody");
                 table.appendChild(tableBody);
@@ -102,15 +102,25 @@ define(["dojo/_base/declare", "dijit/layout/BorderContainer", "dijit/layout/Layo
             //    tableRow.insertBefore(tableCell, tableRow.lastChild);
             //    return tableCell;
             //},
-            addLeftCellToTableRow: function(tableRow, width, style){
-                if (tableRow.children.length===0) {
-                    var tableCellEmpty = document.createElement("td");
-                    tableRow.appendChild(tableCellEmpty);
-                }
+            crTableCell: function(width, style, content){
                 var tableCell = document.createElement("td");
                 if (width!=undefined) tableCell.setAttribute("width", width+"px");
                 if (!style) style="";
                 tableCell.setAttribute("style", "white-space:nowrap;"+style);
+                if (content) tableCell.innerHTML= content;
+                return tableCell;
+            },
+            addCellToTableRow: function(tableRow, width, style, content){
+                var tableCell=this.crTableCell(width, style, content);
+                tableRow.appendChild(tableCell);
+                return tableCell;
+            },
+            addLeftCellToTableRow: function(tableRow, width, style, content){
+                if (tableRow.children.length===0) {
+                    var tableCellEmpty = document.createElement("td");
+                    tableRow.appendChild(tableCellEmpty);
+                }
+                var tableCell=this.crTableCell(width, style, content);
                 tableRow.insertBefore(tableCell, tableRow.lastChild);
                 return tableCell;
             },

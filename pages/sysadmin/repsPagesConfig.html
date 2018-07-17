@@ -10,7 +10,7 @@
         <table width="100%">
             <tr>
                 <td width="200px;">
-                    <div id="filename"></div>
+                    <div id="actionBtnName"></div>
                 </td>
                 <td align="center">
                     <table id="sqlParamsTable"></table>
@@ -73,10 +73,10 @@
                 var displayFileContentJSON = document.getElementById("jsonDisplayContent");
                 var displayQueryResultSQl = document.getElementById("sqlDisplayResult");
 
-                detailContentSQL.addButtonTo = function (parent, htmlId, fileName) {
-                    var button = APP.childFor(parent, htmlId, Button, {filename: fileName, label: htmlId});
+                detailContentSQL.addButtonTo = function (parent, htmlId, actionBtnName) {
+                    var button = APP.childFor(parent, htmlId, Button, {actionBtnName: actionBtnName, label: htmlId});
                     button.onClick = function () {
-                        detailContentSQL.showRequestSqlText(this.filename)
+                        detailContentSQL.showRequestSqlText(this.actionBtnName)
                     };
                     button.domNode.firstChild.setAttribute("style", "width:170px;");
                 };
@@ -89,20 +89,14 @@
                     displayFileContentJSON.value ="" ;
                     var childrenList=leftContentSQL.getChildren();
                     if (childrenList.length > 1) {
-                        for(var i in childrenList){
-                            if(childrenList[i].id!=="pagesConfig"){
-                                childrenList[i].destroy(false);
-                            }
-                        }
+                        for(var i in childrenList)
+                            if(childrenList[i].id!=="pagesConfig") childrenList[i].destroy(false);
                     }
-
                     var paramsList=document.getElementById('sqlParamsTable');
-                    while (paramsList.firstChild) {
-                        paramsList.removeChild(paramsList.firstChild);
-                    }
+                    while (paramsList.firstChild)  paramsList.removeChild(paramsList.firstChild);
                     Request.getJSONData({url: "/sysadmin/repsPagesConfig/getReportsConfig"},
                         function (result) {
-                            document.getElementById("filename").innerHTML = "pagesConfig";
+                            document.getElementById("actionBtnName").innerHTML = "pagesConfig";
                             displayFileContentJSON.value = result.fileContent;
                             var items=result.items;
                             for (var i in items) {
@@ -120,15 +114,15 @@
                 var confirmDialog = new ConfirmDialog({content: "Сохранить изменеия в файл?"});
                 var inputParamsList = [];
 
-                detailContentSQL.showRequestSqlText = function (filename) {
+                detailContentSQL.showRequestSqlText = function (actionBtnName) {
                     displayFileContentSQL.value ="" ;
                     displayFileContentJSON.value ="" ;
-                    Request.getJSONData({url: "/sysadmin/repsPagesConfig/getReportConfig", condition: "filename=" + filename},
+                    Request.getJSONData({url: "/sysadmin/repsPagesConfig/getReportConfig", condition: "actionBtnName=" + actionBtnName},
                         function (data) {
                             if(data.sqlText) displayFileContentSQL.value = data.sqlText;
                             if(data.jsonText)displayFileContentJSON.value = data.jsonText;
                             displayQueryResultSQl.innerHTML = "";
-                            document.getElementById("filename").innerHTML = filename;
+                            document.getElementById("actionBtnName").innerHTML = actionBtnName;
                             topContentSQL.showParamsInput(data.sqlText);
                         });
                 };
@@ -209,7 +203,8 @@
                         condition += input.id + "=" + input.value;
 
                     }
-                    Request.postJSONData({url: "/sysadmin/repsPagesConfig/get_result_to_request", condition: condition, data: {text: newQueryText}},
+                    Request.postJSONData({url: "/sysadmin/repsPagesConfig/getSQLQueryResult",
+                                condition: condition, data: {text: newQueryText}},
                         function (data) {
                             displayQueryResultSQl.innerHTML = JSON.stringify(data.result);
                         });
@@ -222,11 +217,12 @@
                     confirmDialog.show();
                     confirmDialog.onExecute = function () {
                         confirmDialog.hide();
-                        var filename = document.getElementById("filename").innerText;
-                        Request.postJSONData({url: "/sysadmin/repsPagesConfig/saveReportConfig", condition: "filename=" + filename, data: {textSQL: newQueryText, textJSON:newJSONText}},
+                        var actionBtnName = document.getElementById("actionBtnName").innerText;
+                        Request.postJSONData({url: "/sysadmin/repsPagesConfig/saveReportConfig", condition: "actionBtnName=" + actionBtnName,
+                                    data: {textSQL: newQueryText, textJSON:newJSONText}},
                             function (data) {
                                 var nowSrt=moment().format('DD.MM.YYYY HH:mm:ss') +" ";
-                                var ReportIDstr= "<b> ReportID: </b>"+ filename+" ";
+                                var ReportIDstr= "<b> ReportID: </b>"+ actionBtnName+" ";
                                 var SQLsavedInfo;
                                 var JSONsavedInfo;
                                 if (data.SQLerror) SQLsavedInfo="<span style='color:red'> SQL NOT SAVED! "+data.SQLerror+"</span>";

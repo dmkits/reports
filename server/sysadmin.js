@@ -185,7 +185,7 @@ module.exports= function(app) {
         '}\n';
     app.get("/sysadmin/repsPagesConfig/getReportConfig", function (req, res) {
         var configDirectoryName=common.getConfigDirectoryName();
-        var outData={}, reportName=req.query.filename,
+        var outData={}, reportName=req.query.actionBtnName,
             pageDir= path.join(__dirname,'../'+configDirectoryName+'/'+reportName.slice(0,reportName.indexOf("."))),
             sqlFile= path.join(__dirname,'../'+configDirectoryName+'/' + reportName.replace(".","/") + ".sql"),
             jsonFile= path.join(__dirname,'../'+configDirectoryName+'/' + reportName.replace(".","/") + ".json");
@@ -213,7 +213,7 @@ module.exports= function(app) {
     });
     app.post("/sysadmin/repsPagesConfig/saveReportConfig", function (req, res) {
         var configDirectoryName  = common.getConfigDirectoryName(),
-            newQuery = req.body, reportName = req.query.filename,
+            newQuery = req.body, reportName = req.query.actionBtnName,
             outData = {}, textSQL = newQuery.textSQL, textJSON = newQuery.textJSON,
             formattedJSONText=common.getJSONWithoutComments(textJSON);
         if (textJSON) {
@@ -263,7 +263,7 @@ module.exports= function(app) {
             });
         }
     });
-    app.post("/sysadmin/repsPagesConfig/get_result_to_request", function (req, res) {
+    app.post("/sysadmin/repsPagesConfig/getSQLQueryResult", function (req, res) {
         var newQuery = req.body.text;
         database.selectParamsMSSQLQuery(newQuery, req.query,
         function(err,result){

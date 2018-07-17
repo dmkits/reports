@@ -51,36 +51,44 @@
                 };
 
                 pageContainer.addButtonTo = function (parent, id, name) {
-                    var button = new Button({id:id, label:name});
-                    button.onClick= function(){
+                    var reportButton = new Button({id:id, label:name});
+                    reportButton.onClick= function(){
                         var instance=this;
-                        if (!button.document){
+                        if (!reportButton.document){
                             var reportBaseURL='/simpleReport/'+pageID;
-                            button.document =
-                                APP.childFor(detailContainer, "simpleReport_Table"+instance.id,
-                                    TDocumentSimpleTable, {titleText:instance.label, dataURL:reportBaseURL+'/getReportDataByReportName/'+instance.id,
-                                            rightPane:{ width:350 }});
                             Request.getJSONData({url:reportBaseURL+'/getReportConfigByReportName/'+instance.id}, function(result){
                                 var reportConfigHeaders=result.headers, reportConfigTotals=result.totals,
-                                        reportConfigSelectedRowInfo=result.selectedRowInfo;
+                                        reportConfigSelectedRowInfo=result.selectedRowInfo, rightPane=null;
+                                if(reportConfigSelectedRowInfo){
+                                    var rightPaneWidth=reportConfigSelectedRowInfo.width||150;
+                                    rightPane={ width:rightPaneWidth };
+                                }
+                                reportButton.document =
+                                        APP.childFor(detailContainer, "simpleReport_Table"+instance.id,
+                                                TDocumentSimpleTable, {titleText:instance.label,
+                                                    dataURL:reportBaseURL+'/getReportDataByReportName/'+instance.id,
+                                                     rightPane:rightPane});
                                 if(reportConfigHeaders){
                                     for (var i = 0; i < reportConfigHeaders.length; i++) {
                                         var reportConfigHeaderData = reportConfigHeaders[i];
                                         if(reportConfigHeaderData.type=="selectBox")
-                                            button.document.addSelectBox(reportConfigHeaderData.label,reportConfigHeaderData.params);
+                                            reportButton.document.addSelectBox(reportConfigHeaderData.label,reportConfigHeaderData.params);
                                         if(reportConfigHeaderData.type=="dateBox")
-                                            button.document.addHeaderDateBox(reportConfigHeaderData.label,reportConfigHeaderData.params)
+                                            reportButton.document.addHeaderDateBox(reportConfigHeaderData.label,reportConfigHeaderData.params);
+                                        if(reportConfigHeaderData.type=="checkButton"){
+                                            reportButton.document.addCheckBtnCondition(reportConfigHeaderData.label,reportConfigHeaderData.params);
+                                        }
                                     }
                                 }
                                 if(reportConfigSelectedRowInfo){
                                     if(!reportConfigSelectedRowInfo.sqlParamFieldName) return;
-                                    button.document.addToolPane({title:"Detail info",
+                                    reportButton.document.addToolPane({title:"Detail info",
                                         contentTableAction:function(params){
                                             if(!params.contentTableSelectedRow){
                                                 params.thisToolPane.set("content","");
                                                 return;
                                             }
-                                            var condition={};
+                                            var condition={}, ht=params.instance, tpDN=params.thisToolPane.wipeNode.firstElementChild;
                                             condition[reportConfigSelectedRowInfo.sqlParamFieldName]=
                                                     params.contentTableSelectedRow[reportConfigSelectedRowInfo.sqlParamFieldName];
                                             if(!reportConfigSelectedRowInfo.resultType) reportConfigSelectedRowInfo.resultType="item";
@@ -89,17 +97,29 @@
                                                     function(resultItems){
                                                         if(!resultItems)return;
                                                         var innerCont="";
-                                                        if(reportConfigSelectedRowInfo.resultType=="items"){
+                                                        if(reportConfigSelectedRowInfo.resultType=="items"&&reportConfigSelectedRowInfo.resultColumns){
+                                                            while (tpDN.lastChild) tpDN.removeChild(tpDN.lastChild);
+                                                            var resultColumns=reportConfigSelectedRowInfo.resultColumns;
+                                                            var infoTable=ht.addTableTo(tpDN,"","ht_master handsontable htCore");
+                                                            var infoTableR=ht.addRowToTable(infoTable);
+                                                            for(var j=0;j<resultColumns.length;j++) {
+                                                                ht.addHeaderCellToTableRow(infoTableR,0,"",resultColumns[j]);
+                                                            }
                                                             for (var i = 0; i < resultItems.length; i++) {
                                                                 var resultItem = resultItems[i];
-                                                                innerCont+="<b>"+resultItem["DataName"]+"</b>: "+resultItem["DataVal"]+"<br>";
+                                                                var infoTableR=ht.addRowToTable(infoTable);
+                                                                for(var ij=0;ij<resultColumns.length;ij++){
+                                                                    var colName=resultColumns[ij];
+                                                                    var infoTableC=ht.addCellToTableRow(infoTableR,0,"text-align:center",resultItem[colName]);
+                                                                    infoTableC.setAttribute("class","htDimmed");
+                                                                }
                                                             }
-                                                        } else {
+                                                        } else if(reportConfigSelectedRowInfo.resultType=="item"){
                                                             for(var itemName in resultItems){
                                                                 innerCont+="<b>"+itemName+"</b>: "+resultItems[itemName]+"<br>";
                                                             }
+                                                            params.thisToolPane.set("content",innerCont);
                                                         }
-                                                        params.thisToolPane.set("content",innerCont);
                                                     });
                                         }
                                     })
@@ -108,22 +128,23 @@
                                     for(var k = 0; k < reportConfigTotals.length; k++){
                                         var reportConfigTotalData=reportConfigTotals[k];
                                         if(reportConfigTotalData.type=="rowCount"){
-                                            button.document.addTotalCountNumberBox(reportConfigTotalData.label, 140, {style:"font-weight:bold;",inputWidth:reportConfigTotalData.inputWidth/*inputStyle:"width:40px;"*/})
+                                            reportButton.document.addTotalCountNumberBox(reportConfigTotalData.label, 140, {style:"font-weight:bold;",inputWidth:reportConfigTotalData.inputWidth/*inputStyle:"width:40px;"*/})
                                         }else if(reportConfigTotalData.type=="sum"){
-                                            button.document.addTotalSumNumberTextBox(reportConfigTotalData.label,reportConfigTotalData.width, reportConfigTotalData.dataField,
+                                            reportButton.document.addTotalSumNumberTextBox(reportConfigTotalData.label,reportConfigTotalData.width, reportConfigTotalData.dataField,
                                                 {pattern:reportConfigTotalData.format,style:"font-weight:bold;", inputWidth:reportConfigTotalData.inputWidth})
                                         }
                                     }
                                 }
-                                button.document.startUp();
+                                reportButton.document.startUp();
+                                detailContainer.selectChild(reportButton.document);
                             });
-                        }
-                        detailContainer.selectChild(button.document);
+                        }else
+                            detailContainer.selectChild(reportButton.document);
                     };
-                    button.domNode.firstChild.setAttribute("style", "width:160px;");
-                    button.startup();
-                    buttonList.appendChild(button.domNode);
-                    if(!firstButton)firstButton=button;
+                    reportButton.domNode.firstChild.setAttribute("style", "width:160px;");
+                    reportButton.startup();
+                    buttonList.appendChild(reportButton.domNode);
+                    if(!firstButton)firstButton=reportButton;
                 };
                 pageContainer.createReportButtons();
                 pageContainer.layout();

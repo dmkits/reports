@@ -2,11 +2,15 @@
    "pages":[
        { "id":"pageImpData", "title":"Данные импорта из 1С", "type":"simpleReport",
            "buttons":[
+               { "id": "impDataStat",    "name": "Статистика импорта" },
                { "id": "impDataDirs",    "name": "Импорт справочников" },
                { "id": "impDataDiscsGrs",    "name": "Импорт ценовых групп" },
                { "id": "impDataDiscs",    "name": "Импорт акций" },
                {},
-               { "id": "prodsDiscs",    "name": "Акции" }
+               { "id": "prodsPriceGRs",    "name": "Скидки по ЦГ" },
+               { "id": "prodsDiscs",    "name": "Скидки по акциям" },
+               {},
+               { "id": "prodsDСs",    "name": "Дисконтные карты" }
            ]
        }
    ], 
