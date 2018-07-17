@@ -161,14 +161,25 @@ module.exports= function(app) {
         });
 
     });
-    var sqlFileTemplate="   select number=1, docdate=convert(datetime,'20180101'), name='name1', qty=123.456, sum1=234567.89 where convert(datetime,'20180101') between @BDATE and @EDATE \n"+
-        "union select number=2, docdate=convert(datetime,'20180131'), name='name 2', qty=0.456, sum1=1223456789.00 where convert(datetime,'20180101')<@BDATE \n"+
-        "union select number=3, docdate=convert(datetime,'20180301'), name='name 3', qty=9876.0, sum1=0.89 where convert(datetime,'20180101')>@EDATE \n";
+    var sqlFileTemplate=
+        "   select number=1, docdate=convert(datetime,'20180101'), name='name1', qty=123.456, sum1=234567.89 where convert(datetime,'20180101') between @BDATE and @EDATE and (@State=0 or @State=-1) \n"+
+        "union select number=2, docdate=convert(datetime,'20180101'), name='name 2', qty=0.123, sum1=1223456789.00 where convert(datetime,'20180101') between @BDATE and @EDATE and (@State=0 or @State=-1) \n"+
+        "union select number=3, docdate=convert(datetime,'20180131'), name='name 3', qty=0.12, sum1=1223456789.00 where convert(datetime,'20180131') between @BDATE and @EDATE and @State=-1 \n"+
+        "union select number=4, docdate=convert(datetime,'20180201'), name='name 4', qty=0.98, sum1=1223456789.00 where convert(datetime,'20180201') between @BDATE and @EDATE and @State=-1 \n"+
+        "union select number=5, docdate=convert(datetime,'20180210'), name='name 5', qty=0.98765, sum1=1223456789.00 where convert(datetime,'20180210') between @BDATE and @EDATE and @State=-1 \n"+
+        "union select number=6, docdate=convert(datetime,'20180701'), name='name 6', qty=10., sum1=1223456789.00 where convert(datetime,'20180701') between @BDATE and @EDATE and @State=-1 \n"+
+        "union select number=7, docdate=convert(datetime,'20180715'), name='name 7', qty=100., sum1=1223456789.00 where convert(datetime,'20180715') between @BDATE and @EDATE and @State=-1 \n"+
+        "union select number=8, docdate=convert(datetime,'20180715'), name='name 8', qty=1000., sum1=1223456789.00 where convert(datetime,'20180715') between @BDATE and @EDATE and (@State=1 or @State=-1) \n"+
+        "union select number=9, docdate=convert(datetime,'20180815'), name='name 9', qty=1000000., sum1=1223456789.00 where convert(datetime,'20180815') between @BDATE and @EDATE and (@State=1 or @State=-1) \n"+
+        "union select number=10, docdate=convert(datetime,'20180815'), name='name 10', qty=987654.0, sum1=0.89 where convert(datetime,'20180815') between @BDATE and @EDATE and (@State=1 or @State=-1) \n";
     var confFileTemplate='{\n'+
         '   "headers":[\n'+
-        '       {"type":"dateBox", "label":"c", "params":{"contentTableCondition":"BDATE", "initValueDate":"curMonthBDate"}},\n'+
-        '       {"type":"dateBox", "label":"по", "params":{"contentTableCondition":"EDATE"}},\n'+
-        '       {"type":"selectBox","label":"Склад:", "params":{"contentTableCondition":"StockID","valueItemName":"StockID", "labelItemName":"StockName", "loadDropDownURL":"/reports/getStocks"}}\n'+
+        '       { "type":"dateBox", "label":"c", "params":{"contentTableCondition":"BDATE", "initValueDate":"curMonthBDate"} },\n'+
+        '       { "type":"dateBox", "label":"по", "params":{"contentTableCondition":"EDATE"} },\n'+
+        '       { "type":"checkButton", "label":"fist", "params":{"contentTableConditions":{"State":"0"}} },\n'+
+        '       { "type":"checkButton", "label":"last", "params":{"contentTableConditions":{"State":"1"}} },\n'+
+        '       { "type":"checkButton", "label":"all", "params":{"contentTableConditions":{"State":"-1"}} }\n'+
+        '       /*{ "type":"selectBox","label":"Склад:", "params":{"contentTableCondition":"StockID","valueItemName":"StockID", "labelItemName":"StockName", "loadDropDownURL":"/reports/getStocks"} }*/\n'+
         '   ],\n'+
         '   "columns":[\n'+
         '       { "data": "number", "name": "Number", "type": "numeric", "language": "ru-RU", "width": 55, "format":"#,###,###,##0", "align":"center" },\n'+
@@ -177,6 +188,12 @@ module.exports= function(app) {
         '       { "data":"qty", "name":"Qty", "width":70, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.0[########]", "align":"center" },\n'+
         '       { "data":"sum1", "name":"SUM1", "width":95, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.00[#######]", "align":"right" }\n'+
         '   ],\n'+
+        '   "selectedRowInfo":{ "width":500,/*default width=150*/\n'+
+        '      "sql":"select Data=\'data\', Value=@number",\n'+
+        '      "sqlParamFieldName":"number", /* or "sqlParamFieldName":["number",...] */\n'+
+        '      "resultType":"items", "resultColumns":["Data","Value"]\n'+
+        '      /* or "resultType":"item" if result contains one row, without "resultColumns" */'+
+        '   },\n'+
         '   "totals":[\n'+
         '       {"type":"rowCount", "label":"ИТОГО строк:"},\n'+
         '       {"type":"sum", "label":"TOTAL Qty:", "width":900, "dataField":"qty", "format":"#,###,###,##0.#########", "inputWidth":70 },\n'+
