@@ -81,7 +81,7 @@
                                     }
                                 }
                                 if(reportConfigSelectedRowInfo){
-                                    if(!reportConfigSelectedRowInfo.sqlParamFieldName) return;
+                                    if(!reportConfigSelectedRowInfo.sqlParamFieldName&&!reportConfigSelectedRowInfo.sqlParamsFieldsNames) return;
                                     reportButton.document.addToolPane({title:"Detail info",
                                         contentTableAction:function(params){
                                             if(!params.contentTableSelectedRow){
@@ -89,8 +89,15 @@
                                                 return;
                                             }
                                             var condition={}, ht=params.instance, tpDN=params.thisToolPane.wipeNode.firstElementChild;
-                                            condition[reportConfigSelectedRowInfo.sqlParamFieldName]=
-                                                    params.contentTableSelectedRow[reportConfigSelectedRowInfo.sqlParamFieldName];
+                                            if(reportConfigSelectedRowInfo.sqlParamFieldName)
+                                                condition[reportConfigSelectedRowInfo.sqlParamFieldName]=
+                                                        params.contentTableSelectedRow[reportConfigSelectedRowInfo.sqlParamFieldName];
+                                            else if(reportConfigSelectedRowInfo.sqlParamsFieldsNames){
+                                                for(var i in reportConfigSelectedRowInfo.sqlParamsFieldsNames){
+                                                    var sqlParamFieldName=reportConfigSelectedRowInfo.sqlParamsFieldsNames[i];
+                                                    condition[sqlParamFieldName]=params.contentTableSelectedRow[sqlParamFieldName];
+                                                }
+                                            }
                                             if(!reportConfigSelectedRowInfo.resultType) reportConfigSelectedRowInfo.resultType="item";
                                             Request.getJSONData({url:reportBaseURL+"/getReportRowDataByReportName/"+instance.id,
                                                         condition:condition, resultItemName:reportConfigSelectedRowInfo.resultType},

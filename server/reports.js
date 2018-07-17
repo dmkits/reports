@@ -119,7 +119,8 @@ module.exports= function(app) {                        //    /type/repId/action/
                 return;
             }
             var pureJSONTxt=JSON.parse(common.getJSONWithoutComments(fileContentString));
-            if(!pureJSONTxt.selectedRowInfo||!pureJSONTxt.selectedRowInfo.sql||!pureJSONTxt.selectedRowInfo.sqlParamFieldName){
+            if(!pureJSONTxt.selectedRowInfo||!pureJSONTxt.selectedRowInfo.sql
+                    ||(!pureJSONTxt.selectedRowInfo.sqlParamFieldName&&!pureJSONTxt.selectedRowInfo.sqlParamsFieldsNames)){
                 res.send(outData);
                 return;
             }

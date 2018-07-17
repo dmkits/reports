@@ -10,7 +10,9 @@
                { "id": "prodsPriceGRs",    "name": "Скидки по ЦГ" },
                { "id": "prodsDiscs",    "name": "Скидки по акциям" },
                {},
-               { "id": "prodsDСs",    "name": "Дисконтные карты" }
+               { "id": "prodsDСs",    "name": "Дисконтные карты" },
+               {},
+               { "id": "test1",    "name": "test1" }
            ]
        }
    ], 

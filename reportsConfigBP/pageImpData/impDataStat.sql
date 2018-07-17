@@ -1,4 +1,4 @@
-select ObjName, SUM(ErrCount) ErrCount,SUM(ZCount) ZCount,SUM(ACount) ACount from (
+select CurDate=@CDATE, ObjName, SUM(ErrCount) ErrCount,SUM(ZCount) ZCount,SUM(ACount) ACount from (
 	select ObjName, count(1) ErrCount, ZCount=0, ACount=0
 	from iz_DataImport 
 	where State<0 and CreateDate between CONVERT(datetime,@CDATE+' 00:00:00') and CONVERT(datetime,@CDATE+' 23:59:59')
