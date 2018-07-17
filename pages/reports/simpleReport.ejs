@@ -6,7 +6,7 @@
 </head>
 <body>
 <div id="simpleReport_PageContainer" style="width:100%;height:100%;">
-    <div id="simpleReport_ContentPaneLeft" style="width:177px;height:100%; margin:0;padding:0;">
+    <div id="simpleReport_ContentPaneLeft" style="width:150px;height:100%; margin:0;padding:0;">
         <table>
             <tr><th>Отчеты</th></tr>
             <tr><td id="simpleReport_buttonList"></td></tr>
@@ -141,7 +141,7 @@
                         }else
                             detailContainer.selectChild(reportButton.document);
                     };
-                    reportButton.domNode.firstChild.setAttribute("style", "width:160px;");
+                    reportButton.domNode.firstChild.setAttribute("style", "width:134px;");
                     reportButton.startup();
                     buttonList.appendChild(reportButton.domNode);
                     if(!firstButton)firstButton=reportButton;
