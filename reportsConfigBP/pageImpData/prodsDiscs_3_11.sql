@@ -16,7 +16,7 @@ select --p.ChID,
 	left join t_PInP pip on pip.ProdID=p.ProdID and pip.PPID=0
 	left join r_ProdMP pmp1 on pmp1.ProdID=p.ProdID and pmp1.PLID=0
 	left join r_ProdMP pmp2 on pmp2.ProdID=p.ProdID and pmp2.PLID=1
-	left join it_DiscPlanD dpd on dpd.ProdID=p.ProdID and GETDATE()<=dpd.EDate+' 23:59:59'
+	left join it_DiscPlanD dpd on dpd.ProdID=p.ProdID and dpd.DiscCode Not in (12,13,14) and GETDATE()<=dpd.EDate+' 23:59:59'
 	left join r_Discs dss on dss.DiscCode=dpd.DiscCode
 	where p.prodID>0 and (@OnlyWithDiscount=0 or (@OnlyWithDiscount=1 and dpd.ChID is not NULL) or (@OnlyWithDiscount=-1 and dpd.ChID is NULL))
 	order by p.ProdID, pmq.Barcode

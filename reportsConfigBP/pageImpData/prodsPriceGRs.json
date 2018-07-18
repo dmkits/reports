@@ -1,7 +1,8 @@
 {
   "headers":[
     { "type":"checkButton", "label":"Only with discount", "params":{"contentTableConditions":{"OnlyWithDiscount":1}} },
-    { "type":"checkButton", "label":"All products", "params":{"contentTableConditions":{"OnlyWithDiscount":0}} }
+    { "type":"checkButton", "label":"All products", "params":{"contentTableConditions":{"OnlyWithDiscount":0}} },
+    { "type":"checkButton", "label":"Without discount", "params":{"contentTableConditions":{"OnlyWithDiscount":-1}} }
   ],
   "columns":[
     { "data": "ProdID", "name": "ProdID", "type": "numeric", "language": "ru-RU", "width": 65, "align":"right" },

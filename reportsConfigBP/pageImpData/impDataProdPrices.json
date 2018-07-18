@@ -1,0 +1,25 @@
+{
+  "headers":[
+    {"type":"dateBox", "label":"date", "params":{"contentTableCondition":"CDATE" }},
+    { "type":"checkButton", "label":"All data", "params":{"contentTableConditions":{"State":"all"}} },
+    { "type":"checkButton", "label":"Error data", "params":{"contentTableConditions":{"State":"-1"}} },
+    { "type":"checkButton", "label":"Not applied data", "params":{"contentTableConditions":{"State":"0"}} },
+    { "type":"checkButton", "label":"Applied data", "params":{"contentTableConditions":{"State":"1"}} }
+  ],
+  "columns":[
+    { "data": "CHID", "name": "CHID", "type": "numeric", "language": "ru-RU", "width": 70, "align":"right" },
+    { "data":"CreateDate", "name":"CreateDate", "width":70, "type":"text", "datetimeFormat":"DD.MM.YYYY", "align":"center" },
+    { "data":"LastUpdateDate", "name":"LastUpdateDate", "width":70, "type":"text", "datetimeFormat":"DD.MM.YYYY", "align":"center" },
+    { "data": "ObjName", "name": "ObjName", "type": "text", "width": 200 },
+    { "data":"State", "name":"State", "width":70, "type":"text", "align":"center" },
+    { "data":"AppliedDate", "name":"AppliedDate", "width":70, "type":"text", "datetimeFormat":"DD.MM.YYYY", "align":"center" },
+    { "data": "Msg", "name": "Msg", "type": "text", "width": 500 }
+  ],
+  "selectedRowInfo":{ "width":500,
+    "sql":"select * from iz_DataImportValues where CHID=@CHID order by DataName",
+    "sqlParamFieldName":"CHID", "resultType":"items", "resultColumns":["DataName","DataVal"]
+  },
+  "totals":[
+    {"type":"rowCount", "label":"ИТОГО строк:"}
+  ]
+}

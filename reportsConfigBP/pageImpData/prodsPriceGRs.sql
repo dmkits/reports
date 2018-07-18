@@ -14,6 +14,6 @@ select --p.ChID,
 	left join r_ProdMP pmp2 on pmp2.ProdID=p.ProdID and pmp2.PLID=1
 	left join ir_PersonsDiscounts pd on pd.PGrID3=p.PGrID3 --and pd.PersonDiscountTypeID=5		--select * from ir_PersonsDiscounts
 	left join ir_PersonDiscountTypes pdt on pdt.PersonDiscountTypeID=pd.PersonDiscountTypeID	--select * from ir_PersonDiscountTypes
-	where p.ProdID>0 and @OnlyWithDiscount=0 or (@OnlyWithDiscount=1 and pd.PersonDiscountTypeID is not NULL)
+	where p.ProdID>0 and (@OnlyWithDiscount=0 or (@OnlyWithDiscount=1 and pd.PersonDiscountTypeID is not NULL) or (@OnlyWithDiscount=-1 and pd.PersonDiscountTypeID is NULL))
 	order by p.ProdID, pmq.Barcode, pd.PersonDiscountTypeID
 
