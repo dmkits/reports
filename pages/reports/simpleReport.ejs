@@ -53,105 +53,130 @@
                 pageContainer.addButtonTo = function (parent, id, name) {
                     var reportButton = new Button({id:id, label:name});
                     reportButton.onClick= function(){
-                        var instance=this;
-                        if (!reportButton.document){
-                            var reportBaseURL='/simpleReport/'+pageID;
-                            Request.getJSONData({url:reportBaseURL+'/getReportConfigByReportName/'+instance.id}, function(result){
-                                var reportConfigHeaders=result.headers, reportConfigTotals=result.totals,
-                                        reportConfigSelectedRowInfo=result.selectedRowInfo, rightPane=null;
-                                if(reportConfigSelectedRowInfo){
-                                    var rightPaneWidth=reportConfigSelectedRowInfo.width||150;
-                                    rightPane={ width:rightPaneWidth };
-                                }
-                                reportButton.document =
-                                        APP.childFor(detailContainer, "simpleReport_Table"+instance.id,
-                                                TDocumentSimpleTable, {titleText:instance.label,
-                                                    dataURL:reportBaseURL+'/getReportDataByReportName/'+instance.id,
-                                                     rightPane:rightPane});
-                                if(reportConfigHeaders){
-                                    for (var i = 0; i < reportConfigHeaders.length; i++) {
-                                        var reportConfigHeaderData = reportConfigHeaders[i];
-                                        if(reportConfigHeaderData.type=="selectBox")
-                                            reportButton.document.addSelectBox(reportConfigHeaderData.label,reportConfigHeaderData.params);
-                                        if(reportConfigHeaderData.type=="dateBox")
-                                            reportButton.document.addHeaderDateBox(reportConfigHeaderData.label,reportConfigHeaderData.params);
-                                        if(reportConfigHeaderData.type=="checkButton"){
-                                            reportButton.document.addCheckBtnCondition(reportConfigHeaderData.label,reportConfigHeaderData.params);
-                                        }
-                                    }
-                                }
-                                if(reportConfigSelectedRowInfo){
-                                    if(!reportConfigSelectedRowInfo.sqlParamFieldName&&!reportConfigSelectedRowInfo.sqlParamsFieldsNames) return;
-                                    reportButton.document.addToolPane({title:"Detail info",
-                                        contentTableAction:function(params){
-                                            if(!params.contentTableSelectedRow){
-                                                params.thisToolPane.set("content","");
-                                                return;
-                                            }
-                                            var condition={}, ht=params.instance, tpDN=params.thisToolPane.wipeNode.firstElementChild;
-                                            if(reportConfigSelectedRowInfo.sqlParamFieldName)
-                                                condition[reportConfigSelectedRowInfo.sqlParamFieldName]=
-                                                        params.contentTableSelectedRow[reportConfigSelectedRowInfo.sqlParamFieldName];
-                                            else if(reportConfigSelectedRowInfo.sqlParamsFieldsNames){
-                                                for(var i in reportConfigSelectedRowInfo.sqlParamsFieldsNames){
-                                                    var sqlParamFieldName=reportConfigSelectedRowInfo.sqlParamsFieldsNames[i];
-                                                    condition[sqlParamFieldName]=params.contentTableSelectedRow[sqlParamFieldName];
-                                                }
-                                            }
-                                            if(!reportConfigSelectedRowInfo.resultType) reportConfigSelectedRowInfo.resultType="item";
-                                            Request.getJSONData({url:reportBaseURL+"/getReportRowDataByReportName/"+instance.id,
-                                                        condition:condition, resultItemName:reportConfigSelectedRowInfo.resultType},
-                                                    function(resultItems){
-                                                        if(!resultItems)return;
-                                                        var innerCont="";
-                                                        if(reportConfigSelectedRowInfo.resultType=="items"&&reportConfigSelectedRowInfo.resultColumns){
-                                                            while (tpDN.lastChild) tpDN.removeChild(tpDN.lastChild);
-                                                            var resultColumns=reportConfigSelectedRowInfo.resultColumns;
-                                                            var infoTable=ht.addTableTo(tpDN,"","ht_master handsontable htCore");
-                                                            var infoTableR=ht.addRowToTable(infoTable);
-                                                            for(var j=0;j<resultColumns.length;j++) {
-                                                                ht.addHeaderCellToTableRow(infoTableR,0,"",resultColumns[j]);
-                                                            }
-                                                            for (var i = 0; i < resultItems.length; i++) {
-                                                                var resultItem = resultItems[i];
-                                                                var infoTableR=ht.addRowToTable(infoTable);
-                                                                for(var ij=0;ij<resultColumns.length;ij++){
-                                                                    var colName=resultColumns[ij];
-                                                                    var infoTableC=ht.addCellToTableRow(infoTableR,0,"text-align:center",resultItem[colName]);
-                                                                    infoTableC.setAttribute("class","htDimmed");
-                                                                }
-                                                            }
-                                                        } else if(reportConfigSelectedRowInfo.resultType=="item"){
-                                                            for(var itemName in resultItems){
-                                                                innerCont+="<b>"+itemName+"</b>: "+resultItems[itemName]+"<br>";
-                                                            }
-                                                            params.thisToolPane.set("content",innerCont);
-                                                        }
-                                                    });
-                                        }
-                                    })
-                                }
-                                if(reportConfigTotals){
-                                    for(var k = 0; k < reportConfigTotals.length; k++){
-                                        var reportConfigTotalData=reportConfigTotals[k];
-                                        if(reportConfigTotalData.type=="rowCount"){
-                                            reportButton.document.addTotalCountNumberBox(reportConfigTotalData.label, 140, {style:"font-weight:bold;",inputWidth:reportConfigTotalData.inputWidth/*inputStyle:"width:40px;"*/})
-                                        }else if(reportConfigTotalData.type=="sum"){
-                                            reportButton.document.addTotalSumNumberTextBox(reportConfigTotalData.label,reportConfigTotalData.width, reportConfigTotalData.dataField,
-                                                {pattern:reportConfigTotalData.format,style:"font-weight:bold;", inputWidth:reportConfigTotalData.inputWidth})
-                                        }
-                                    }
-                                }
-                                reportButton.document.startUp();
-                                detailContainer.selectChild(reportButton.document);
-                            });
-                        }else
+                        if (!reportButton.document)
+                            pageContainer.createReport(pageID, detailContainer, reportButton);
+                        else
                             detailContainer.selectChild(reportButton.document);
                     };
-                    reportButton.domNode.firstChild.setAttribute("style", "width:134px;");
+                    reportButton.domNode.firstChild.setAttribute("style", "width:133px;");
                     reportButton.startup();
                     buttonList.appendChild(reportButton.domNode);
                     if(!firstButton)firstButton=reportButton;
+                };
+                pageContainer.createReport= function(pageID, detailContainer, reportButton){
+                    var reportBaseURL='/simpleReport/'+pageID;
+                    Request.getJSONData({url:reportBaseURL+'/getReportConfigByReportName/'+reportButton.id}, function(result){
+                        var reportConfigHeaders=result.headers, reportConfigTotals=result.totals,
+                                reportConfigSelectedRowInfo=result.selectedRowInfo, rightPane=null;
+                        if(reportConfigSelectedRowInfo){
+                            var rightPaneWidth=150;
+                            if(Array.isArray(reportConfigSelectedRowInfo)) {
+                                if(reportConfigSelectedRowInfo.length>0)rightPaneWidth=reportConfigSelectedRowInfo[0].width;
+                            }else rightPaneWidth=reportConfigSelectedRowInfo.width;
+                            rightPane={ width:rightPaneWidth };
+                        }
+                        var reportTable= APP.childFor(detailContainer, "simpleReport_Table"+reportButton.id,
+                                TDocumentSimpleTable,
+                                {titleText:reportButton.label, dataURL:reportBaseURL+'/getReportDataByReportName/'+reportButton.id, rightPane:rightPane});
+                        reportButton.document=reportTable;
+                        if(reportConfigHeaders){
+                            for (var i = 0; i < reportConfigHeaders.length; i++) {
+                                var reportConfigHeaderData = reportConfigHeaders[i];
+                                if(reportConfigHeaderData.type=="selectBox")
+                                    reportTable.addSelectBox(reportConfigHeaderData.label,reportConfigHeaderData.params);
+                                if(reportConfigHeaderData.type=="dateBox")
+                                    reportTable.addHeaderDateBox(reportConfigHeaderData.label,reportConfigHeaderData.params);
+                                if(reportConfigHeaderData.type=="checkButton"){
+                                    reportTable.addCheckBtnCondition(reportConfigHeaderData.label,reportConfigHeaderData.params);
+                                }
+                            }
+                        }
+                        if(reportConfigSelectedRowInfo){
+                            var reportConfigSelRowInfoA=[];
+                            if(Array.isArray(reportConfigSelectedRowInfo)) reportConfigSelRowInfoA=reportConfigSelectedRowInfo;
+                            else reportConfigSelRowInfoA.push(reportConfigSelectedRowInfo);
+                            for(var n=0;n<reportConfigSelRowInfoA.length;n++){
+
+                                pageContainer.addDetailInfoPanel(reportButton,reportConfigSelRowInfoA[n],reportBaseURL);
+
+                            }
+                        }
+                        if(reportConfigTotals){
+                            for(var k = 0; k < reportConfigTotals.length; k++){
+                                var reportConfigTotalData=reportConfigTotals[k];
+                                if(reportConfigTotalData.type=="rowCount"){
+                                    reportTable.addTotalCountNumberBox(reportConfigTotalData.label, 140,
+                                            {style:"font-weight:bold;",inputWidth:reportConfigTotalData.inputWidth/*inputStyle:"width:40px;"*/})
+                                }else if(reportConfigTotalData.type=="sum"){
+                                    reportTable.addTotalSumNumberTextBox(reportConfigTotalData.label,reportConfigTotalData.width, reportConfigTotalData.dataField,
+                                            {pattern:reportConfigTotalData.format,style:"font-weight:bold;", inputWidth:reportConfigTotalData.inputWidth})
+                                }
+                            }
+                        }
+                        reportTable.startUp();
+                        detailContainer.selectChild(reportTable);
+                    });
+                };
+                pageContainer.addDetailInfoPanel= function(reportButton, reportConfigSelRowInfo, reportBaseURL){
+                    if(!reportConfigSelRowInfo.sqlParamFieldName&&!reportConfigSelRowInfo.sqlParamsFieldsNames) return;
+                    reportButton.document.addToolPane({title:reportConfigSelRowInfo.title||"Detail info",
+                        contentTableAction:function(params){
+                            if(!params.contentTableSelectedRow){
+                                params.thisToolPane.set("content","");
+                                return;
+                            }
+                            var condition={}, ht=params.instance, tpDN=params.thisToolPane.wipeNode.firstElementChild;
+                            if(reportConfigSelRowInfo.sqlParamFieldName)
+                                condition[reportConfigSelRowInfo.sqlParamFieldName]=
+                                        params.contentTableSelectedRow[reportConfigSelRowInfo.sqlParamFieldName];
+                            else if(reportConfigSelRowInfo.sqlParamsFieldsNames){
+                                for(var i in reportConfigSelRowInfo.sqlParamsFieldsNames){
+                                    var sqlParamFieldName=reportConfigSelRowInfo.sqlParamsFieldsNames[i];
+                                    condition[sqlParamFieldName]=params.contentTableSelectedRow[sqlParamFieldName];
+                                }
+                            }
+                            if(!reportConfigSelRowInfo.resultType) reportConfigSelRowInfo.resultType="item";
+                            var addURL="/"+reportConfigSelRowInfo.id||"";
+                            Request.getJSONData({url:reportBaseURL+"/getReportRowDataByReportName/"+reportButton.id+addURL,
+                                        condition:condition, resultItemName:reportConfigSelRowInfo.resultType},
+                                    function(resultItems){
+                                        if(!resultItems)return;
+                                        var innerCont="";
+                                        if(reportConfigSelRowInfo.resultType=="items"&&reportConfigSelRowInfo.resultColumns){
+                                            while (tpDN.lastChild) tpDN.removeChild(tpDN.lastChild);
+                                            var resultColumns=reportConfigSelRowInfo.resultColumns;
+                                            var tableDIV1 = document.createElement("div");
+//                                            tableDIV1.setAttribute("class","ht_master handsontable");////
+                                            //tableDIV1.setAttribute("style","position: relative; overflow: visible;");////
+//                                            var tableDIV2 = document.createElement("div");
+//                                            tableDIV1.appendChild(tableDIV2);
+                                            //tableDIV2.setAttribute("class","wtHolder");////wtSpreader
+                                            //tableDIV2.setAttribute("style","position: relative; width: 100%; height: 100%;");////
+                                            var infoTable=ht.addTableTo(tableDIV1,"","handsontable htCore");//
+                                            var infoTableR=ht.addRowToTable(infoTable);
+                                            for(var j=0;j<resultColumns.length;j++) {
+                                                var infoTableHC=ht.addHeaderCellToTableRow(infoTableR,undefined,"",resultColumns[j]);
+                                                infoTableHC.setAttribute("class","");//relative
+                                            }
+                                            for (var i = 0; i < resultItems.length; i++) {
+                                                var resultItem = resultItems[i];
+                                                var infoTableR=ht.addRowToTable(infoTable);
+                                                for(var ij=0;ij<resultColumns.length;ij++){
+                                                    var colName=resultColumns[ij];
+                                                    var infoTableC=ht.addCellToTableRow(infoTableR,undefined,"text-align:center",resultItem[colName]);
+                                                    infoTableC.setAttribute("class","htDimmed");
+                                                }
+                                            }
+                                            params.thisToolPane.set("content",tableDIV1);
+                                        } else if(reportConfigSelRowInfo.resultType=="item"){
+                                            for(var itemName in resultItems){
+                                                innerCont+="<b>"+itemName+"</b>: "+resultItems[itemName]+"<br>";
+                                            }
+                                            params.thisToolPane.set("content",innerCont);
+                                        }
+                                    });
+                        }
+                    })
                 };
                 pageContainer.createReportButtons();
                 pageContainer.layout();

@@ -22,10 +22,20 @@
   "groupRows":{
     "columnKeyFieldName":"PersonDiscountTypeID", "columnNameFieldName":"PersonDiscountTypeName", "dataFieldName":"PersonsDiscount"
   },
-  "selectedRowInfo":{ "width":350,
-    "sql":"select p.ProdID,p.ProdName,p.UM,p.InRems,p.Notes,p.Article1,p.Article2,p.Article3,p.Note3,p.PGrID3,pg3.PGrName3 from r_Prods p,r_ProdG3 pg3 where pg3.PGrId3=p.PGrID3 and p.ProdID=@ProdID",
-    "sqlParamFieldName":"ProdID", "resultType":"item"
-  },
+  "selectedRowInfo":[
+    { "id":"curDiscsInfo", "width":450, "title":"Current discounts info",
+      "sql":"select m.DiscCode,d.DiscName,m.DocID,convert(varchar(20),m.BDate,104) BDate,convert(varchar(20),m.EDate,104) EDate, m.ProdID,m.UM,m.ParamL ParL,m.ParamN ParN,m.Discount Disc,m.PLID,pl.PLName from it_DiscPlanD m left join r_Discs d on d.DiscCode=m.DiscCode left join r_PLs pl on pl.PLID=m.PLID where ProdID=@ProdID and dbo.zf_GetDate(GETDATE()) between m.BDate and m.EDate order by m.DiscCode,m.DocID",
+      "sqlParamFieldName":"ProdID", "resultType":"items", "resultColumns":["ProdID","DiscName","DocID","BDate","EDate","Disc","ParL","ParN","PLName"]
+    },
+    { "id":"allDiscsInfo", "width":450, "title":"ALL discounts info",
+      "sql":"select m.DiscCode,d.DiscName,m.DocID,convert(varchar(20),m.BDate,104) BDate,convert(varchar(20),m.EDate,104) EDate, m.ProdID,m.UM,m.ParamL ParL,m.ParamN ParN,m.Discount Disc,m.PLID,pl.PLName from it_DiscPlanD m left join r_Discs d on d.DiscCode=m.DiscCode left join r_PLs pl on pl.PLID=m.PLID where ProdID=@ProdID order by m.DiscCode,m.DocID",
+      "sqlParamFieldName":"ProdID", "resultType":"items", "resultColumns":["ProdID","DiscName","DocID","BDate","EDate","Disc","ParL","ParN","PLName"]
+    },
+    { "id":"prodInfo", "width":450,
+      "sql":"select p.ProdID,p.ProdName,p.UM,p.InRems,p.Notes,p.Article1,p.Article2,p.Article3,p.Note3,p.PGrID3,pg3.PGrName3 from r_Prods p,r_ProdG3 pg3 where pg3.PGrId3=p.PGrID3 and p.ProdID=@ProdID",
+      "sqlParamFieldName":"ProdID", "resultType":"item"
+    }
+  ],
   "totals":[
     {"type":"rowCount", "label":"ИТОГО строк:"}
   ]

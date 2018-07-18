@@ -63,7 +63,6 @@ input {
     position: absolute; left: 0; top: 0; right: 0; bottom: 0;
     margin: 1px; padding: 0;
 }
-
 #main_TopContainer{
     height: 62px;
     margin: 0; padding: 0;
@@ -103,4 +102,5 @@ input {
     /*background-image: url (../icons/profits32x32.jpg);*/
 }
 .mainContent{
+    font-size : 11px;
 }

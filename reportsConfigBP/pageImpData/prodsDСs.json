@@ -18,7 +18,7 @@
        { "data":"sum1", "name":"SUM1", "width":95, "type":"numeric", "language":"ru-RU", "format":"#,###,###,##0.00[#######]", "align":"right" }*/
    ],
   "selectedRowInfo":{ "width":600,
-    "sql":"select pd.PersonDiscountTypeID,pdt.PersonDiscountTypeName as 'Discount Type',pd.PGrID3,pg3.PGrName3,pg3.PGOrder,pg3.lottery from ir_PersonsDiscounts pd,ir_PersonDiscountTypes pdt,r_ProdG3 pg3 where pdt.PersonDiscountTypeID=pd.PersonDiscountTypeID and pd.PGrID3=pg3.PGrID3",
+    "sql":"select pd.PersonDiscountTypeID,pdt.PersonDiscountTypeName as 'Discount Type',pd.PGrID3,pg3.PGrName3,pg3.PGOrder,pg3.lottery from ir_PersonsDiscounts pd,ir_PersonDiscountTypes pdt,r_ProdG3 pg3 where pdt.PersonDiscountTypeID=pd.PersonDiscountTypeID and pd.PGrID3=pg3.PGrID3 and pd.PersonDiscountTypeID=@PersonDiscountTypeID",
     "sqlParamFieldName":"PersonDiscountTypeID", "resultType":"items", "resultColumns":["Discount Type","PGrID3","PGrName3","PGOrder","lottery"]
   },
    "totals":[

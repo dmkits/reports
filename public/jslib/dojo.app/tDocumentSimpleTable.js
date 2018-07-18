@@ -384,7 +384,6 @@ define(["dojo/_base/declare", "dojo.app/app", "dojo.app/tDocumentBase","dijit/fo
                 if (params.contentTableAction) actionsTitlePane.contentTableAction = params.contentTableAction;
                 if (!this.toolPanes) this.toolPanes= [];
                 this.toolPanes.push(actionsTitlePane);
-                this.addTableTo(actionsTitlePane.containerNode);
                 return this;
             },
             callToolPanesContentTableActions: function(firstSelectedRowData){

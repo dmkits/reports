@@ -16,8 +16,8 @@
     { "data": "Msg", "name": "Msg", "type": "text", "width": 500 }
   ],
   "selectedRowInfo":{ "width":500,
-    "sql":"select * from iz_DataImportValues where CHID=@CHID order by DataName",
-    "sqlParamFieldName":"CHID", "resultType":"items", "resultColumns":["DataName","DataVal"]
+      "sql":"select * from iz_DataImportValues where CHID=@CHID order by DataName",
+      "sqlParamFieldName":"CHID", "resultType":"items", "resultColumns":["DataName","DataVal"]
   },
   "totals":[
     {"type":"rowCount", "label":"ИТОГО строк:"}

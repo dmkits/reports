@@ -7,17 +7,17 @@ require('ejs');
 
 module.exports= function(app) {                        //    /type/repId/action/repName
     app.get("/simpleReport/*", function(req, res){
-        var paramsArray=req.params[0].split('/'), pageID;
-        if(paramsArray.length>0) pageID=paramsArray[0];
-        if(paramsArray.length==1){
+        var urlParams=req.params[0].split('/'), pageID;
+        if(urlParams.length>0) pageID=urlParams[0];
+        if(urlParams.length==1){
             res.render(path.join(__dirname, '../pages/reports', 'simpleReport.ejs'),{pageID:pageID});
             return;
         }
-        if(paramsArray<2){
+        if(urlParams<2){
             res.send({error:"Unknown request!"});
             return;
         }
-        var action=paramsArray[1];
+        var action=urlParams[1];
         if(action=="getReportsList"){
             var outData={};
             var configDirectoryName=common.getConfigDirectoryName();
@@ -30,7 +30,7 @@ module.exports= function(app) {                        //    /type/repId/action/
                 res.send(outData);
                 return;
             }
-            var pageId=paramsArray[0];
+            var pageId=urlParams[0];
             var pages=pagesConfig.pages;
             for(var i in pages)
                 if(pages[i].id==pageId){
@@ -40,11 +40,11 @@ module.exports= function(app) {                        //    /type/repId/action/
             res.send(outData);
             return;
         }
-        if(paramsArray<3){
+        if(urlParams<3){
             res.send({error:"Unknown request!"});
             return;
         }
-        var reportID=paramsArray[2];
+        var reportID=urlParams[2];
         if(action=="getReportConfigByReportName"){
             var configDirectoryName=common.getConfigDirectoryName();
             var outData={};
@@ -63,8 +63,7 @@ module.exports= function(app) {                        //    /type/repId/action/
             res.send(outData);
             return;
         } else if(action=="getReportDataByReportName"){
-            var outData={};
-            var configDirectoryName=common.getConfigDirectoryName();
+            var outData={}, configDirectoryName=common.getConfigDirectoryName();
             try{
                 var fileContentString=fs.readFileSync(path.join(__dirname,'../'+configDirectoryName+'/'+pageID+'/'+reportID+'.json'),'utf8');
             }catch(e){
@@ -73,8 +72,8 @@ module.exports= function(app) {                        //    /type/repId/action/
                 res.send(outData);
                 return;
             }
-            var pureJSONTxt=JSON.parse(common.getJSONWithoutComments(fileContentString));
-            outData.columns=pureJSONTxt.columns;
+            var repConf=JSON.parse(common.getJSONWithoutComments(fileContentString));
+            outData.columns=repConf.columns;
             var noConditions=true;
             for (var condition in req.query) {
                 noConditions=false;
@@ -87,7 +86,7 @@ module.exports= function(app) {                        //    /type/repId/action/
             var conditions=req.query;
             var doConvertReport=false;
             if(conditions["Stock"]&&conditions["Stock"].indexOf(",">=0))doConvertReport=true;//!!!FOR 3510!!!
-            var groupRowsConfig=pureJSONTxt.groupRows;
+            var groupRowsConfig=repConf.groupRows;
             var queryStr = fs.readFileSync('./' + configDirectoryName + '/'+pageID+'/' + reportID+'.sql', 'utf8');
             database.selectParamsMSSQLQuery(queryStr,conditions,
                 function (error,recordset) {
@@ -103,7 +102,6 @@ module.exports= function(app) {                        //    /type/repId/action/
                             rowToColumnKeyField:groupRowsConfig.columnKeyFieldName,
                             rowToColumnFieldName:groupRowsConfig.columnNameFieldName,
                             columnDataFieldName:groupRowsConfig.dataFieldName});
-                        //convertReport({outData:outData, rowToColumnFieldName:"StockName", rowToColumnKeyField:"StockID", columnDataFieldName:"Qty"});
                     res.send(outData);
                 });
             return;
@@ -118,10 +116,29 @@ module.exports= function(app) {                        //    /type/repId/action/
                 res.send(outData);
                 return;
             }
-            var pureJSONTxt=JSON.parse(common.getJSONWithoutComments(fileContentString));
-            if(!pureJSONTxt.selectedRowInfo||!pureJSONTxt.selectedRowInfo.sql
-                    ||(!pureJSONTxt.selectedRowInfo.sqlParamFieldName&&!pureJSONTxt.selectedRowInfo.sqlParamsFieldsNames)){
-                res.send(outData);
+            var repConf=JSON.parse(common.getJSONWithoutComments(fileContentString));
+            var infoPanelConf=repConf.selectedRowInfo;
+            if(!infoPanelConf){
+                res.send({error:"Нет настроек для информационных панелей!"});
+                return;
+            }
+            if(Array.isArray(infoPanelConf)){
+                var infoPanelID=(urlParams.length>3)?urlParams[3]:null, infoPanelConfItemByID=null;
+                for(var n=0;n<infoPanelConf.length;n++){
+                    var infoPanelConfItem=infoPanelConf[n];
+                    if(infoPanelConfItem&&infoPanelConfItem.id===infoPanelID){
+                        infoPanelConfItemByID=infoPanelConfItem;
+                        break;
+                    }
+                }
+                infoPanelConf=infoPanelConfItemByID;
+            }
+            if(!infoPanelConf){
+                res.send({error:"Не удалось найти настройки информационнной панели!"});
+                return;
+            }
+            if(!infoPanelConf.sql||(!infoPanelConf.sqlParamFieldName&&!infoPanelConf.sqlParamsFieldsNames)){
+                res.send({error:"Не удалось найти настройки информационнной панели для обращения к БД!"});
                 return;
             }
             var noConditions=true;
@@ -134,7 +151,7 @@ module.exports= function(app) {                        //    /type/repId/action/
                 return;
             }
             var conditions=req.query;
-            database.selectParamsMSSQLQuery(pureJSONTxt.selectedRowInfo.sql,conditions,
+            database.selectParamsMSSQLQuery(infoPanelConf.sql,conditions,
                 function (error,recordset) {
                     if (error){
                         outData.error=error.message;
@@ -142,7 +159,7 @@ module.exports= function(app) {                        //    /type/repId/action/
                         res.send(outData);
                         return;
                     }
-                    if(pureJSONTxt.selectedRowInfo.resultType=="items") outData.items=recordset;
+                    if(infoPanelConf.resultType=="items") outData.items=recordset;
                     else if(recordset[0]) outData.item=recordset[0];
                     res.send(outData);
                 });
